@@ -179,6 +179,8 @@ export LD_PRELOAD=/usr/lib/libGL.so, and run quake2 again.
 Is lighting slow in OpenGL (while firing, explosions, etc.)? Disable
 multitexturing (gl_ext_multitexture 0; vid_restart).
 
+More information can be found in src/docs/.
+
 Known Bugs and Workarounds:
 ---------------------------
 Bug: Shooting the Tank Commander in the boss2 easter egg can cause Quake 2
