@@ -132,6 +132,7 @@ endif
 # For the SunRay Terminal..
 OPENWINHOME=/usr/openwin
 CORONA_BASE_DIR = whatever/src/newt/videolib
+JPEG_BASE_DIR = /usr/sfw
 
 XCFLAGS=-I$(OPENWINHOME)/include
 XLDFLAGS=$(LDFLAGS) -L$(OPENWINHOME)/lib -lX11 -lxil
@@ -152,8 +153,9 @@ XILCFLAGS=-I$(OPENWINHOME)/include
 XILLDFLAGS=-L$(OPENWINHOME)/lib -lxil
 
 ifeq ($(strip $(BUILD_QMAX)),YES)
-GLXLDFLAGS+=-ljpeg
-SDLGLLDFLAGS+=-ljpeg
+GLXCFLAGS+=-I$(JPEG_BASE_DIR)/include
+GLXLDFLAGS+=-L$(JPEG_BASE_DIR)/lib -ljpeg
+SDLGLLDFLAGS+=-L$(JPEG_BASE_DIR)/lib -ljpeg
 REF_GL_DIR = $(MOUNT_DIR)/ref_candygl
 CL_FX = cl_fxmax.c
 else
