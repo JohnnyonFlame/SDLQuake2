@@ -803,11 +803,11 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 	{
 		int red_bits, blue_bits, green_bits, depth_bits, alpha_bits;
 
-		glXGetConfig(dpy, visinfo, GLX_RED_SIZE, &red_bits);
-		glXGetConfig(dpy, visinfo, GLX_BLUE_SIZE, &blue_bits);
-		glXGetConfig(dpy, visinfo, GLX_GREEN_SIZE, &green_bits);
-		glXGetConfig(dpy, visinfo, GLX_DEPTH_SIZE, &depth_bits);
-		glXGetConfig(dpy, visinfo, GLX_ALPHA_SIZE, &alpha_bits);
+		qglXGetConfig(dpy, visinfo, GLX_RED_SIZE, &red_bits);
+		qglXGetConfig(dpy, visinfo, GLX_BLUE_SIZE, &blue_bits);
+		qglXGetConfig(dpy, visinfo, GLX_GREEN_SIZE, &green_bits);
+		qglXGetConfig(dpy, visinfo, GLX_DEPTH_SIZE, &depth_bits);
+		qglXGetConfig(dpy, visinfo, GLX_ALPHA_SIZE, &alpha_bits);
 
 		ri.Con_Printf(PRINT_ALL, "I: got %d bits of red\n", red_bits);
 		ri.Con_Printf(PRINT_ALL, "I: got %d bits of blue\n", blue_bits);
@@ -821,7 +821,7 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 	{
 		int stencil_bits;
 
-		if (!glXGetConfig(dpy, visinfo, GLX_STENCIL_SIZE, &stencil_bits)) {
+		if (!qglXGetConfig(dpy, visinfo, GLX_STENCIL_SIZE, &stencil_bits)) {
 			ri.Con_Printf(PRINT_ALL, "I: got %d bits of stencil\n", stencil_bits);
 			if (stencil_bits >= 1) {
 				have_stencil = true;
