@@ -922,7 +922,7 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 		ri.Con_Printf(PRINT_ALL, "I: got %d bits of alpha\n", alpha_bits);
 	}
 #endif
-#ifdef 0
+#if 0
 	/* stencilbuffer shadows */
 	{
 		int stencil_bits;
