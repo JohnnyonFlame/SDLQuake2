@@ -14,7 +14,6 @@ softsdl or sdlgl drivers, or the sdlquake2 binary.
 You can change what drivers you wish to build by editing the Makefile and
 changing the BUILD_ lines at the very top.
 
-
 'make' will, by default, build both the debug and release files.
 To build fully optimized binaries: make build_release
 The resulting binaries are then put in releasei386.
@@ -82,10 +81,14 @@ snd_restart             // restart sound driver
 basedir <dir>           // point quake2 to where the data is
 gl_driver <libGL.so>    // point quake2 to your libGL
 
+
+Website:
+--------
 I'll post any updates I make at http://www.icculus.org/quake/ 
 (which currently redirects to http://www.icculus.org/~relnev/)
 
 Anonymous CVS access:
+---------------------
 cvs -d:pserver:anonymous@icculus.org:/cvs/cvsroot login
       (password is "anonymous" without the quotes.)
 cvs -z3 -d:pserver:anonymous@icculus.org:/cvs/cvsroot co quake2
@@ -98,6 +101,9 @@ TODO:
 -----
 Fix save games.
 Suggestions, anyone?
+
+v0.0.8: [XX/XX/XX] CVS
+-------
 
 v0.0.7: [12/28/01]
 -------

@@ -60,6 +60,7 @@ static Display *dpy = NULL;
 static int scrnum;
 static Window win;
 static GLXContext ctx = NULL;
+static Atom wmDeleteWindow;
 
 #define KEY_MASK (KeyPressMask | KeyReleaseMask)
 #define MOUSE_MASK (ButtonPressMask | ButtonReleaseMask | \
@@ -542,6 +543,11 @@ static void HandleEvents(void)
 			win_x = event.xconfigure.x;
 			win_y = event.xconfigure.y;
 			break;
+		
+		case ClientMessage:
+			if (event.xclient.data.l[0] == wmDeleteWindow)
+				ri.Cmd_ExecuteText(EXEC_NOW, "quit");
+			break;
 		}
 	}
 	   
@@ -612,6 +618,7 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 	XVisualInfo *visinfo;
 	XSetWindowAttributes attr;
 	XSizeHints *sizehints;
+	XWMHints *wmhints;
 	unsigned long mask;
 	int MajorVersion, MinorVersion;
 	int actualWidth, actualHeight;
@@ -738,11 +745,38 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 		sizehints->flags = PMinSize | PMaxSize | PBaseSize;
 	}
 	
+	wmhints = XAllocWMHints();
+	if (wmhints) {
+		#include "q2icon.xbm"
+
+		Pixmap icon_pixmap, icon_mask;
+		unsigned long fg, bg;
+		int i;
+		
+		fg = BlackPixel(dpy, visinfo->screen);
+		bg = WhitePixel(dpy, visinfo->screen);
+		icon_pixmap = XCreatePixmapFromBitmapData(dpy, win, (char *)q2icon_bits, q2icon_width, q2icon_height, fg, bg, visinfo->depth);
+		for (i = 0; i < sizeof(q2icon_bits); i++)
+			q2icon_bits[i] = ~q2icon_bits[i];
+		icon_mask = XCreatePixmapFromBitmapData(dpy, win, (char *)q2icon_bits, q2icon_width, q2icon_height, bg, fg, visinfo->depth); 
+	
+		wmhints->flags = IconPixmapHint|IconMaskHint;
+		wmhints->icon_pixmap = icon_pixmap;
+		wmhints->icon_mask = icon_mask;
+	}
+
 	XSetWMProperties(dpy, win, NULL, NULL, NULL, 0,
-			sizehints, None, None);
+			sizehints, wmhints, None);
 	if (sizehints)
 		XFree(sizehints);
-
+	if (wmhints)
+		XFree(wmhints);
+	
+	XStoreName(dpy, win, "Quake II");
+	
+	wmDeleteWindow = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
+	XSetWMProtocols(dpy, win, &wmDeleteWindow, 1);
+	
 	XMapWindow(dpy, win);
 
 	if (vidmode_active) {
