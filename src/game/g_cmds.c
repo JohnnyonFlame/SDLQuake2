@@ -647,7 +647,8 @@ Cmd_Kill_f
 */
 void Cmd_Kill_f (edict_t *ent)
 {
-	if((level.time - ent->client->respawn_time) < 5)
+	if((level.time - ent->client->respawn_time) < 5 || 
+	   (ent->client->resp.spectator))
 		return;
 	ent->flags &= ~FL_GODMODE;
 	ent->health = 0;
