@@ -51,6 +51,7 @@ BUILD_JOYSTICK		Build quake2 with support for SDL and Linux joysticks,
 BUILD_ARTS		Build support for the aRts sound system 
 			(src/linux/snd_arts.c) [default = NO]
 BUILD_DEDICATED		Build the quake 2 dedicated server q2ded.
+BUILD_QMAX		Build the eye-candy oriented Quame2 Max (see below)
 
 To install the Quake2 demo data:
 --------------------------------
@@ -126,6 +127,28 @@ To install the "Ground Zero" Mission Pack (Rogue):
 6. copy <cdromdir>/Data/all/pak0.pak to <installdir>/rogue/
 7. copy <cdromdir>/Data/max/Rogue/video/ to <installdir>/rogue/ (optional)
 8. when starting quake2, use "+set game rogue" on the command line
+
+To Build Quake2 Max.
+-------------------
+Quake2 Max is a set of GL improvements to the Quake2 source base by
+psychospaz, <http://modscape.telefragged.com/q2max/> the 0.25 version
+has been merged into the Quake2 for Linux source tree.  To build the 
+added visual candy:
+1. make clean
+2. set BUILD_QMAX to YES in the makefile
+3. make
+
+Please note that the resulting Quake2 binaries and video drivers are 
+incompatible with binaries and drivers built with BUILD_QMAX set to NO.
+
+For right now, the driver gets built as ref_glx.so and ref_sdlgl.so.  
+In the future this will change so that both drivers can be build in parallel.
+
+AALib Video Driver
+------------------
+The AALib video driver is written by jfedor@jfedor.org it provides text 
+rendering for Quake2.  It requires the aalib package to build, which is
+available at http://aa-project.sourceforge.net.
 
 To run:
 -------
@@ -331,6 +354,11 @@ Florent Parent
 Victor Shkamerda
 Zachary 'zakk' Slater
 Matti Valtonen
+
+v 0.13: [?/??/??]
+-----
+Added Quake2-Max GL extensions <http://modscape.telefragged.com/q2max/>
+Added aalib video renderer <http://www.jfedor.org/>
 
 v 0.12: [6/11/02]
 -----
