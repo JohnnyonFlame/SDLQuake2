@@ -824,16 +824,6 @@ void Sys_MakeCodeWriteable (unsigned long startaddr, unsigned long length)
 
 Key_Event_fp_t Key_Event_fp;
 
-void getMouse(int *x, int *y, int *state) {
-  *x = mx;
-  *y = my;
-  *state = mouse_buttonstate;
-}
-
-void doneMouse() {
-  mx = my = 0;
-}
-
 void KBD_Init(Key_Event_fp_t fp)
 {
   Key_Event_fp = fp;
