@@ -64,6 +64,10 @@ WARNING: Please do not make quake2 or any of the libraries suid root!
 NOTE: Save games will most likely not work across different versions or
 builds (this is due to how savegames were stored).
 
+Dedicated Server:
+-----------------
+If there is a demand for it, I can add support for an explicit q2ded binary.
+Else, using +set dedicated 1 should be fine.
 
 Commonly used commands:
 -----------------------
@@ -80,12 +84,25 @@ vid_restart             // restart video driver
 snd_restart             // restart sound driver
 basedir <dir>           // point quake2 to where the data is
 gl_driver <libGL.so>    // point quake2 to your libGL
+dedicated 1             // run quake2 as a dedicated server
 
+When using these commands on the quake2 command line, use +set to cause the
+variables be set before the config files are loaded (important for
+gl_driver). e.g.
+./quake2 +set vid_ref glx +set gl_driver /usr/lib/libGL.so.1
+
+If quake2 crashes when trying to load an OpenGL based driver (glx, sdlgl),
+make sure its not loading the wrong libGL.
 
 Website:
 --------
 I'll post any updates I make at http://www.icculus.org/quake/ 
 (which currently redirects to http://www.icculus.org/~relnev/)
+
+Mailing List:
+-------------
+to subscribe: send a blank email to quake2-subscribe@icculus.org
+to post: send email to quake2@icculus.org
 
 Anonymous CVS access:
 ---------------------
@@ -104,6 +121,11 @@ Suggestions, anyone?
 
 v0.0.8: [XX/XX/XX] CVS
 -------
++ SDL CD audio looping fix (Robert Bäuml)
++ ~/.quake2/<game> added to the search path for mods. (Ludwig Nussel)
++ Minor change to fix compilation with OpenGL 1.3 headers.
++ Fixed changing video drivers using the menu.
++ Fixed autoexec.cfg on startup.
 
 v0.0.7: [12/28/01]
 -------
@@ -155,5 +177,6 @@ William Aoki
 Robert Bäuml
 Ryan C. Gordon
 Ludwig Nussel
+Peter van Paassen
 Zachary 'zakk' Slater
 Matti Valtonen

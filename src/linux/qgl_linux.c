@@ -3001,16 +3001,6 @@ qboolean QGL_Init( const char *dllname )
 //		ri.Con_Printf(PRINT_ALL, "QGL_Init: Can't load %s from /etc/ld.so.conf: %s\n", 
 //				dllname, dlerror());
 
-#if 0
-		if ((fp = fopen(so_file, "r")) == NULL) {
-			ri.Con_Printf(PRINT_ALL,  "QGL_Init(\"%s\") failed: can't open %s\n", dllname, so_file);
-			return false;
-		}
-		fgets(fn, sizeof(fn), fp);
-		fclose(fp);
-		while (*fn && isspace(fn[strlen(fn) - 1]))
-			fn[strlen(fn) - 1] = 0;
-#endif
 		// try basedir next
 		path = ri.Cvar_Get ("basedir", ".", CVAR_NOSET)->string;
 		
@@ -3020,6 +3010,9 @@ qboolean QGL_Init( const char *dllname )
 			ri.Con_Printf( PRINT_ALL, "%s\n", dlerror() );
 			return false;
 		}
+		Com_Printf ("Using %s for OpenGL...", fn); 
+	} else {
+		Com_Printf ("Using %s for OpenGL...", dllname);
 	}
 
 	qglAccum                     = dllAccum = GPA( "glAccum" );
