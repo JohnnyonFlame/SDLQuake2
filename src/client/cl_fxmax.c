@@ -2713,7 +2713,7 @@ void CL_DiminishingTrail (vec3_t start, vec3_t end, centity_t *old, int flags)
 			{
 				if (flags & EF_GIB)
 				{
-					setupParticle (
+				  setupParticle (
 						0,	0,	random()*360,
 						move[0] + crand()*orgscale,	move[1] + crand()*orgscale,	move[2] + crand()*orgscale,
 						crand()*velscale,	crand()*velscale,	crand()*velscale,

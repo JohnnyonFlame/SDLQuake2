@@ -134,6 +134,7 @@ void gib_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, 
 
 void ThrowGib (edict_t *self, char *gibname, int damage, int type)
 {
+#ifdef NO_GIB
 	edict_t *gib;
 	vec3_t	vd;
 	vec3_t	origin;
@@ -178,10 +179,12 @@ void ThrowGib (edict_t *self, char *gibname, int damage, int type)
 	gib->nextthink = level.time + 10 + random()*10;
 
 	gi.linkentity (gib);
+#endif
 }
 
 void ThrowHead (edict_t *self, char *gibname, int damage, int type)
 {
+#ifndef NO_GIB
 	vec3_t	vd;
 	float	vscale;
 
@@ -223,6 +226,7 @@ void ThrowHead (edict_t *self, char *gibname, int damage, int type)
 	self->nextthink = level.time + 10 + random()*10;
 
 	gi.linkentity (self);
+#endif
 }
 
 
