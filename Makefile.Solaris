@@ -28,6 +28,8 @@ BUILD_DEDICATED=YES	# build a dedicated quake2 server
 BUILD_SOLARIS_PKG=YES	# Build a Solaris package of all of the binaries for use with pkgadd.
 BUILD_DATA_PKG=YES	# Build a Solaris package of the game (shareware or final)
 			# data files for use with pkgadd.
+BUILD_QMAX=NO		# build the fancier GL graphics
+BUILD_RETEXTURE=YES	# build a version supporting retextured graphics
 STATICSDL=NO
 
 # Other compile-time options:
@@ -70,7 +72,7 @@ RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops -malign-loops=2 \
 endif
 
 VERSION=3.21+rCVS
-PKG_VERSION=r0.15.4
+PKG_VERSION=r0.15.5
 
 MOUNT_DIR=src
 
@@ -98,7 +100,15 @@ NET_UDP=net_udp
 endif
 
 ifneq ($(ARCH),i386)
- BASE_CFLAGS+=-DC_ONLY
+	BASE_CFLAGS+=-DC_ONLY
+endif
+
+ifeq ($(strip $(BUILD_QMAX)),YES)
+	BASE_CFLAGS+=-DQMAX
+endif
+
+ifeq ($(string $(BUILD_RETEXTURE)),YES)
+	BASE_CFLAGS+=-DRETEX
 endif
 
 DEBUG_CFLAGS=$(BASE_CFLAGS) -g
@@ -140,6 +150,15 @@ CORONALDFLAGS=-L$(CORONA_BASE_DIR) -lnewtvideo
 
 XILCFLAGS=-I$(OPENWINHOME)/include
 XILLDFLAGS=-L$(OPENWINHOME)/lib -lxil
+
+ifeq ($(strip $(BUILD_QMAX)),YES)
+GLXLDFLAGS+=-ljpeg
+SDLGLLDFLAGS+=-ljpeg
+REF_GL_DIR = $(MOUNT_DIR)/ref_candygl
+CL_FX = cl_fxmax.c
+else
+CL_FX = cl_fx.c
+endif
 
 SHLIBEXT=so
 

@@ -8,6 +8,7 @@ i preinstall
 i preremove
 d none quake2 0755
 d none quake2/baseq2 0755
+f none quake2/baseq2/pak11.pak=/usr/local/src/quake2-data/quake2/baseq2/pak11.pak 0644
 f none quake2/baseq2/pak0.pak=/usr/local/src/quake2-data/quake2/baseq2/pak0.pak 0644
 d none quake2/baseq2/players 0755
 d none quake2/baseq2/players/female 0755
@@ -71,3 +72,11 @@ f none quake2/baseq2/players/male/viper.pcx=/usr/local/src/quake2-data/quake2/ba
 f none quake2/baseq2/players/male/viper_i.pcx=/usr/local/src/quake2-data/quake2/baseq2/players/male/viper_i.pcx 0644
 f none quake2/baseq2/players/male/weapon.md2=/usr/local/src/quake2-data/quake2/baseq2/players/male/weapon.md2 0644
 f none quake2/baseq2/players/male/weapon.pcx=/usr/local/src/quake2-data/quake2/baseq2/players/male/weapon.pcx 0644
+f none quake2/baseq2/pak12.pak=/usr/local/src/quake2-data/quake2/baseq2/pak12.pak 0644
+f none quake2/baseq2/pak14.pak=/usr/local/src/quake2-data/quake2/baseq2/pak14.pak 0644
+f none quake2/baseq2/pak10.pak=/usr/local/src/quake2-data/quake2/baseq2/pak10.pak 0644
+f none quake2/baseq2/pak16.pak=/usr/local/src/quake2-data/quake2/baseq2/pak16.pak 0644
+f none quake2/quake2-retexturing-mini-faq.txt=/usr/local/src/quake2-data/quake2/quake2-retexturing-mini-faq.txt 0644
+f none quake2/quake2_glx.sh=/usr/local/src/quake2-data/quake2/quake2_glx.sh 0755
+f none quake2/quake2_xil.sh=/usr/local/src/quake2-data/quake2/quake2_xil.sh 0644
+f none quake2/quake2_softx.sh=/usr/local/src/quake2-data/quake2/quake2_softx.sh 0644

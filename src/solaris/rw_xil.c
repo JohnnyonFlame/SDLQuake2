@@ -25,7 +25,7 @@
 #include "../client/keys.h"
 #include "../solaris/rw_solaris.h"
 
-#include "q2.xbm"
+#include "q2icon.xbm"
 
 
 /*****************************************************************************/
@@ -838,7 +838,7 @@ static qboolean SWimp_InitGraphics( qboolean fullscreen )
     Pixmap icon;
     XWMHints hints;
     icon = XCreateBitmapFromData( x_disp, DefaultRootWindow( x_disp ),
-				  q2_bits, q2_width, q2_height );
+				  q2icon_bits, q2icon_width, q2icon_height );
 				  /*				  BlackPixel( x_disp, DefaultScreen( x_disp ) ),
 				  WhitePixel( x_disp, DefaultScreen( x_disp ) ),
 				  1 );*/
