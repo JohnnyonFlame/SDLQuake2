@@ -69,6 +69,8 @@ void (*RW_IN_Frame_fp)(void);
 
 void Real_IN_Init (void);
 
+
+extern void	VID_MenuShutdown(void);
 /*
 ==========================================================================
 
@@ -277,6 +279,10 @@ qboolean VID_LoadRefresh( char *name )
 	ri.Vid_MenuInit = VID_MenuInit;
 	ri.Vid_NewWindow = VID_NewWindow;
 
+	#ifdef QMAX
+	ri.SetParticlePics = SetParticleImages;
+	#endif
+
 	if ( ( GetRefAPI = (void *) dlsym( reflib_library, "GetRefAPI" ) ) == 0 )
 		Com_Error( ERR_FATAL, "dlsym failed on %s", name );
 
@@ -293,6 +299,7 @@ qboolean VID_LoadRefresh( char *name )
 	in_state.Key_Event_fp = Do_Key_Event;
 	in_state.viewangles = cl.viewangles;
 	in_state.in_strafe_state = &in_strafe.state;
+	in_state.in_speed_state = &in_speed.state;
 
 	if ((RW_IN_Init_fp = dlsym(reflib_library, "RW_IN_Init")) == NULL ||
 		(RW_IN_Shutdown_fp = dlsym(reflib_library, "RW_IN_Shutdown")) == NULL ||
@@ -537,4 +544,3 @@ void Do_Key_Event(int key, qboolean down)
 {
 	Key_Event(key, down, Sys_Milliseconds());
 }
-

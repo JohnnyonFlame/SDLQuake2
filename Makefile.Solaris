@@ -71,8 +71,8 @@ RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops -malign-loops=2 \
 	-malign-jumps=2 -malign-functions=2 -g
 endif
 
-VERSION=3.21+rCVS
-PKG_VERSION=r0.15.5
+VERSION=3.21+r0.16
+PKG_VERSION=r0.16
 
 MOUNT_DIR=src
 
@@ -179,7 +179,7 @@ DO_INSTALL_DATA=$(INSTALL_DATA) $< $@
 PKG_SOLARIS_NAME=iDquake2
 PKG_DATA_NAME=iDquake2d
 BUILD_DATE :=$(shell /usr/bin/date '+%Y%m%d%H%M%S')
-PKG_MAINT_ID=coyote@step
+PKG_MAINT_ID=coyote@cojot.name
 SOLARIS_PKGFILE=$(PKG_SOLARIS_NAME)-$(BUILD_VERSION)-$(PKG_VERSION)-$(ARCH).pkg
 DATA_PKGFILE=$(PKG_DATA_NAME)-$(BUILD_VERSION)-$(PKG_VERSION)-$(ARCH).pkg
 
@@ -209,7 +209,7 @@ PKGTRANS=/usr/bin/pkgtrans
 .PHONY : targets build_debug build_release clean clean-debug clean-release clean2
 
 TARGETS=$(BUILDDIR)/quake2 $(BUILDDIR)/game$(ARCH).$(SHLIBEXT)
-PKG_TARGETS=$(PKG_BUILD_DIR)/quake2 $(PKG_BUILD_DIR)/baseq2/game$(ARCH).$(SHLIBEXT) $(PKG_BUILD_DIR)/README $(PKG_BUILD_DIR)/README.Solaris
+PKG_TARGETS=$(PKG_BUILD_DIR)/quake2 $(PKG_BUILD_DIR)/baseq2/game$(ARCH).$(SHLIBEXT) $(PKG_BUILD_DIR)/README $(PKG_BUILD_DIR)/README.Solaris $(PKG_BUILD_DIR)/q2_x11.sh $(PKG_BUILD_DIR)/q2_xil.sh $(PKG_BUILD_DIR)/q2_glx.sh
 
 ifeq ($(strip $(BUILD_DEDICATED)),YES)
  TARGETS += $(BUILDDIR)/q2ded
@@ -1730,6 +1730,15 @@ $(PKG_BUILD_DIR)/README: $(MOUNT_DIR)/../README
 
 $(PKG_BUILD_DIR)/README.Solaris: $(MOUNT_DIR)/../README.Solaris
 	$(DO_INSTALL_DATA)
+
+$(PKG_BUILD_DIR)/q2_x11.sh: $(MOUNT_DIR)/solaris/pkg/q2_x11.sh
+	$(DO_INSTALL_BIN)
+
+$(PKG_BUILD_DIR)/q2_xil.sh: $(MOUNT_DIR)/solaris/pkg/q2_xil.sh
+	$(DO_INSTALL_BIN)
+
+$(PKG_BUILD_DIR)/q2_glx.sh: $(MOUNT_DIR)/solaris/pkg/q2_glx.sh
+	$(DO_INSTALL_BIN)
 
 $(PKG_BUILD_DIR)/q2ded: $(BUILDDIR)/q2ded
 	$(DO_INSTALL_BIN)

@@ -77,6 +77,7 @@ static int keyq_tail=0;
 static int window_width;
 static int window_height;
 
+extern char display_name[];
 
 /*****************************************************************************/
 /* MOUSE                                                                     */
@@ -774,10 +775,10 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
   window_width = width;
   window_height = height;
 
-  // destroy the existing window
+  // destroy the existing window (Commented out on Mon Sep 20 15:09:02 MEST 2004)
   GLimp_Shutdown ();
 
-  if (!(dpy = XOpenDisplay(NULL))) {
+  if (!(dpy = XOpenDisplay(display_name))) {
     fprintf(stderr, "Error couldn't open the X display\n");
     return rserr_invalid_mode;
   }
@@ -878,17 +879,31 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 */
 void GLimp_Shutdown( void )
 {
-  if (dpy) {
-    if (ctx)
-      qglXDestroyContext(dpy, ctx);
-    if (win)
-      XDestroyWindow(dpy, win);
-    XCloseDisplay(dpy);
-  }
-  ctx = NULL;
-  dpy = NULL;
-  win = 0;
-  ctx = NULL;
+	uninstall_grabs();
+	mouse_active = false;
+#ifdef __linux__
+	dgamouse = false;
+#endif
+
+	if (dpy) {
+		if (ctx)
+			qglXDestroyContext(dpy, ctx);
+		if (win)
+			XDestroyWindow(dpy, win);
+		XUngrabKeyboard(dpy, CurrentTime);
+		XCloseDisplay(dpy);
+	}
+	ctx = NULL;
+	dpy = NULL;
+	win = 0;
+/*	
+	qglXChooseVisual             = NULL;
+	qglXCreateContext            = NULL;
+	qglXDestroyContext           = NULL;
+	qglXMakeCurrent              = NULL;
+	qglXCopyContext              = NULL;
+	qglXSwapBuffers              = NULL;
+*/	
 }
 
 /*
@@ -912,7 +927,7 @@ int GLimp_Init( void *hinstance, void *wndproc )
 		qglXSwapBuffers              =  GPA("glXSwapBuffers");
 		qglXGetConfig                =  GPA("glXGetConfig");
 		
-  return true;
+		return true;
 	}
 	
 	return false;
