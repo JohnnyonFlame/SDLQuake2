@@ -11,12 +11,32 @@ access to other platforms.
 Be sure to install SDL 1.2 (http://www.libsdl.org) if you want to use the
 softsdl or sdlgl drivers, or the sdlquake2 binary.
 
-You can change what drivers you wish to build by editing the Makefile and
-changing the BUILD_ lines at the very top.
-
 'make' will, by default, build both the debug and release files.
 To build fully optimized binaries: make build_release
 The resulting binaries are then put in releasei386.
+
+
+Makefile options:
+-----------------
+(quake2 and gamei386.so are always built, but the following options can be
+ changed by editing the Makefile)
+BUILD_SDLQUAKE2		Build sdlquake2, a quake2 binary that uses SDL for
+                        CD audio and sound access (default = YES).
+BUILD_SVGA              Build ref_soft.so, a quake2 video driver that uses
+                        SVGAlib (default = NO).
+BUILD_X11               Build ref_softx.so, a quake2 video driver that uses
+                        X11 (default = YES).
+BUILD_GLX               Build ref_glx.so, a quake2 video driver that uses
+                        X11's GLX (default = YES).
+BUILD_FXGL              Build ref_gl.so [might be renamed to fxgl later], 
+                        a quake2 video driver that uses fxMesa (default =
+                        NO).  This option is currently untested because I do 
+                        not have a Voodoo 1 or 2.
+BUILD_SDL               Build ref_softsdl.so, a quake2 video driver that
+                        uses SDL (default = YES).
+BUILD_SDLGL             Build ref_sdlgl.so, a quake2 video driver that uses
+                        OpenGL with SDL (default = YES).
+BUILD_CTFDLL            Build the Threewave CTF gamei386.so (default = NO).
 
 
 To install the Quake2 gamedata:
@@ -68,6 +88,10 @@ Dedicated Server:
 -----------------
 If there is a demand for it, I can add support for an explicit q2ded binary.
 Else, using +set dedicated 1 should be fine.
+
+Joystick Support:
+-----------------
+None yet.
 
 Commonly used commands:
 -----------------------
