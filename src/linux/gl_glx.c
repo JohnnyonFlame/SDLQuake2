@@ -426,13 +426,11 @@ static void HandleEvents(void)
     
     switch(event.type) {
     case KeyPress:
-      printf("foo\n");
       myxtime = event.xkey.time;
       if (in_state && in_state->Key_Event_fp)
 	in_state->Key_Event_fp (XLateKey(&event.xkey), true);
       break;
     case KeyRelease:
-      printf("bar\n");
       if (! X11_KeyRepeat(dpy, &event)) {
 	if (in_state && in_state->Key_Event_fp)
 	  in_state->Key_Event_fp (XLateKey(&event.xkey), false);
@@ -441,13 +439,14 @@ static void HandleEvents(void)
     case MotionNotify:
       if (mouse_active) {
 	if (dgamouse) {
-	  mx += (event.xmotion.x + win_x) * 2;
-	  my += (event.xmotion.y + win_y) * 2;
+	  mx += (event.xmotion.x + win_x);
+	  my += (event.xmotion.y + win_y);
 	} 
 	else 
 	  {
-	    mx += ((int)event.xmotion.x - mwx) * 2;
-	    my += ((int)event.xmotion.y - mwy) * 2;
+	    printf("bar\n");
+	    mx += ((int)event.xmotion.x - mwx);
+	    my += ((int)event.xmotion.y - mwy);
 	    mwx = event.xmotion.x;
 	    mwy = event.xmotion.y;
 	    
