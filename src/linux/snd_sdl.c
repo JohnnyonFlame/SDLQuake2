@@ -91,6 +91,8 @@ SNDDMA_Init (void)
 	desired.channels = (Cvar_Get("sndchannels", "2", CVAR_ARCHIVE))->value;
 	
 	if (desired.freq == 44100)
+		desired.samples = 2048;
+	else if (desired.freq == 22050)
 		desired.samples = 1024;
 	else
 		desired.samples = 512;
