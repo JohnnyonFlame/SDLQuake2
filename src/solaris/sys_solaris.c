@@ -214,6 +214,7 @@ void *Sys_GetGameAPI (void *parms)
 	char	name[MAX_OSPATH];
 	char	curpath[MAX_OSPATH];
 	char	*path;
+	char	*str_p;
 #ifdef __i386__
 	const char *gamename = "gamei386.so";
 #elif defined __sun__
@@ -240,10 +241,20 @@ void *Sys_GetGameAPI (void *parms)
 		game_library = dlopen (name, RTLD_NOW );
 		if (game_library)
 		{
-			Com_DPrintf ("LoadLibrary (%s)\n",name);
+			Com_MDPrintf ("LoadLibrary (%s)\n",name);
 			break;
-		} else
-			Com_Printf("error: %s\n", dlerror());
+		} else {
+			Com_MDPrintf("LoadLibrary (%s)\n", name);
+			
+			str_p = strchr(dlerror(), ':'); // skip the path (already shown)
+			if (str_p != NULL)
+			{
+				Com_MDPrintf (" **");
+				while (*str_p)
+					Com_MDPrintf ("%c", *(++str_p));
+				Com_MDPrintf("\n");
+			}
+		}
 	}
 
 	GetGameAPI = (void *)dlsym (game_library, "GetGameAPI");

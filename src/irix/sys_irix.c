@@ -219,6 +219,7 @@ void *Sys_GetGameAPI (void *parms)
 	char	name[MAX_OSPATH];
 	char	curpath[MAX_OSPATH];
 	char	*path;
+	char	*str_p;
 #ifdef __sgi
 	const char *gamename = "gamemips.so";
 #else
@@ -247,8 +248,19 @@ void *Sys_GetGameAPI (void *parms)
 		game_library = dlopen (name, RTLD_NOW );
 		if (game_library)
 		{
-			Com_DPrintf ("LoadLibrary (%s)\n",name);
+			Com_MDPrintf ("LoadLibrary (%s)\n",name);
 			break;
+		} else {
+			Com_MDPrintf ("LoadLibrary (%s)\n", name);
+			
+			str_p = strchr(dlerror(), ':'); // skip the path (already shown)
+			if (str_p != NULL)
+			{
+				Com_MDPrintf (" **");
+				while (*str_p)
+					Com_MDPrintf ("%c", *(++str_p));
+				Com_MDPrintf("\n");
+			}
 		}
 	}
 

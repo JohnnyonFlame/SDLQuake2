@@ -738,6 +738,7 @@ void		Com_BeginRedirect (int target, char *buffer, int buffersize, void (*flush)
 void		Com_EndRedirect (void);
 void 		Com_Printf (char *fmt, ...);
 void 		Com_DPrintf (char *fmt, ...);
+void		Com_MDPrintf (char *fmt, ...);
 void 		Com_Error (int code, char *fmt, ...);
 void 		Com_Quit (void);
 
@@ -751,6 +752,7 @@ float	frand(void);	// 0 ti 1
 float	crand(void);	// -1 to 1
 
 extern	cvar_t	*developer;
+extern	cvar_t	*modder;
 extern	cvar_t	*dedicated;
 extern	cvar_t	*host_speeds;
 extern	cvar_t	*log_stats;
