@@ -109,12 +109,12 @@ SOL8_XIL_WORKAROUND=0
 ifeq ($(SOL8_XIL_WORKAROUND),1)
 BASE_CFLAGS+= -DSOLARIS -DSUNXIL_WARNING_DISABLE -DSOL8_XIL_WORKAROUND
 RELEASE_CFLAGS=$(BASE_CFLAGS) -ffast-math -funroll-loops \
-	-fomit-frame-pointer -fexpensive-optimizations
+	-fomit-frame-pointer -fexpensive-optimizations -O4 -mcpu=v8 -mtune=ultrasparc
 #LDFLAGS=-lnsl -lsocket -ldl -lpthread -lX11 -lxil -lm -lrt
 else
 BASE_CFLAGS+= -DSOLARIS -DSUNXIL_WARNING_DISABLE
 RELEASE_CFLAGS=$(BASE_CFLAGS) -ffast-math -funroll-loops \
-	-fomit-frame-pointer -fexpensive-optimizations
+	-fomit-frame-pointer -fexpensive-optimizations -O4 -mcpu=v8 -mtune=ultrasparc
 endif
 LDFLAGS=-lnsl -lsocket -ldl -lpthread -lm -lrt
 endif
@@ -150,7 +150,7 @@ DO_CC=$(CC) $(CFLAGS) -o $@ -c $<
 DO_DED_CC=$(CC) $(CFLAGS) -DDEDICATED_ONLY -o $@ -c $<
 DO_DED_DEBUG_CC=$(CC) $(DEBUG_CFLAGS) -DDEDICATED_ONLY -o $@ -c $<
 DO_SHLIB_CC=$(CC) $(CFLAGS) $(SHLIBCFLAGS) -o $@ -c $<
-DO_GL_SHLIB_CC=$(CC) $(CFLAGS) $(SHLIBCFLAGS) $(GLCFLAGS) -o $@ -c $<
+DO_GL_SHLIB_CC=$(CC) $(CFLAGS) $(SHLIBCFLAGS) $(GLXCFLAGS) -o $@ -c $<
 DO_AS=$(CC) $(CFLAGS) -DELF -x assembler-with-cpp -o $@ -c $<
 DO_SHLIB_AS=$(CC) $(CFLAGS) $(SHLIBCFLAGS) -DELF -x assembler-with-cpp -o $@ -c $<
 DO_INSTALL_BIN=$(INSTALL_BIN) $< $@
