@@ -499,7 +499,7 @@ int GLimp_Init( void *hInstance, void *wndProc )
 }
 #endif
 
-void SetSDLIcon()
+static void SetSDLIcon()
 {
 #include "q2icon.xbm"
 	SDL_Surface *icon;
