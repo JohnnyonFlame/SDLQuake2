@@ -106,6 +106,7 @@ cvar_t	*gl_drawbuffer;
 cvar_t  *gl_driver;
 cvar_t	*gl_lightmap;
 cvar_t	*gl_shadows;
+cvar_t * gl_stencilshadow;
 cvar_t	*gl_mode;
 cvar_t	*gl_dynamic;
 cvar_t  *gl_monolightmap;
@@ -759,6 +760,8 @@ void R_SetupGL (void)
 R_Clear
 =============
 */
+extern qboolean have_stencil;
+
 void R_Clear (void)
 {
 	if (gl_ztrick->value)
@@ -795,6 +798,11 @@ void R_Clear (void)
 
 	qglDepthRange (gldepthmin, gldepthmax);
 
+	/* stencilbuffer shadows */
+	if (gl_shadows->value && have_stencil && gl_stencilshadow->value) {
+		qglClearStencil(1);
+		qglClear(GL_STENCIL_BUFFER_BIT);
+	}
 }
 
 void R_Flash( void )
@@ -1000,6 +1008,7 @@ void R_Register( void )
 	gl_mode = ri.Cvar_Get( "gl_mode", "3", CVAR_ARCHIVE );
 	gl_lightmap = ri.Cvar_Get ("gl_lightmap", "0", 0);
 	gl_shadows = ri.Cvar_Get ("gl_shadows", "0", CVAR_ARCHIVE );
+	gl_stencilshadow = ri.Cvar_Get("gl_stencilshadow", "0", CVAR_ARCHIVE);
 	gl_dynamic = ri.Cvar_Get ("gl_dynamic", "1", 0);
 	gl_nobind = ri.Cvar_Get ("gl_nobind", "0", 0);
 	gl_round_down = ri.Cvar_Get ("gl_round_down", "1", 0);

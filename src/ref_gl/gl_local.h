@@ -211,6 +211,7 @@ extern	cvar_t	*gl_mode;
 extern	cvar_t	*gl_log;
 extern	cvar_t	*gl_lightmap;
 extern	cvar_t	*gl_shadows;
+extern	cvar_t	*gl_stencilshadow;
 extern	cvar_t	*gl_dynamic;
 extern  cvar_t  *gl_monolightmap;
 extern	cvar_t	*gl_nobind;
