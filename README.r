@@ -44,7 +44,8 @@ BUILD_XATRIX            Build the Xatrix gamei386.so for the "The Reckoning"
                         Mission Pack (default = NO). [see notes below]
 BUILD_ROGUE             Build the Rogue gamei386.so for the "Ground Zero"
                         Mission Pack (default = NO). [see notes below]
-
+HAVE_IPV6		Build quake2 with IPv6 support (currently only
+                        tested on FreeBSD) (default = NO).
 
 To install the Quake2 gamedata:
 -------------------------------

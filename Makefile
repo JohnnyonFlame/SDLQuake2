@@ -8,10 +8,10 @@
 
 # start of configurable options
 
-# Here are your build options, no more will be added!
+# Here are your build options:
 # (Note: not all options are available for all platforms).
 # quake2 (uses OSS for sound, cdrom ioctls for cd audio) is automatically built.
-# game{i386,axp,ppc}.so is automatically built.
+# game$(ARCH).so is automatically built.
 BUILD_SDLQUAKE2=YES	# sdlquake2 executable (uses SDL for cdrom and sound)
 BUILD_SVGA=NO		# SVGAlib driver. Seems to work fine.
 BUILD_X11=YES		# X11 software driver. Works somewhat ok.
@@ -19,9 +19,15 @@ BUILD_GLX=YES		# X11 GLX driver. Works somewhat ok.
 BUILD_FXGL=NO		# FXMesa driver. Not tested. (used only for V1 and V2).
 BUILD_SDL=YES		# SDL software driver. Works fine for some people.
 BUILD_SDLGL=YES		# SDL OpenGL driver. Works fine for some people.
-BUILD_CTFDLL=NO		# gamei386.so for ctf
-BUILD_XATRIX=NO		# gamei386.so for xatrix (see README.r for details)
-BUILD_ROGUE=NO		# gamei386.so for rogue (see README.r for details)
+BUILD_CTFDLL=NO		# game$(ARCH).so for ctf
+BUILD_XATRIX=NO		# game$(ARCH).so for xatrix (see README.r for details)
+BUILD_ROGUE=NO		# game$(ARCH).so for rogue (see README.r for details)
+
+# Other compile-time options:
+# Compile with IPv6 (protocol independent API). Tested on FreeBSD
+HAVE_IPV6=NO
+
+# (hopefully) end of configurable options
 
 # Check OS type.
 OSTYPE := $(shell uname -s)
@@ -71,7 +77,6 @@ RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops -malign-loops=2 \
 #	-malign-jumps=2 -malign-functions=2
 endif
 
-# (hopefully) end of configurable options
 VERSION=3.21+rCVS
 
 MOUNT_DIR=src
@@ -90,6 +95,13 @@ XATRIX_DIR=$(MOUNT_DIR)/xatrix
 ROGUE_DIR=$(MOUNT_DIR)/rogue
 
 BASE_CFLAGS=-Wall -pipe -Dstricmp=strcasecmp
+ifeq ($(HAVE_IPV6),YES)
+BASE_CFLAGS+= -DHAVE_IPV6 -DHAVE_SIN6_LEN
+NET_UDP=net_udp6
+else
+NET_UDP=net_udp
+endif
+
 ifneq ($(ARCH),i386)
  BASE_CFLAGS+=-DC_ONLY
 endif
@@ -347,7 +359,7 @@ QUAKE2_OBJS = \
 	$(BUILDDIR)/client/vid_so.o \
 	$(BUILDDIR)/client/sys_linux.o \
 	$(BUILDDIR)/client/glob.o \
-	$(BUILDDIR)/client/net_udp.o \
+	$(BUILDDIR)/client/$(NET_UDP).o \
 	\
 	$(BUILDDIR)/client/q_shared.o \
 	$(BUILDDIR)/client/pmove.o
@@ -506,6 +518,9 @@ $(BUILDDIR)/client/glob.o :       $(LINUX_DIR)/glob.c
 	$(DO_CC)
 
 $(BUILDDIR)/client/net_udp.o :    $(LINUX_DIR)/net_udp.c
+	$(DO_CC)
+
+$(BUILDDIR)/client/net_udp6.o :    $(LINUX_DIR)/net_udp6.c
 	$(DO_CC)
 
 $(BUILDDIR)/client/cd_linux.o :   $(LINUX_DIR)/cd_linux.c

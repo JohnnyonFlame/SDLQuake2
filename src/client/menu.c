@@ -2274,7 +2274,14 @@ void M_AddToServerList (netadr_t adr, char *info)
 			return;
 
 	local_server_netadr[m_num_servers] = adr;
+#ifdef HAVE_IPV6
+            // Show the IP address as well. Useful to identify whether
+            // the server is IPv6 or IPv4.
+        Com_sprintf(local_server_names[m_num_servers], sizeof(local_server_names[0])-1,
+                    "%s %s", info, NET_AdrToString(adr));
+#else
 	strncpy (local_server_names[m_num_servers], info, sizeof(local_server_names[0])-1);
+#endif
 	m_num_servers++;
 }
 

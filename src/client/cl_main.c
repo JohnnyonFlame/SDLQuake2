@@ -423,6 +423,8 @@ void CL_SendConnectPacket (void)
 	netadr_t	adr;
 	int		port;
 
+        memset(&adr, 0, sizeof(adr));
+        
 	if (!NET_StringToAdr (cls.servername, &adr))
 	{
 		Com_Printf ("Bad server address\n");
@@ -544,6 +546,7 @@ void CL_Rcon_f (void)
 		return;
 	}
 
+	memset(&to, 0, sizeof(to));
 	message[0] = (char)255;
 	message[1] = (char)255;
 	message[2] = (char)255;
@@ -817,6 +820,12 @@ void CL_PingServers_f (void)
 		adr.type = NA_BROADCAST;
 		adr.port = BigShort(PORT_SERVER);
 		Netchan_OutOfBandPrint (NS_CLIENT, adr, va("info %i", PROTOCOL_VERSION));
+#ifdef HAVE_IPV6
+                Com_Printf ("pinging multicast...\n");
+		adr.type = NA_MULTICAST6;
+		adr.port = BigShort(PORT_SERVER);
+		Netchan_OutOfBandPrint (NS_CLIENT, adr, va("info %i", PROTOCOL_VERSION));
+#endif                
 	}
 
 	noipx = Cvar_Get ("noipx", "0", CVAR_NOSET);
