@@ -29,6 +29,10 @@ softsdl or sdlgl drivers, or the sdlquake2 binary.
 To build just the optimized binaries: make build_release
 The resulting binaries are then put in releasei386.
 
+Known Bugs
+------------
+ALSA sound support is not 100% there.  I would stick with SDL or OSS for now.
+
 
 Makefile options:
 -----------------
