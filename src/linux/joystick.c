@@ -191,13 +191,13 @@ void RW_IN_JoystickMove(usercmd_t *cmd, qboolean mlooking,
       }
     }
     
-    if (mlooking) {
+    //    if (mlooking) {
       if (fabs(jlook) > joy_pitchthreshold->value) {
 	// pitch movement detected and pitch movement desired by user
 	in_state->viewangles[PITCH] += 
 	  (jlook*joy_pitchsensitivity->value) * aspeed*cl_pitchspeed->value;
       }
-    }
+      //}
 
     // End
   }

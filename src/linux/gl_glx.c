@@ -449,8 +449,8 @@ static void HandleEvents(void)
 	}
 	else 
 	  {
-	    mx += ((int)event.xmotion.x - mwx) * 2;
-	    my += ((int)event.xmotion.y - mwy) * 2;
+	    mx -= ((int)event.xmotion.x - mwx) * 2;
+	    my -= ((int)event.xmotion.y - mwy) * 2;
 	    mwx = event.xmotion.x;
 	    mwy = event.xmotion.y;
 	    
