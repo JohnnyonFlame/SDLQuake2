@@ -250,6 +250,10 @@ void VID_MenuInit( void )
 		"[1152 864 ]",
 		"[1280 1024]",
 		"[1600 1200]",
+		"[2048 1536]",
+		"[1024 480 ]", /* sony vaio pocketbook */
+		"[1152 768 ]", /* Apple TiBook */
+		"[1280 854 ]", /* apple TiBook */
 		0
 	};
 	static const char *yesno_names[] =

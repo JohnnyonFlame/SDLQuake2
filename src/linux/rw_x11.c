@@ -128,6 +128,8 @@ static qboolean			exposureflag = false;
 static qboolean			X11_active = false;
 #endif
 
+qboolean have_stencil = false;
+
 int XShmQueryExtension(Display *);
 int XShmGetEventBase(Display *);
 

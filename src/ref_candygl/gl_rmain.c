@@ -794,7 +794,7 @@ void GL_DrawParticles( int num_particles, qboolean inWater )
 			vec3_t	angl_coord[4];
 			vec3_t	ang_up, ang_right, vdelta;
 			
-			//oldwarpadd=0;
+			oldwarpadd=0;
 			warpsize = dec * 0.01;
 			warpfactor = M_PI*1.0;
 			time = -r_newrefdef.time*10.0;

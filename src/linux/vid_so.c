@@ -148,7 +148,10 @@ vidmode_t vid_modes[] =
 	{ "Mode 7: 1152x864",  1152, 864,  7 },
 	{ "Mode 8: 1280x1024",  1280, 1024, 8 },
 	{ "Mode 9: 1600x1200", 1600, 1200, 9 },
-	{ "Mode 10: 2048x1536", 2048, 1536, 10 }
+	{ "Mode 10: 2048x1536", 2048, 1536, 10 },
+	{ "Mode 11: 1024x480",  1024,  480, 11 }, /* Sony VAIO Pocketbook */
+	{ "Mode 12: 1152x768",  1152,  768, 12 }, /* Apple TiBook */
+	{ "Mode 13: 1280x854",  1280,  854, 13 }, /* Apple TiBook */
 };
 
 qboolean VID_GetModeInfo( int *width, int *height, int mode )

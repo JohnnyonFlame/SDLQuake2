@@ -1160,37 +1160,36 @@ void pStunRotateThink (cparticle_t *p, vec3_t org, vec3_t angle, float *alpha, f
 
 void CL_StunBlast (vec3_t pos, vec3_t color, float size)
 {
-	vec3_t dir, angles;
 	int i;
 
 	for (i=0;i<8;i++)
-	{
-		setupParticle (
-			0,		0,		0,
-			pos[0],		pos[1],		pos[2],
-			crandom()*size,		crandom()*size,		crandom()*size,
-			0,		0,		0,
-			color[0],		color[1],		color[2],
-			0,	0,	0,
-			.5,		-1 / (0.8+frand()*0.2),
-			size,	0,			
-			particle_generic,
-			0,
-			0, false);
-	}
-
+	  {
+	    setupParticle (
+			   0,		0,		0,
+			   pos[0],		pos[1],		pos[2],
+			   crandom()*size,		crandom()*size,		crandom()*size,
+			   0,		0,		0,
+			   color[0],		color[1],		color[2],
+			   0,	0,	0,
+			   .5,		-1 / (0.8+frand()*0.2),
+			   size,	0,			
+			   particle_generic,
+			   0,
+			   0, false);
+	  }
+	
 	setupParticle (
-		crandom()*360,		crandom()*360,		crandom()*360,
-		pos[0],		pos[1],		pos[2],
-		75,		300,	75,
-		0,		0,		0,
-		color[0],		color[1],		color[2],
-		0,	0,	0,
-		.75,		-1 / (0.8+frand()*0.2),
-		size,	size*3,			
-		particle_smoke,
-		PART_ANGLED,
-		pStunRotateThink, true);
+		       crandom()*360,		crandom()*360,		crandom()*360,
+		       pos[0],		pos[1],		pos[2],
+		       75,		300,	75,
+		       0,		0,		0,
+		       color[0],		color[1],		color[2],
+		       0,	0,	0,
+		       .75,		-1 / (0.8+frand()*0.2),
+		       size,	size*3,			
+		       particle_smoke,
+		       PART_ANGLED,
+		       pStunRotateThink, true);
 }
 
 void CL_LaserStun (vec3_t pos, vec3_t direction, vec3_t color, float size)
@@ -1421,7 +1420,7 @@ void CL_FlameTrail (vec3_t start, vec3_t end, float size)
 }
 
 void CL_Flame (vec3_t start)
-{	int i;
+{      
 	cparticle_t *p;
 
 
@@ -1648,7 +1647,8 @@ void pExplosionThink (cparticle_t *p, vec3_t org, vec3_t angle, float *alpha, fl
 #define EXPLODESTAININTESITY 75
 void CL_Explosion_Particle (vec3_t org, float size, qboolean large, qboolean rocket)
 {
-	cparticle_t *p;
+  /*
+    cparticle_t *p;
 
 	if (large)
 	{	
@@ -1710,6 +1710,7 @@ void CL_Explosion_Particle (vec3_t org, float size, qboolean large, qboolean roc
 					0,
 					NULL,0);
 	}*/
+  */
 }
 
 
@@ -1757,20 +1758,20 @@ void CL_Disruptor_Explosion_Particle (vec3_t org, float size)
 
 		if (p)
 		{
-			float lightsize = size/150.0;
+		  //float lightsize = size/150.0;
 
-			addParticleLight (p,
-						size*1.0f, 0,
-						1, 1, 1);
-			addParticleLight (p,
-						size*1.25f, 0,
-						0.75, 0, 1);
-			addParticleLight (p,
-						size*1.65f, 0,
-						0.25, 0, 1);
-			addParticleLight (p,
-						size*1.9f, 0,
-						0, 0, 1);
+		  addParticleLight (p,
+				    size*1.0f, 0,
+				    1, 1, 1);
+		  addParticleLight (p,
+				    size*1.25f, 0,
+				    0.75, 0, 1);
+		  addParticleLight (p,
+				    size*1.65f, 0,
+				    0.25, 0, 1);
+		  addParticleLight (p,
+				    size*1.9f, 0,
+				    0, 0, 1);
 		}
 	}
 /*
@@ -2217,23 +2218,23 @@ void CL_ParticleEffectSparks (vec3_t org, vec3_t dir, vec3_t color, int count)
 	int			i;
 	float		d;
 	for (i=0 ; i<count ; i++)
-	{
-		d = rand()&7;
-		setupParticle (
-			0,	0,	0,
-			org[0]+((rand()&3)-2),	org[1]+((rand()&3)-2),	org[2]+((rand()&3)-2),
-			//crandom()*20 + dir[0]*75,crand()*20 + dir[1]*75,
-			//crand()*20 + dir[2]*75,
-			20+dir[0]*75,20+dir[1]*75,20+dir[2]*75,
-			0,		0,		0,
-			color[0],		color[1],		color[2],
-			0,	0,	0,
-			0.75,		-1.5 / (0.5 + frand()*0.3),
-			0.5,			0,			
-			particle_generic,
-			PART_GRAVITY|PART_DIRECTION,
-			pSparksThink,true);
-	}
+	  {
+	    d = rand()&7;
+	    setupParticle (
+			   0,	0,	0,
+			   org[0]+((rand()&3)-2),	org[1]+((rand()&3)-2),	org[2]+((rand()&3)-2),
+			   //crandom()*20 + dir[0]*75,crand()*20 + dir[1]*75,
+			   //crand()*20 + dir[2]*75,
+			   20+dir[0]*75,20+dir[1]*75,20+dir[2]*75,
+			   0,		0,		0,
+			   color[0],		color[1],		color[2],
+			   0,	0,	0,
+			   0.75,		-1.5 / (0.5 + frand()*0.3),
+			   0.5,			0,			
+			   particle_generic,
+			   PART_GRAVITY|PART_DIRECTION,
+			   pSparksThink,true);
+	  }
 }
 
 /*
@@ -2815,7 +2816,7 @@ void CL_RocketTrail (vec3_t start, vec3_t end, centity_t *old)
 
 		if (!free_particles)
 			return;
-/*
+
 		//flame from rocket
 		setupParticle (
 			0,	0,	0,
@@ -2829,8 +2830,7 @@ void CL_RocketTrail (vec3_t start, vec3_t end, centity_t *old)
 			particle_generic,
 			0,
 			NULL,0);
-//*/
-//*
+
 		//falling particles
 		if ( (rand()&7) == 0)
 		{
@@ -2847,7 +2847,6 @@ void CL_RocketTrail (vec3_t start, vec3_t end, centity_t *old)
 				PART_GRAVITY,
 				NULL,0);
 		}
-//*/
 		VectorAdd (move, vec, move);
 	}
 }

@@ -52,6 +52,8 @@ static XVisualInfo		*x_visinfo;
 static int win_x, win_y;
 static Atom wmDeleteWindow;
 
+qboolean have_stencil = false;
+
 #define KEY_MASK (KeyPressMask | KeyReleaseMask)
 #define MOUSE_MASK (ButtonPressMask | ButtonReleaseMask | \
 		    PointerMotionMask | ButtonMotionMask )

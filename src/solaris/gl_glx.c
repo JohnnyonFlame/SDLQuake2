@@ -113,6 +113,8 @@ static cvar_t *m_forward;
 static cvar_t *freelook;
 static cvar_t   *r_fakeFullscreen;
 
+qboolean have_stencil = false;
+
 static Cursor CreateNullCursor(Display *display, Window root)
 {
   Pixmap cursormask; 

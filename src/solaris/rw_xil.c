@@ -45,7 +45,7 @@ static XVisualInfo *x_visinfo;
 
 
 static qboolean X11_active = false;
-
+qboolean have_stencil = false;
 struct
 {
   int key;
