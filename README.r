@@ -79,10 +79,11 @@ line).
 Configuration files and such are saved in ~/.quake2/, so <installdir> can be
 made read-only or whatever.
 
-WARNING: Please do not make quake2 or any of the libraries suid root!
+WARNING: Please do not make quake2 or any of the libraries suid root!  Doing
+so is at your own risk.
 
-NOTE: Save games will most likely not work across different versions or
-builds (this is due to how savegames were stored).
+NOTE: Save games will not work across different versions or builds, because
+of the way they are stored.
 
 Dedicated Server:
 -----------------
@@ -118,6 +119,10 @@ gl_driver). e.g.
 If quake2 crashes when trying to load an OpenGL based driver (glx, sdlgl),
 make sure its not loading the wrong libGL.
 
+Is lighting slow in OpenGL (while firing, explosions, etc.)? Disable
+multitexturing (gl_ext_multitexture 0; vid_restart).
+
+
 Website:
 --------
 I'll post any updates I make at http://www.icculus.org/quake2/ 
@@ -134,17 +139,21 @@ cvs -d:pserver:anonymous@icculus.org:/cvs/cvsroot login
       (password is "anonymous" without the quotes.)
 cvs -z3 -d:pserver:anonymous@icculus.org:/cvs/cvsroot co quake2
 
-Questions:
-----------
-What's the best way of handling international keyboards with SDL?
+Bugzilla:
+---------
+https://bugzilla.icculus.org
 
 TODO:
 -----
+Try out RCG's key idea.
 Fix save games.
-Fully switch to glext.h
+Verify FXGL works.
+Joystick support.
+Fullscreen/DGA support in X11 driver.
+Fully switch to glext.h.
 Suggestions, anyone?
 
-v0.0.8: [XX/XX/XX] CVS
+v0.0.8: [01/04/02]
 -------
 + Fixed C-only ref_soft building.
 + SDL CD audio looping fix (Robert Bäuml)
@@ -152,6 +161,7 @@ v0.0.8: [XX/XX/XX] CVS
 + Minor change to fix compilation with OpenGL 1.3 headers.
 + Fixed changing video drivers using the menu.
 + Fixed autoexec.cfg on startup.
++ Sparc Linux support (Vincent Cojot)
 
 v0.0.7: [12/28/01]
 -------
@@ -201,6 +211,7 @@ John Allensworth
 Stephen Anthony
 William Aoki
 Robert Bäuml
+Vincent Cojot
 Michel Dänzer
 Ryan C. Gordon
 Ludwig Nussel
