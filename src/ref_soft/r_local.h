@@ -803,6 +803,11 @@ void    R_FreeUnusedImages (void);
 
 void	R_GammaCorrectAndSetPalette( const unsigned char *pal );
 
+#ifdef QMAX
+void	R_AddStain (vec3_t org, float intensity, float r, float g, float b);
+void	Draw_ScaledPic (int x, int y, float scale, float alpha, char *pic);
+#endif
+
 extern mtexinfo_t  *sky_texinfo[6];
 
 void R_InitSkyBox (void);
