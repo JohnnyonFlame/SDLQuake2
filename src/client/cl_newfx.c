@@ -196,12 +196,14 @@ void CL_DebugTrail (vec3_t start, vec3_t end)
 //		p->alphavel = 0;
 		p->color = 0x74 + (rand()&7);
 		VectorCopy (move, p->org);
+		/*
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = move[j] + crand()*2;
 			p->vel[j] = crand()*3;
 			p->accel[j] = 0;
 		}
+		*/
 #endif
 		VectorAdd (move, vec, move);
 	}
@@ -262,8 +264,9 @@ void CL_ForceWall (vec3_t start, vec3_t end, int color8)
 {
 	vec3_t		move;
 	vec3_t		vec;
+#ifdef QMAX
 	vec3_t color = { color8red(color8), color8green(color8), color8blue(color8)};
-
+#endif
 
 	float		len;
 	int			j;
@@ -309,7 +312,7 @@ void CL_ForceWall (vec3_t start, vec3_t end, int color8)
 		  
 		  p->alpha = 1.0;
 		  p->alphavel =  -1.0 / (3.0+frand()*0.5);
-		  p->color = color;
+		  p->color = color8;
 		  for (j=0 ; j<3 ; j++)
 		    {
 		      p->org[j] = move[j] + crand()*3;
@@ -1259,7 +1262,9 @@ void CL_ColorExplosionParticles (vec3_t org, int color8, int run)
 {
 	int			i, j;
 	cparticle_t	*p;
+#ifdef QMAX
 	vec3_t color = { color8red(color8), color8green(color8), color8blue(color8)};
+#endif
 	for (i=0 ; i<128 ; i++)
 	{
 #ifdef QMAX
@@ -1284,7 +1289,7 @@ setupParticle (
 		active_particles = p;
 
 		p->time = cl.time;
-		p->color = color + (rand() % run);
+		p->color = color8 + (rand() % run);
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = org[j] + ((rand()%32)-16);
