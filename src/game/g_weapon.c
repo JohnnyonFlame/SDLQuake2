@@ -661,7 +661,7 @@ void fire_rail (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick
 	vec3_t		end;
 	trace_t		tr;
 	edict_t		*ignore;
-	int			mask;
+	int		mask;
 	qboolean	water;
 
 	VectorMA (start, 8192, aimdir, end);
@@ -669,29 +669,28 @@ void fire_rail (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick
 	ignore = self;
 	water = false;
 	mask = MASK_SHOT|CONTENTS_SLIME|CONTENTS_LAVA;
-	while (ignore)
-	{
-		tr = gi.trace (from, NULL, NULL, end, ignore, mask);
-
-		if (tr.contents & (CONTENTS_SLIME|CONTENTS_LAVA))
-		{
-			mask &= ~(CONTENTS_SLIME|CONTENTS_LAVA);
-			water = true;
-		}
-		else
-		{
-			//ZOID--added so rail goes through SOLID_BBOX entities (gibs, etc)
-			if ((tr.ent->svflags & SVF_MONSTER) || (tr.ent->client) ||
-				(tr.ent->solid == SOLID_BBOX))
-				ignore = tr.ent;
-			else
-				ignore = NULL;
-
-			if ((tr.ent != self) && (tr.ent->takedamage))
-				T_Damage (tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal, damage, kick, 0, MOD_RAILGUN);
-		}
-
-		VectorCopy (tr.endpos, from);
+	while (ignore) {
+	  tr = gi.trace (from, NULL, NULL, end, ignore, mask);
+	  
+	  if (tr.contents & (CONTENTS_SLIME|CONTENTS_LAVA)) {
+	    mask &= ~(CONTENTS_SLIME|CONTENTS_LAVA);
+	    water = true;
+	  }
+	  else {
+	    //ZOID--added so rail goes through SOLID_BBOX entities (gibs, etc)
+	    if ((tr.ent->svflags & SVF_MONSTER) || (tr.ent->client) ||
+		(tr.ent->solid == SOLID_BBOX))
+	      ignore = tr.ent;
+	    else
+	      ignore = NULL;
+	    
+	    if ((tr.ent != self) && (tr.ent->takedamage))
+	      T_Damage (tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal, damage, kick, 0, MOD_RAILGUN);
+	    else
+	      ignore = NULL;
+	  }
+	  
+	  VectorCopy (tr.endpos, from);
 	}
 
 	// send gun puff / flash
