@@ -121,6 +121,7 @@ Suggestions, anyone?
 
 v0.0.8: [XX/XX/XX] CVS
 -------
++ Fixed C-only ref_soft building.
 + SDL CD audio looping fix (Robert Bäuml)
 + ~/.quake2/<game> added to the search path for mods. (Ludwig Nussel)
 + Minor change to fix compilation with OpenGL 1.3 headers.
@@ -175,6 +176,7 @@ John Allensworth
 Stephen Anthony
 William Aoki
 Robert Bäuml
+Michel Dänzer
 Ryan C. Gordon
 Ludwig Nussel
 Peter van Paassen

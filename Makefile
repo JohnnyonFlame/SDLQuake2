@@ -13,13 +13,13 @@
 # quake2 (uses OSS for sound, cdrom ioctls for cd audio) is automatically built.
 # game{i386,axp,ppc}.so is automatically built.
 BUILD_SDLQUAKE2=YES	# sdlquake2 executable (uses SDL for cdrom and sound)
-BUILD_SVGA=NO		# SVGAlib driver. Seems to work fine.
+BUILD_SVGA=YES		# SVGAlib driver. Seems to work fine.
 BUILD_X11=YES		# X11 software driver. Works somewhat ok.
 BUILD_GLX=YES		# X11 GLX driver. Works somewhat ok.
 BUILD_FXGL=NO		# FXMesa driver. Not tested. (used only for V1 and V2).
 BUILD_SDL=YES		# SDL software driver. Works fine for some people.
 BUILD_SDLGL=YES		# SDL OpenGL driver. Works fine for some people.
-BUILD_CTFDLL=NO		# gamei386.so for ctf
+BUILD_CTFDLL=YES	# gamei386.so for ctf
 # i can add support for building xatrix and rogue libs if needed
 
 # Check OS type.
@@ -48,7 +48,7 @@ RELEASE_CFLAGS=$(BASE_CFLAGS) -ffast-math -funroll-loops \
 endif
 
 ifeq ($(ARCH),ppc)
-RELEASE_CFLAGS=$(BASE_CFLAGS) -ffast-math -funroll-loops \
+RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
 endif
 
@@ -78,7 +78,7 @@ GAME_DIR=$(MOUNT_DIR)/game
 CTF_DIR=$(MOUNT_DIR)/ctf
 XATRIX_DIR=$(MOUNT_DIR)/xatrix
 
-BASE_CFLAGS=-Dstricmp=strcasecmp
+BASE_CFLAGS=-pipe -Dstricmp=strcasecmp
 ifneq ($(ARCH),i386)
  BASE_CFLAGS+=-DC_ONLY
 endif
@@ -160,7 +160,7 @@ endif # ARCH axp
 
 ifeq ($(ARCH),ppc)
  ifeq ($(strip $(BUILD_SDLQUAKE2)),YES)
-  $(warning Warning: SDLQuake2 not supported for $(ARCH))
+  TARGETS += $(BUILDDIR)/sdlquake2
  endif
  
  ifeq ($(strip $(BUILD_SVGA)),YES)
@@ -168,12 +168,10 @@ ifeq ($(ARCH),ppc)
  endif
 
  ifeq ($(strip $(BUILD_X11)),YES)
-  #$(warning Warning: X11 support not supported for $(ARCH))
   TARGETS += $(BUILDDIR)/ref_softx.$(SHLIBEXT)
  endif
 
  ifeq ($(strip $(BUILD_GLX)),YES)
-  #$(warning Warning: GLX support not supported for $(ARCH))
   TARGETS += $(BUILDDIR)/ref_glx.$(SHLIBEXT)
  endif
 
@@ -182,7 +180,6 @@ ifeq ($(ARCH),ppc)
  endif
 
  ifeq ($(strip $(BUILD_SDL)),YES)
-  #$(warning Warning: SDL support not supported for $(ARCH))
   TARGETS += $(BUILDDIR)/ref_softsdl.$(SHLIBEXT)
  endif
 

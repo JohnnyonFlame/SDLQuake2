@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/stat.h>
 #include <errno.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <sys/mman.h>
@@ -122,10 +123,12 @@ void Sys_Mkdir (char *path)
 
 char *strlwr (char *s)
 {
+	char *p = s;
 	while (*s) {
 		*s = tolower(*s);
 		s++;
 	}
+	return p;
 }
 
 //============================================

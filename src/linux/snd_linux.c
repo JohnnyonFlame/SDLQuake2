@@ -48,13 +48,12 @@ qboolean SNDDMA_Init(void)
     int fmt;
 	int tmp;
     int i;
-    char *s;
 	struct audio_buf_info info;
 	int caps;
 	extern uid_t saved_euid;
 
 	if (snd_inited)
-		return;
+		return 1;
 
 	if (!snddevice) {
 		sndbits = Cvar_Get("sndbits", "16", CVAR_ARCHIVE);
