@@ -478,7 +478,13 @@ void SV_ExecuteUserCommand (char *s)
 {
 	ucmd_t	*u;
 	
-	Cmd_TokenizeString (s, true);
+	/*******
+	 * Security Fix... This is being set to false so that client's can't
+	 * macro expand variables on the server.  It seems unlikely that a
+	 * client ever ought to need to be able to do this...
+	 * old line = Cmd_TokenizeString (s, true);
+	 *******/
+	Cmd_TokenizeString(s, false);
 	sv_player = sv_client->edict;
 
 //	SV_BeginRedirect (RD_CLIENT);
