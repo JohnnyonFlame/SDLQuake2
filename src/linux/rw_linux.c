@@ -111,12 +111,14 @@ void RW_IN_Shutdown(void)
 IN_Commands
 ===========
 */
+void doneMouse();
+
 void RW_IN_Commands (void)
 {
   int i;
   
-  getMouse(&mouse_x, &mouse_y, &mouse_buttonstate);
   if (mouse_avail) { 
+    getMouse(&mouse_x, &mouse_y, &mouse_buttonstate);
     for (i=0 ; i<3 ; i++) {
       if ( (mouse_buttonstate & (1<<i)) && !(mouse_oldbuttonstate & (1<<i)) )
 	in_state->Key_Event_fp (K_MOUSE1 + i, true);
@@ -195,7 +197,6 @@ void RW_IN_Move (usercmd_t *cmd)
 	{
 	  cmd->forwardmove -= m_forward->value * mouse_y;
 	}
-      mouse_x = mouse_y = 0;
       doneMouse();
     }
   }

@@ -22,11 +22,14 @@
 	$Id$
 */
 
+#define BUFFER_SIZE 4096
+
 #include <alsa/asoundlib.h>
 
 #include "../client/client.h"
 #include "../client/snd_loc.h"
-#define snd_buf (dma.samples * 2)
+
+#define snd_buf BUFFER_SIZE
 
 static int  snd_inited;
 static short *buffer;
@@ -65,7 +68,7 @@ qboolean SNDDMA_Init (void)
     return 0;
   }
   
-  snd_pcm_hw_params_alloca(&hw_params);
+  err = snd_pcm_hw_params_malloc(&hw_params);
 
   if (err < 0) {
     Com_Printf("ALSA snd error, cannot allocate hw params (%s)\n",
@@ -82,7 +85,7 @@ qboolean SNDDMA_Init (void)
   }
   
   err = snd_pcm_hw_params_set_access(playback_handle, hw_params, 
-				     SND_PCM_ACCESS_MMAP_INTERLEAVED);
+				     SND_PCM_ACCESS_RW_INTERLEAVED);
   if (err < 0) {
     Com_Printf("ALSA snd error, cannot set access (%s)\n",
 	       snd_strerror(err));
@@ -118,7 +121,7 @@ qboolean SNDDMA_Init (void)
   
   dma.speed = (int)sndspeed->value;
   if (!dma.speed) {
-    for (i=0 ; i<sizeof(tryrates)/4 ; i++) {
+    for (i=0 ; i<sizeof(tryrates); i++) {
       int test = tryrates[i];
       err = snd_pcm_hw_params_set_rate_near(playback_handle, hw_params,
 					    &test, 0);
@@ -156,25 +159,28 @@ qboolean SNDDMA_Init (void)
     return 0;
   }
 
-  buffer_size = snd_pcm_hw_params_get_buffer_size(hw_params);
-  frame_size = (snd_pcm_format_physical_width(format)*dma.channels)/8;
-  
-  snd_pcm_hw_params_free(hw_params);
-  hw_params = NULL;
-  
-  if ((err = snd_pcm_prepare(playback_handle)) < 0) {
+  /*
+    buffer_size = snd_pcm_hw_params_get_buffer_size(hw_params);
+    frame_size = (snd_pcm_format_physical_width(format)*dma.channels)/8;
+    
+    snd_pcm_hw_params_free(hw_params);
+    hw_params = NULL;
+    
+    if ((err = snd_pcm_prepare(playback_handle)) < 0) {
     Com_Printf("ALSA snd error preparing audio (%s)\n",snd_strerror(err));
     return 0;
-  }
-  
-  snd_buf = buffer_size*frame_size;
-  
+    }
+    
+    snd_buf = buffer_size*frame_size;
+  */
+
+  //snd_buf = BUFFER_SIZE;
 
   buffer=malloc(snd_buf);
   memset(buffer, 0, snd_buf);
 
-  dma.samples = snd_buf / (dma.samplebits/8);
   dma.samplepos = 0;
+  dma.samples = snd_buf / (dma.samplebits/8);
   dma.submission_chunk = 1;
   dma.buffer = (char *)buffer;
 
@@ -196,10 +202,12 @@ void
 SNDDMA_Shutdown (void)
 {
   if (snd_inited) {
+    snd_pcm_drop(playback_handle);
     snd_pcm_close(playback_handle);
     snd_inited = 0;
   }
   free(dma.buffer);
+  dma.buffer = NULL;
 }
 
 /*
@@ -209,8 +217,13 @@ Send sound to device if buffer isn't really the dma buffer
 void
 SNDDMA_Submit (void)
 {
-  printf("%s\n", dma.buffer);
-  snd_pcm_writei(playback_handle, dma.buffer, snd_buf);
+  int written;
+  
+  if ((written = snd_pcm_writei(playback_handle, dma.buffer, snd_buf)) < 0) {
+    snd_pcm_prepare(playback_handle);
+    Com_Printf("alsa: buffer underrun\n");
+  }
+  dma.samplepos += written/(dma.samplebits/8);
 }
 
 

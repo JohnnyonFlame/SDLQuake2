@@ -275,6 +275,16 @@ int XLateKey(unsigned int keysym)
 
 static unsigned char KeyStates[SDLK_LAST];
 
+void getMouse(int *x, int *y, int *state) {
+  *x = mx;
+  *y = my;
+  *state = mouse_buttonstate;
+}
+
+void doneMouse() {
+  mx = my = 0;
+}
+
 void GetEvent(SDL_Event *event)
 {
 	unsigned int key;

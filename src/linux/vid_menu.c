@@ -188,7 +188,7 @@ static void ApplyChanges( void *unused )
 	{
 		Cvar_Set( "vid_ref", "glx" );
 		// below is wrong if we use different libs for different GL reflibs
-		Cvar_Get( "gl_driver", "libGL.so", CVAR_ARCHIVE ); // ??? create if it doesn't exit
+		Cvar_Get( "gl_driver", "libGL.so.1", CVAR_ARCHIVE ); // ??? create if it doesn't exit
 		if (gl_driver->modified)
 			vid_ref->modified = true;
 	}
@@ -196,7 +196,7 @@ static void ApplyChanges( void *unused )
 	{
 		Cvar_Set( "vid_ref", "sdlgl" );
 		// below is wrong if we use different libs for different GL reflibs
-		Cvar_Get( "gl_driver", "libGL.so", CVAR_ARCHIVE ); // ??? create if it doesn't exist
+		Cvar_Get( "gl_driver", "libGL.so.1", CVAR_ARCHIVE ); // ??? create if it doesn't exist
 		if (gl_driver->modified)
 			vid_ref->modified = true;
 	}
