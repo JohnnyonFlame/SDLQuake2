@@ -640,9 +640,10 @@ int CDAudio_Init(void)
 	seteuid(getuid());
 
 	if (cdfile == -1) {
-		Com_Printf("CDAudio_Init: open of \"%s\" failed (%i)\n", cd_dev->string, errno);
-		cdfile = -1;
-		return -1;
+	  Com_Printf("CDAudio_Init: open of \"%s\" failed (%i)\n", cd_dev->string, errno);
+	  
+	  cdfile = -1;
+	  return -1;
 	}
 
 	for (i = 0; i < 100; i++)

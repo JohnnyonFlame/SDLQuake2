@@ -73,7 +73,7 @@ void Joy_AdvancedUpdate_f () {
 
 void RW_IN_InitJoystick() {
   in_joystick = ri.Cvar_Get ("in_joystick", "1", CVAR_ARCHIVE);
-  if (in_joystick) {
+  if (in_joystick->value) {
     joy_name = ri.Cvar_Get ("joy_name", "joystick", 0);
     joy_dev = ri.Cvar_Get ("joy_dev","/dev/js*",CVAR_ARCHIVE);
     joy_advanced = ri.Cvar_Get ("joy_advanced","0",0);
@@ -88,7 +88,7 @@ void RW_IN_InitJoystick() {
     joy_upthreshold	= ri.Cvar_Get ("joy_upthreshold", "0.15",0);
     joy_pitchthreshold = ri.Cvar_Get ("joy_pitchthreshold","0.15",0);
     joy_yawthreshold = ri.Cvar_Get ("joy_yawthreshold","0.15",0);
-    joy_forwardsensitivity	= ri.Cvar_Get ("joy_forwardsensitivity","-1",0);
+    joy_forwardsensitivity = ri.Cvar_Get ("joy_forwardsensitivity","-1",0);
     joy_sidesensitivity = ri.Cvar_Get ("joy_sidesensitivity","1",0);
     joy_upsensitivity = ri.Cvar_Get ("joy_upsensitivity","-1",0);
     joy_pitchsensitivity = ri.Cvar_Get ("joy_pitchsensitivity","1",0);
