@@ -352,7 +352,12 @@ void CL_PrepRefresh (void)
 	cl.force_refdef = true;	// make sure we have a valid refdef
 
 	// start the cd track
-	CDAudio_Play (atoi(cl.configstrings[CS_CDTRACK]), true);
+	if (Cvar_VariableValue("cd_shuffle")){
+	  CDAudio_RandomPlay();
+	}
+	else{
+	    CDAudio_Play (atoi(cl.configstrings[CS_CDTRACK]), true);
+	  }
 }
 
 /*
