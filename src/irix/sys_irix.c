@@ -256,9 +256,9 @@ void *Sys_GetGameAPI (void *parms)
 			str_p = strchr(dlerror(), ':'); // skip the path (already shown)
 			if (str_p != NULL)
 			{
-				Com_MDPrintf (" **");
-				while (*str_p)
-					Com_MDPrintf ("%c", *(++str_p));
+				str_p++;
+				
+				Com_MDPrintf (" **%s", str_p);
 				Com_MDPrintf("\n");
 			}
 		}
