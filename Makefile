@@ -146,7 +146,7 @@ ifeq ($(OSTYPE),Linux)
 LDFLAGS=-lm -ldl
 endif
 
-ifeq ($(strip (BUILD_ARTS)),YES)
+ifeq ($(strip $(BUILD_ARTS)),YES)
 LDFLAGS+=$(shell artsc-config --libs)
 endif
 
@@ -444,7 +444,7 @@ QUAKE2_LNX_OBJS = \
 ifeq ($(BUILD_ARTS),YES)
 QUAKE2_LNX_OBJS += $(BUILDDIR)/client/snd_arts.o
 else
-ifeq ($(BUILD_ALSA),YES)
+ifeq ($(strip $(BUILD_ALSA)),YES)
 QUAKE2_LNX_OBJS += $(BUILDDIR)/client/snd_alsa.o
 else
 QUAKE2_LNX_OBJS += $(BUILDDIR)/client/snd_linux.o
