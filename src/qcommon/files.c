@@ -542,6 +542,29 @@ void FS_AddGameDirectory (char *dir)
 }
 
 /*
+================
+FS_AddHomeAsGameDirectory
+
+Use ~/.quake2/dir as fs_gamedir
+================
+*/
+void FS_AddHomeAsGameDirectory (char *dir)
+{
+#ifndef _WIN32
+	char gdir[MAX_OSPATH];
+	char *homedir=getenv("HOME");
+	if(homedir)
+	{
+		snprintf(gdir,sizeof(gdir),"%s/.quake2/%s", homedir, dir);
+		Com_Printf("using %s for writing\n",gdir);
+		FS_CreatePath (gdir);
+		strncpy(fs_gamedir,gdir,sizeof(fs_gamedir));
+		FS_AddGameDirectory (gdir);
+	}
+#endif
+}
+
+/*
 ============
 FS_Gamedir
 
@@ -645,7 +668,6 @@ void FS_SetGamedir (char *dir)
 	if (dedicated && !dedicated->value)
 		Cbuf_AddText ("vid_restart\nsnd_restart\n");
 
-	Com_sprintf (fs_gamedir, sizeof(fs_gamedir), "%s/%s", fs_basedir->string, dir);
 
 	// now add new entries for 
 	if (!strcmp(dir,BASEDIRNAME) || (*dir == 0))
@@ -659,6 +681,7 @@ void FS_SetGamedir (char *dir)
 		if (fs_cddir->string[0])
 			FS_AddGameDirectory (va("%s/%s", fs_cddir->string, dir) );
 		FS_AddGameDirectory (va("%s/%s", fs_basedir->string, dir) );
+		FS_AddHomeAsGameDirectory(dir);
 	}
 }
 
@@ -895,10 +918,7 @@ void FS_InitFilesystem (void)
 	//
 	// then add a '.quake2/baseq2' directory in home directory by default
 	//
-	strcpy (fs_gamedir, getenv("HOME"));
-	strcat (fs_gamedir, "/.quake2/baseq2/");
-	FS_CreatePath (fs_gamedir);
-	FS_AddGameDirectory (fs_gamedir);
+	FS_AddHomeAsGameDirectory(BASEDIRNAME);
 
 	// any set gamedirs will be freed up to here
 	fs_base_searchpaths = fs_searchpaths;
