@@ -521,7 +521,7 @@ void FS_AddGameDirectory (char *dir)
 	// add the base directory to the search path
 	//
 	search = Z_Malloc (sizeof(searchpath_t));
-	strcpy (search->filename, dir);
+	strncpy (search->filename, dir, sizeof(search->filename));
 	search->next = fs_searchpaths;
 	fs_searchpaths = search;
 
@@ -555,9 +555,13 @@ void FS_AddHomeAsGameDirectory (char *dir)
 	char *homedir=getenv("HOME");
 	if(homedir)
 	{
-		snprintf(gdir,sizeof(gdir),"%s/.quake2/%s/", homedir, dir);
+		int len = snprintf(gdir,sizeof(gdir),"%s/.quake2/%s/", homedir, dir);
 		Com_Printf("using %s for writing\n",gdir);
 		FS_CreatePath (gdir);
+
+		if ((len > 0) && (len < sizeof(gdir)) && (gdir[len-1] == '/'))
+			gdir[len-1] = 0;
+
 		strncpy(fs_gamedir,gdir,sizeof(fs_gamedir));
 		FS_AddGameDirectory (gdir);
 	}
@@ -584,10 +588,16 @@ FS_ExecAutoexec
 void FS_ExecAutoexec (void)
 {
 	char name [MAX_QPATH];
-	searchpath_t *s;
+	searchpath_t *s, *end;
 
-	// search through all the paths for an autoexec.cfg file
-	for (s = fs_searchpaths ; s ; s = s->next)
+	// don't look in baseq2 if gamedir is set
+	if (fs_searchpaths == fs_base_searchpaths)
+		end = NULL;
+	else
+		end = fs_base_searchpaths;
+	
+	// search through all the paths for an autoexec.cfg file	
+	for (s = fs_searchpaths ; s != end ; s = s->next)
 	{
 		if (s->pack)
 			continue;
@@ -596,7 +606,7 @@ void FS_ExecAutoexec (void)
 
 		if (Sys_FindFirst(name, 0, SFF_SUBDIR | SFF_HIDDEN | SFF_SYSTEM))
 		{
-			Cbuf_AddText ("exec autoexec.cfg");
+			Cbuf_AddText ("exec autoexec.cfg\n");
 			Sys_FindClose();
 			break;
 		}
@@ -845,14 +855,13 @@ char *FS_NextPath (char *prevpath)
 	searchpath_t	*s;
 	char			*prev;
 
-	if (!prevpath)
-		return fs_gamedir;
-
-	prev = fs_gamedir;
+	prev = NULL; /* fs_gamedir is the first directory in the searchpath */
 	for (s=fs_searchpaths ; s ; s=s->next)
 	{
 		if (s->pack)
 			continue;
+		if (prevpath == NULL)
+			return s->filename;
 		if (prevpath == prev)
 			return s->filename;
 		prev = s->filename;
