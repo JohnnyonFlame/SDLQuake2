@@ -269,7 +269,7 @@ qboolean VID_LoadRefresh( char *name )
 		setegid(getgid());
 	}
 
-	if ( ( reflib_library = dlopen( fn, RTLD_LAZY | RTLD_GLOBAL ) ) == 0 )
+	if ( ( reflib_library = dlopen( fn, RTLD_LAZY ) ) == 0 )
 	{
 		Com_Printf( "LoadLibrary(\"%s\") failed: %s\n", name , dlerror());
 		return false;
