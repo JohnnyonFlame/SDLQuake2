@@ -30,12 +30,14 @@ $(error OS $(OSTYPE) is currently not supported)
 endif
 
 # this nice line comes from the linux kernel makefile
-ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ -e s/arm.*/arm/ -e s/sa110/arm/ -e s/alpha/axp/)
+ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc/ -e s/sparc64/sparc/ -e s/arm.*/arm/ -e s/sa110/arm/ -e s/alpha/axp/)
 
 ifneq ($(ARCH),i386)
 ifneq ($(ARCH),axp)
 ifneq ($(ARCH),ppc)
+ifneq ($(ARCH),sparc)
 $(error arch $(ARCH) is currently not supported)
+endif
 endif
 endif
 endif
@@ -49,6 +51,11 @@ endif
 
 ifeq ($(ARCH),ppc)
 RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops \
+	-fomit-frame-pointer -fexpensive-optimizations
+endif
+
+ifeq ($(ARCH),sparc)
+RELEASE_CFLAGS=$(BASE_CFLAGS) -ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
 endif
 
@@ -187,6 +194,36 @@ ifeq ($(ARCH),ppc)
   TARGETS += $(BUILDDIR)/ref_sdlgl.$(SHLIBEXT)
  endif
 endif # ARCH ppc
+
+ifeq ($(ARCH),sparc)
+ ifeq ($(strip $(BUILD_SDLQUAKE2)),YES)
+  TARGETS += $(BUILDDIR)/sdlquake2
+ endif
+ 
+ ifeq ($(strip $(BUILD_SVGA)),YES)
+  $(warning Warning: SVGAlib support not supported for $(ARCH))
+ endif
+
+ ifeq ($(strip $(BUILD_X11)),YES)
+  TARGETS += $(BUILDDIR)/ref_softx.$(SHLIBEXT)
+ endif
+
+ ifeq ($(strip $(BUILD_GLX)),YES)
+  $(warning Warning: GLX support not supported for $(ARCH))
+ endif
+
+ ifeq ($(strip $(BUILD_FXGL)),YES)
+  $(warning Warning: FXGL support not supported for $(ARCH))
+ endif
+
+ ifeq ($(strip $(BUILD_SDL)),YES)
+  TARGETS += $(BUILDDIR)/ref_softsdl.$(SHLIBEXT)
+ endif
+
+ ifeq ($(strip $(BUILD_SDLGL)),YES)
+  $(warning Warning: SDLGL support not supported for $(ARCH))
+ endif
+endif # ARCH sparc
 	
 ifeq ($(ARCH),i386)
  ifeq ($(strip $(BUILD_SDLQUAKE2)),YES)
@@ -302,11 +339,11 @@ QUAKE2_SDL_OBJS = \
 	$(BUILDDIR)/client/cd_sdl.o \
 	$(BUILDDIR)/client/snd_sdl.o
 
-ifeq ($(ARCH),axp)
-QUAKE2_AS_OBJS =  #blank
-else
+ifeq ($(ARCH),i386)
 QUAKE2_AS_OBJS = \
 	$(BUILDDIR)/client/snd_mixa.o
+else
+QUAKE2_AS_OBJS =  #blank
 endif
 
 $(BUILDDIR)/quake2 : $(QUAKE2_OBJS) $(QUAKE2_LNX_OBJS) $(QUAKE2_AS_OBJS)
