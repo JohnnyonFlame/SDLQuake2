@@ -87,7 +87,7 @@ endif
 
 ifeq ($(ARCH),i386)
 RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops -falign-loops=2 \
-	-falign-jumps=2 -falign-functions=2 -g
+	-falign-jumps=2 -falign-functions=2 -fno-strict-aliasing
 # compiler bugs with gcc 2.96 and 3.0.1 can cause bad builds with heavy opts.
 #RELEASE_CFLAGS=$(BASE_CFLAGS) -O6 -m486 -ffast-math -funroll-loops \
 #	-fomit-frame-pointer -fexpensive-optimizations -malign-loops=2 \
@@ -95,8 +95,9 @@ RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops -falign-loops=2 \
 endif
 
 ifeq ($(ARCH),x86_64)
+_LIB := 64
 RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops \
-	-fomit-frame-pointer -fexpensive-optimizations
+	-fomit-frame-pointer -fexpensive-optimizations -fno-strict-aliasing
 endif
 
 VERSION=3.21+r0.16
@@ -119,7 +120,10 @@ NULL_DIR=$(MOUNT_DIR)/null
 
 BASE_CFLAGS=-Wall -pipe -Dstricmp=strcasecmp
 ifeq ($(HAVE_IPV6),YES)
-BASE_CFLAGS+= -DHAVE_IPV6 -DHAVE_SIN6_LEN
+BASE_CFLAGS+= -DHAVE_IPV6
+ifeq ($(OSTYPE),FreeBSD)
+BASE_CFLAGS+= -DHAVE_SIN6_LEN
+endif
 NET_UDP=net_udp6
 else
 NET_UDP=net_udp
@@ -165,12 +169,12 @@ endif
 SVGALDFLAGS=-lvga
 
 XCFLAGS=-I/usr/X11R6/include
-XLDFLAGS=-L/usr/X11R6/lib -lX11 -lXext -lXxf86dga -lXxf86vm
+XLDFLAGS=-L/usr/X11R6/lib$(_LIB) -lX11 -lXext -lXxf86dga -lXxf86vm
 AALDFLAGS=-lm -laa
 
 SDLCFLAGS=$(shell sdl-config --cflags)
 ifeq ($(strip $(STATICSDL)),YES)
-	SDLLDFLAGS += -L/usr/X11R6/lib -Wl,-Bstatic $(SDLDIR)/libSDL.a
+	SDLLDFLAGS += -L/usr/X11R6/lib$(_LIB) -Wl,-Bstatic $(SDLDIR)/libSDL.a
 	SDLLDFLAGS += $(SDLDIR)/libesd.a $(SDLDIR)/libartsc.a -Wl,-Bdynamic
 	SDLLDFLAGS += -lpthread -lX11 -lXext -lXxf86dga -lXxf86vm -lXv \
 		-lXinerama
@@ -187,7 +191,7 @@ FXGLLDFLAGS=-L/usr/local/glide/lib -L/usr/X11/lib -L/usr/local/lib \
 	-L/usr/X11R6/lib -lX11 -lXext -lGL -lvga
 
 GLXCFLAGS=-I/usr/X11R6/include -DOPENGL
-GLXLDFLAGS=-L/usr/X11R6/lib -lX11 -lXext -lXxf86dga -lXxf86vm
+GLXLDFLAGS=-L/usr/X11R6/lib$(_LIB) -lX11 -lXext -lXxf86dga -lXxf86vm
 
 SDLGLCFLAGS=$(SDLCFLAGS) -DOPENGL
 SDLGLLDFLAGS=$(SDLLDFLAGS)

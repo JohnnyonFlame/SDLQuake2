@@ -500,12 +500,20 @@ image_t	*R_FindImage (char *name, imagetype_t type)
 	int		i, len;
 	byte	*pic, *palette;
 	int		width, height;
-
+	char *ptr;
+	
 	if (!name)
 		return NULL;	// ri.Sys_Error (ERR_DROP, "R_FindImage: NULL name");
 	len = strlen(name);
 	if (len<5)
 		return NULL;	// ri.Sys_Error (ERR_DROP, "R_FindImage: bad name: %s", name);
+	
+#ifndef _WIN32
+	// fix backslashes
+	while ((ptr=strchr(name,'\\'))) {
+	  *ptr = '/';
+	}
+#endif
 
 	// look for it
 	for (i=0, image=r_images ; i<numr_images ; i++,image++)

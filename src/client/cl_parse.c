@@ -70,13 +70,20 @@ qboolean	CL_CheckOrDownloadFile (char *filename)
 {
 	FILE *fp;
 	char	name[MAX_OSPATH];
-
+	char *ptr;
+	
 	if (strstr (filename, ".."))
 	{
 		Com_Printf ("Refusing to download a path with ..\n");
 		return true;
 	}
 
+#ifndef _WIN32
+	// fix backslashes
+	while ((ptr=strchr(filename,'\\'))) {
+	  *ptr = '/';
+	}
+#endif
 	if (FS_LoadFile (filename, NULL) != -1)
 	{	// it exists, no need to download
 		return true;
