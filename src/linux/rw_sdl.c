@@ -167,6 +167,12 @@ void RW_IN_Commands (void)
 		if ( !(mouse_buttonstate & (1<<i)) && (mouse_oldbuttonstate & (1<<i)) )
 			in_state->Key_Event_fp (K_MOUSE1 + i, false);
 	}
+	if ( (mouse_buttonstate & (1<<3)) && !(mouse_oldbuttonstate & (1<<3)) )
+		in_state->Key_Event_fp (K_MOUSE4, true);
+
+	if ( !(mouse_buttonstate & (1<<3)) && (mouse_oldbuttonstate & (1<<3)) )
+		in_state->Key_Event_fp (K_MOUSE4, false);
+
 	mouse_oldbuttonstate = mouse_buttonstate;
 }
 
@@ -381,6 +387,13 @@ void GetEvent(SDL_Event *event)
 			keyq[keyq_head].down = true;
 			keyq_head = (keyq_head + 1) & 63;
 			keyq[keyq_head].key = K_MWHEELDOWN;
+			keyq[keyq_head].down = false;
+			keyq_head = (keyq_head + 1) & 63;
+		} else if (event->button.button == 6) {
+			keyq[keyq_head].key = K_MOUSE4;
+			keyq[keyq_head].down = true;
+			keyq_head = (keyq_head + 1) & 63;
+			keyq[keyq_head].key = K_MOUSE4;
 			keyq[keyq_head].down = false;
 			keyq_head = (keyq_head + 1) & 63;
 		}
@@ -862,6 +875,9 @@ void KBD_Update(void)
 		mouse_buttonstate |= (1 << 1);
 	if (SDL_BUTTON(2) & bstate) /* quake2 has the middle button be mouse3 */
 		mouse_buttonstate |= (1 << 2);
+	if (SDL_BUTTON(6) & bstate)
+		mouse_buttonstate |= (1 << 3);
+
 	
 	if (old_windowed_mouse != _windowed_mouse->value) {
 		old_windowed_mouse = _windowed_mouse->value;

@@ -207,6 +207,7 @@ const char *Default_MenuKey( menuframework_s *m, int key )
 	case K_MOUSE1:
 	case K_MOUSE2:
 	case K_MOUSE3:
+	case K_MOUSE4:
 	case K_JOY1:
 	case K_JOY2:
 	case K_JOY3:
@@ -582,6 +583,7 @@ char *bindnames[][2] =
 {
 {"+attack", 		"attack"},
 {"weapnext", 		"next weapon"},
+{"weapprev", 		"previous weapon"},
 {"+forward", 		"walk forward"},
 {"+back", 			"backpedal"},
 {"+left", 			"turn left"},
