@@ -85,9 +85,6 @@ static float old_windowed_mouse;
 
 static cvar_t	*_windowed_mouse;
 
-// state struct passed in Init
-extern in_state_t	*in_state;
-
 /************************
  * Joystick
  ************************/
@@ -113,6 +110,7 @@ qboolean CloseJoystick(void) {
 void PlatformJoyCommands(int *axis_vals, int *axis_map) {
   int i;
   int key_index;
+  in_state_t *in_state = getState();
   if (joy) {
     for (i=0 ; i < joy_numbuttons ; i++) {
       if ( SDL_JoystickGetButton(joy, i) && joy_oldbuttonstate!=i ) {
@@ -128,7 +126,7 @@ void PlatformJoyCommands(int *axis_vals, int *axis_map) {
       }
     }
     for (i=0;i<6;i++) {
-      axis_vals[axis_map[i]] = SDL_JoystickGetAxis(joy, i);
+      axis_vals[axis_map[i]] = (int)SDL_JoystickGetAxis(joy, i);
     }
   }
 }
@@ -282,24 +280,24 @@ void GetEvent(SDL_Event *event)
 	
 	switch(event->type) {
 	case SDL_MOUSEBUTTONDOWN:
-		if (event->button.button == 4) {
-			keyq[keyq_head].key = K_MWHEELUP;
-			keyq[keyq_head].down = true;
-			keyq_head = (keyq_head + 1) & 63;
-			keyq[keyq_head].key = K_MWHEELUP;
-			keyq[keyq_head].down = false;
-			keyq_head = (keyq_head + 1) & 63;
-		} else if (event->button.button == 5) {
-			keyq[keyq_head].key = K_MWHEELDOWN;
-			keyq[keyq_head].down = true;
-			keyq_head = (keyq_head + 1) & 63;
-			keyq[keyq_head].key = K_MWHEELDOWN;
-			keyq[keyq_head].down = false;
-			keyq_head = (keyq_head + 1) & 63;
-		} 
-		break;
+	  if (event->button.button == 4) {
+	    keyq[keyq_head].key = K_MWHEELUP;
+	    keyq[keyq_head].down = true;
+	    keyq_head = (keyq_head + 1) & 63;
+	    keyq[keyq_head].key = K_MWHEELUP;
+	    keyq[keyq_head].down = false;
+	    keyq_head = (keyq_head + 1) & 63;
+	  } else if (event->button.button == 5) {
+	    keyq[keyq_head].key = K_MWHEELDOWN;
+	    keyq[keyq_head].down = true;
+	    keyq_head = (keyq_head + 1) & 63;
+	    keyq[keyq_head].key = K_MWHEELDOWN;
+	    keyq[keyq_head].down = false;
+	    keyq_head = (keyq_head + 1) & 63;
+	  } 
+	  break;
 	case SDL_MOUSEBUTTONUP:
-		break;
+	  break;
 #ifdef Joystick
 	case SDL_JOYBUTTONDOWN:
 	  keyq[keyq_head].key = 
@@ -375,8 +373,8 @@ void GetEvent(SDL_Event *event)
 
 }
 
-qboolean InitJoystick() {
 #ifdef Joystick
+qboolean OpenJoystick(cvar_t *joy_dev) {
   int num_joysticks, i;
   joy = NULL;
 
@@ -408,8 +406,9 @@ qboolean InitJoystick() {
     return false;
   }
   return true;
-#endif
 }
+#endif
+
 
 /*****************************************************************************/
 
@@ -421,34 +420,31 @@ qboolean InitJoystick() {
 */
 int SWimp_Init( void *hInstance, void *wndProc )
 {
-	if (SDL_WasInit(SDL_INIT_AUDIO|SDL_INIT_CDROM|SDL_INIT_VIDEO) == 0) {
-		if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-			Sys_Error("SDL Init failed: %s\n", SDL_GetError());
-			return false;
-		}
-	} else if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
-		if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
-			Sys_Error("SDL Init failed: %s\n", SDL_GetError());
-			return false;
-		}
-	}
-
-//	SDL_EnableKeyRepeat(0, SDL_DEFAULT_REPEAT_INTERVAL);
-	
-// catch signals so i can turn on auto-repeat
+  if (SDL_WasInit(SDL_INIT_AUDIO|SDL_INIT_CDROM|SDL_INIT_VIDEO) == 0) {
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+      Sys_Error("SDL Init failed: %s\n", SDL_GetError());
+      return false;
+    }
+  } else if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
+    if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
+      Sys_Error("SDL Init failed: %s\n", SDL_GetError());
+      return false;
+    }
+  }
+  
+  //	SDL_EnableKeyRepeat(0, SDL_DEFAULT_REPEAT_INTERVAL);
+  
+  // catch signals so i can turn on auto-repeat
 #if 0
- 	{
-		struct sigaction sa;
-		sigaction(SIGINT, 0, &sa);
-		sa.sa_handler = TragicDeath;
-		sigaction(SIGINT, &sa, 0);
-		sigaction(SIGTERM, &sa, 0);
-	}
+  {
+    struct sigaction sa;
+    sigaction(SIGINT, 0, &sa);
+    sa.sa_handler = TragicDeath;
+    sigaction(SIGINT, &sa, 0);
+    sigaction(SIGTERM, &sa, 0);
+  }
 #endif
-#ifdef Joystick
-	InitJoystick();
-#endif
-	return true;
+  return true;
 }
 
 
@@ -461,7 +457,7 @@ void *GLimp_GetProcAddress(const char *func)
 
 int GLimp_Init( void *hInstance, void *wndProc )
 {
-	return SWimp_Init(hInstance, wndProc);
+  return SWimp_Init(hInstance, wndProc);
 }
 #endif
 
@@ -825,7 +821,7 @@ void getMouse(int *x, int *y, int *state) {
 
 void KBD_Init(Key_Event_fp_t fp)
 {
-	Key_Event_fp = fp;
+  Key_Event_fp = fp;
 }
 
 void KBD_Update(void)
@@ -833,6 +829,8 @@ void KBD_Update(void)
   SDL_Event event;
   static int KBD_Update_Flag;
   
+  in_state_t *in_state = getState();
+
   if (KBD_Update_Flag == 1)
     return;
   
@@ -875,7 +873,7 @@ void KBD_Update(void)
       }			
       while (keyq_head != keyq_tail)
 	{
-	  Key_Event_fp(keyq[keyq_tail].key, keyq[keyq_tail].down);
+	  in_state->Key_Event_fp(keyq[keyq_tail].key, keyq[keyq_tail].down);
 	  keyq_tail = (keyq_tail + 1) & 63;
 	}
     }

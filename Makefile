@@ -1739,7 +1739,9 @@ REF_GL_OBJS = \
 	$(BUILDDIR)/ref_gl/glob.o
 
 REF_GLX_OBJS = \
-	$(BUILDDIR)/ref_gl/gl_glx.o
+	$(BUILDDIR)/ref_gl/gl_glx.o \
+	$(BUILDDIR)/ref_gl/rw_linux.o \
+	$(BUILDDIR)/ref_gl/joystick.o
 #	$(BUILDDIR)/ref_gl/rw_x11.o
 
 REF_CANDY_GL_OBJS = $(REF_GL_OBJS)
@@ -1751,7 +1753,9 @@ REF_FXGL_OBJS = \
 	$(BUILDDIR)/ref_gl/gl_fxmesa.o
 
 REF_SDLGL_OBJS = \
-	$(BUILDDIR)/ref_gl/rw_sdl.o
+	$(BUILDDIR)/ref_gl/rw_sdl.o \
+	$(BUILDDIR)/ref_gl/rw_linux.o \
+	$(BUILDDIR)/ref_gl/joystick.o
 
 $(BUILDDIR)/ref_glx.$(SHLIBEXT) : $(REF_GL_OBJS) $(REF_GLX_OBJS)
 	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(REF_GL_OBJS) $(REF_GLX_OBJS) $(GLXLDFLAGS)
@@ -1809,6 +1813,12 @@ $(BUILDDIR)/ref_gl/glob.o :           $(LINUX_DIR)/glob.c
 
 $(BUILDDIR)/ref_gl/gl_glx.o :         $(LINUX_DIR)/gl_glx.c
 	$(DO_GL_SHLIB_CC) $(GLXCFLAGS)
+
+$(BUILDDIR)/ref_gl/rw_linux.o :     $(LINUX_DIR)/rw_linux.c
+	$(DO_GL_SHLIB_CC) $(XCFLAGS)
+
+$(BUILDDIR)/ref_gl/joystick.o :     $(LINUX_DIR)/joystick.c
+	$(DO_GL_SHLIB_CC) $(XCFLAGS)
 
 $(BUILDDIR)/ref_gl/rw_x11.o :         $(LINUX_DIR)/rw_x11.c
 	$(DO_GL_SHLIB_CC) $(GLXCFLAGS)

@@ -74,6 +74,10 @@ static Window win;
 static GLXContext ctx = NULL;
 static Atom wmDeleteWindow;
 
+#ifdef Joystick
+static int joy_fd;
+#endif
+
 #define KEY_MASK (KeyPressMask | KeyReleaseMask)
 #define MOUSE_MASK (ButtonPressMask | ButtonReleaseMask | \
 		    PointerMotionMask | ButtonMotionMask )
@@ -88,55 +92,7 @@ static void (*qglXCopyContext)( Display *dpy, GLXContext src, GLXContext dst, GL
 static void (*qglXSwapBuffers)( Display *dpy, GLXDrawable drawable );
 static int (*qglXGetConfig) (Display *dpy, XVisualInfo *vis, int attrib, int *value);
 
-#ifdef Joystick
-static cvar_t   *in_joystick;
-static qboolean joystick_avail = false;
-static int joy_fd, jx, jy, jt;
-static cvar_t   *j_invert_y;
-#endif
 
-#ifdef Joystick
-void InitJoystick() {
-  int i, err;
-  glob_t pglob;
-  struct js_event e;
-
-  joystick_avail = false;
-  err = glob("/dev/js*", 0, NULL, &pglob);
-  
-  if (err) {
-    switch (err) {
-    case GLOB_NOSPACE:
-      ri.Con_Printf(PRINT_ALL, "Error, out of memory while looking for joysticks\n");
-      break;
-    case GLOB_NOMATCH:
-      ri.Con_Printf(PRINT_ALL, "No joysticks found\n");
-      break;
-    default:
-      ri.Con_Printf(PRINT_ALL, "Error #%d while looking for joysticks\n",err);
-    }
-    return;
-  }  
-  
-  for (i=0;i<pglob.gl_pathc;i++) {
-    ri.Con_Printf(PRINT_ALL, "Trying joystick dev %s\n", pglob.gl_pathv[i]);
-    joy_fd = open (pglob.gl_pathv[i], O_RDONLY | O_NONBLOCK);
-    if (joy_fd == -1) {
-      ri.Con_Printf(PRINT_ALL, "Error opening joystick dev %s\n", 
-		    pglob.gl_pathv[i]);
-    }
-    else {
-      while (read(joy_fd, &e, sizeof(struct js_event))!=-1 &&
-	     (e.type & JS_EVENT_INIT))
-	ri.Con_Printf(PRINT_ALL, "Read init event\n");
-      ri.Con_Printf(PRINT_ALL, "Using joystick dev %s\n", pglob.gl_pathv[i]);
-      joystick_avail = true;
-      return;
-    }
-  }
-  globfree(&pglob);
-}
-#endif
 
 
 /*****************************************************************************/
@@ -145,16 +101,9 @@ void InitJoystick() {
 
 // this is inside the renderer shared lib, so these are called from vid_so
 
-static qboolean        mouse_avail;
-static int		mouse_buttonstate;
-static int		mouse_oldbuttonstate;
-static int   mx, my;
-static int	old_mouse_x, old_mouse_y;
+int mx, my, mouse_buttonstate;
+int win_x, win_y;
 
-static int win_x, win_y;
-
-static cvar_t	*m_filter;
-static cvar_t	*in_mouse;
 static cvar_t	*in_dgamouse;
 
 static cvar_t	*r_fakeFullscreen;
@@ -164,25 +113,12 @@ static int num_vidmodes;
 static qboolean vidmode_active = false;
 static XF86VidModeGamma oldgamma;
 
-static qboolean	mlooking;
-
 static qboolean mouse_active = false;
 static qboolean dgamouse = false;
 static qboolean vidmode_ext = false;
 
 /* stencilbuffer shadows */
 qboolean have_stencil = false;
-
-// state struct passed in Init
-static in_state_t	*in_state;
-
-static cvar_t *sensitivity;
-static cvar_t *lookstrafe;
-static cvar_t *m_side;
-static cvar_t *m_yaw;
-static cvar_t *m_pitch;
-static cvar_t *m_forward;
-static cvar_t *freelook;
 
 static Time myxtime;
 
@@ -212,284 +148,104 @@ static void install_grabs(void)
 {
 
 // inviso cursor
-	XDefineCursor(dpy, win, CreateNullCursor(dpy, win));
-
-	XGrabPointer(dpy, win,
-				 True,
-				 0,
-				 GrabModeAsync, GrabModeAsync,
-				 win,
-				 None,
-				 CurrentTime);
-
-	if (in_dgamouse->value) {
-		int MajorVersion, MinorVersion;
-
-		if (!XF86DGAQueryVersion(dpy, &MajorVersion, &MinorVersion)) { 
-			// unable to query, probalby not supported
-			ri.Con_Printf( PRINT_ALL, "Failed to detect XF86DGA Mouse\n" );
-			ri.Cvar_Set( "in_dgamouse", "0" );
-		} else {
-			dgamouse = true;
-			XF86DGADirectVideo(dpy, DefaultScreen(dpy), XF86DGADirectMouse);
-			XWarpPointer(dpy, None, win, 0, 0, 0, 0, 0, 0);
-		}
-	} else {
-		XWarpPointer(dpy, None, win,
-					 0, 0, 0, 0,
-					 vid.width / 2, vid.height / 2);
-	}
-
-	XGrabKeyboard(dpy, win,
-				  False,
-				  GrabModeAsync, GrabModeAsync,
-				  CurrentTime);
-
-	mouse_active = true;
-
-//	XSync(dpy, True);
+  XDefineCursor(dpy, win, CreateNullCursor(dpy, win));
+  
+  XGrabPointer(dpy, win,
+	       True,
+	       0,
+	       GrabModeAsync, GrabModeAsync,
+	       win,
+	       None,
+	       CurrentTime);
+  
+  if (in_dgamouse->value) {
+    int MajorVersion, MinorVersion;
+    
+    if (!XF86DGAQueryVersion(dpy, &MajorVersion, &MinorVersion)) { 
+      // unable to query, probalby not supported
+      ri.Con_Printf( PRINT_ALL, "Failed to detect XF86DGA Mouse\n" );
+      ri.Cvar_Set( "in_dgamouse", "0" );
+    } else {
+      dgamouse = true;
+      XF86DGADirectVideo(dpy, DefaultScreen(dpy), XF86DGADirectMouse);
+      XWarpPointer(dpy, None, win, 0, 0, 0, 0, 0, 0);
+    }
+  } else {
+    XWarpPointer(dpy, None, win,
+		 0, 0, 0, 0,
+		 vid.width / 2, vid.height / 2);
+  }
+  
+  XGrabKeyboard(dpy, win,
+		False,
+		GrabModeAsync, GrabModeAsync,
+		CurrentTime);
+  
+  mouse_active = true;
+  
+  //	XSync(dpy, True);
 }
 
 static void uninstall_grabs(void)
 {
-	if (!dpy || !win)
-		return;
-
-	if (dgamouse) {
-		dgamouse = false;
-		XF86DGADirectVideo(dpy, DefaultScreen(dpy), 0);
-	}
-
-	XUngrabPointer(dpy, CurrentTime);
-	XUngrabKeyboard(dpy, CurrentTime);
-
-// inviso cursor
-	XUndefineCursor(dpy, win);
-
-	mouse_active = false;
-}
-
-static void Force_CenterView_f (void)
-{
-	in_state->viewangles[PITCH] = 0;
-}
-
-static void RW_IN_MLookDown (void) 
-{ 
-	mlooking = true; 
-}
-
-static void RW_IN_MLookUp (void) 
-{
-	mlooking = false;
-	in_state->IN_CenterView_fp ();
-}
-
-void RW_IN_Init(in_state_t *in_state_p)
-{
-	in_state = in_state_p;
-
-#ifdef Joystick
-	in_joystick = ri.Cvar_Get ("in_joystick", "1", CVAR_ARCHIVE);
-	j_invert_y = ri.Cvar_Get ("j_invert_y", "1", CVAR_ARCHIVE);
-#endif
-
-	// mouse variables
-	m_filter = ri.Cvar_Get ("m_filter", "0", 0);
-	in_mouse = ri.Cvar_Get ("in_mouse", "1", CVAR_ARCHIVE);
-	in_dgamouse = ri.Cvar_Get ("in_dgamouse", "1", CVAR_ARCHIVE);
-	freelook = ri.Cvar_Get( "freelook", "0", 0 );
-	lookstrafe = ri.Cvar_Get ("lookstrafe", "0", 0);
-	sensitivity = ri.Cvar_Get ("sensitivity", "3", 0);
-	m_pitch = ri.Cvar_Get ("m_pitch", "0.022", 0);
-	m_yaw = ri.Cvar_Get ("m_yaw", "0.022", 0);
-	m_forward = ri.Cvar_Get ("m_forward", "1", 0);
-	m_side = ri.Cvar_Get ("m_side", "0.8", 0);
-
-	ri.Cmd_AddCommand ("+mlook", RW_IN_MLookDown);
-	ri.Cmd_AddCommand ("-mlook", RW_IN_MLookUp);
-
-	ri.Cmd_AddCommand ("force_centerview", Force_CenterView_f);
-
-	mx = my = 0.0;
-	mouse_avail = true;
-	
-#ifdef Joystick
-	if (in_joystick)
-	  InitJoystick();
-#endif
-}
-
-void RW_IN_Shutdown(void)
-{
-	if (mouse_avail) {
-		mouse_avail = false;
-		
-		ri.Cmd_RemoveCommand ("+mlook");
-		ri.Cmd_RemoveCommand ("-mlook");
-		ri.Cmd_RemoveCommand ("force_centerview");
-	}
-
-#ifdef Joystick
-	if (joystick_avail)
-	  if (close(joy_fd))
-	    ri.Con_Printf(PRINT_ALL, "Error, Problem closing joystick.");
-#endif
-}
-
-/*
-===========
-IN_Commands
-===========
-*/
-void RW_IN_Commands (void)
-{
-	int i;
-#ifdef Joystick
-	struct js_event e;
-	int key_index;
-#endif
-	if (mouse_avail) { 
-	  for (i=0 ; i<3 ; i++) {
-	    if ( (mouse_buttonstate & (1<<i)) && !(mouse_oldbuttonstate & (1<<i)) )
-	      in_state->Key_Event_fp (K_MOUSE1 + i, true);
-	    
-	    if ( !(mouse_buttonstate & (1<<i)) && (mouse_oldbuttonstate & (1<<i)) )
-	      in_state->Key_Event_fp (K_MOUSE1 + i, false);
-	  }
-	  mouse_oldbuttonstate = mouse_buttonstate;
-	}
-#ifdef Joystick
-	if (joystick_avail) {
-	  while (read(joy_fd, &e, sizeof(struct js_event))!=-1) {
-	    if (JS_EVENT_BUTTON & e.type) {
-	      key_index = (e.number < 4) ? K_JOY1 : K_AUX1;
-	      if (e.value) {
-		in_state->Key_Event_fp (key_index + e.number, true);
-	      }
-	      else {
-		in_state->Key_Event_fp (key_index + e.number, false);
-	      }
-	      //joy_oldbuttonstate = e.number;
-	    }
-	    else if (JS_EVENT_AXIS & e.type) {
-	      switch (e.number) {
-	      case 0:
-		jx = e.value;
-		break;
-	      case 1:
-		jy = e.value;
-		break;
-	      case 3:
-		jt = e.value;
-		break;
-	      }
-	    }
-	  }
-	}
-#endif
-}
-
-/*
-===========
-IN_Move
-===========
-*/
-void RW_IN_Move (usercmd_t *cmd)
-{
-  if (!mouse_avail)
+  if (!dpy || !win)
     return;
   
-  if (m_filter->value)
-    {
-      mx = (mx + old_mouse_x) * 0.5;
-      my = (my + old_mouse_y) * 0.5;
-    }
-  
-  old_mouse_x = mx;
-  old_mouse_y = my;
-  
-  mx *= sensitivity->value;
-  my *= sensitivity->value;
-  
-  // add mouse X/Y movement to cmd
-  if ( (*in_state->in_strafe_state & 1) || 
-       (lookstrafe->value && mlooking ))
-    cmd->sidemove += m_side->value * mx;
-  else
-    in_state->viewangles[YAW] -= m_yaw->value * mx;
-  
-  if ( (mlooking || freelook->value) && 
-       !(*in_state->in_strafe_state & 1))
-    {
-      in_state->viewangles[PITCH] += m_pitch->value * my;
-    }
-  else
-    {
-      cmd->forwardmove -= m_forward->value * my;
-    }
-  
-  mx = my = 0;
-  
-#ifdef Joystick
-  if (joystick_avail) {
-    // add joy X/Y movement to cmd
-    if ( (*in_state->in_strafe_state & 1) || 
-	 (lookstrafe->value && mlooking ))
-      cmd->sidemove += m_side->value * (jx/100);
-    else
-      in_state->viewangles[YAW] -= m_yaw->value * (jx/100);
-    
-    if ( (mlooking || freelook->value) && 
-	 !(*in_state->in_strafe_state & 1))
-      {
-	if (j_invert_y)
-	  in_state->viewangles[PITCH] -= m_pitch->value * (jy/100);
-	else
-	  in_state->viewangles[PITCH] += m_pitch->value * (jy/100);
-	cmd->forwardmove -= m_forward->value * (jt/100);
-      }
-    else
-      {
-	cmd->forwardmove -= m_forward->value * (jy/100);
-      }
+  if (dgamouse) {
+    dgamouse = false;
+    XF86DGADirectVideo(dpy, DefaultScreen(dpy), 0);
   }
-#endif
+  
+  XUngrabPointer(dpy, CurrentTime);
+  XUngrabKeyboard(dpy, CurrentTime);
+  
+  // inviso cursor
+  XUndefineCursor(dpy, win);
+  
+  mouse_active = false;
 }
 
 static void IN_DeactivateMouse( void ) 
 {
-	if (!mouse_avail || !dpy || !win)
-		return;
-
-	if (mouse_active) {
-		uninstall_grabs();
-		mouse_active = false;
-	}
+  //if (!mouse_avail || !dpy || !win)
+  //return;
+  
+  if (mouse_active) {
+    uninstall_grabs();
+    mouse_active = false;
+  }
 }
 
 static void IN_ActivateMouse( void ) 
 {
-	if (!mouse_avail || !dpy || !win)
-		return;
-
-	if (!mouse_active) {
-		mx = my = 0; // don't spazz
-		install_grabs();
-		mouse_active = true;
-	}
+  //if (!mouse_avail || !dpy || !win)
+  //return;
+  
+  if (!mouse_active) {
+    mx = my = 0; // don't spazz
+    install_grabs();
+    mouse_active = true;
+  }
 }
 
-void RW_IN_Frame (void)
+void getMouse(int *x, int *y, int *state) {
+  *x = mx;
+  *y = my;
+  *state = mouse_buttonstate;
+}
+
+void RW_IN_PlatformInit()
 {
+  
+  in_dgamouse = ri.Cvar_Get ("in_dgamouse", "1", CVAR_ARCHIVE);
 }
 
 void RW_IN_Activate(qboolean active)
 {
-	if (active || vidmode_active)
-		IN_ActivateMouse();
-	else
-		IN_DeactivateMouse ();
+  if (active || vidmode_active)
+    IN_ActivateMouse();
+  else
+    IN_DeactivateMouse ();
 }
 
 /*****************************************************************************/
@@ -499,81 +255,81 @@ void RW_IN_Activate(qboolean active)
 static int XLateKey(XKeyEvent *ev)
 {
 
-	int key;
-	char buf[64];
-	KeySym keysym;
-
-	key = 0;
-
-	XLookupString(ev, buf, sizeof buf, &keysym, 0);
-
-	switch(keysym)
-	{
-		case XK_KP_Page_Up:	 key = K_KP_PGUP; break;
-		case XK_Page_Up:	 key = K_PGUP; break;
-
-		case XK_KP_Page_Down: key = K_KP_PGDN; break;
-		case XK_Page_Down:	 key = K_PGDN; break;
-
-		case XK_KP_Home: key = K_KP_HOME; break;
-		case XK_Home:	 key = K_HOME; break;
-
-		case XK_KP_End:  key = K_KP_END; break;
-		case XK_End:	 key = K_END; break;
-
-		case XK_KP_Left: key = K_KP_LEFTARROW; break;
-		case XK_Left:	 key = K_LEFTARROW; break;
-
-		case XK_KP_Right: key = K_KP_RIGHTARROW; break;
-		case XK_Right:	key = K_RIGHTARROW;		break;
-
-		case XK_KP_Down: key = K_KP_DOWNARROW; break;
-		case XK_Down:	 key = K_DOWNARROW; break;
-
-		case XK_KP_Up:   key = K_KP_UPARROW; break;
-		case XK_Up:		 key = K_UPARROW;	 break;
-
-		case XK_Escape: key = K_ESCAPE;		break;
-
-		case XK_KP_Enter: key = K_KP_ENTER;	break;
-		case XK_Return: key = K_ENTER;		 break;
-
-		case XK_Tab:		key = K_TAB;			 break;
-
-		case XK_F1:		 key = K_F1;				break;
-
-		case XK_F2:		 key = K_F2;				break;
-
-		case XK_F3:		 key = K_F3;				break;
-
-		case XK_F4:		 key = K_F4;				break;
-
-		case XK_F5:		 key = K_F5;				break;
-
-		case XK_F6:		 key = K_F6;				break;
-
-		case XK_F7:		 key = K_F7;				break;
-
-		case XK_F8:		 key = K_F8;				break;
-
-		case XK_F9:		 key = K_F9;				break;
-
-		case XK_F10:		key = K_F10;			 break;
-
-		case XK_F11:		key = K_F11;			 break;
-
-		case XK_F12:		key = K_F12;			 break;
-
-		case XK_BackSpace: key = K_BACKSPACE; break;
-
-		case XK_KP_Delete: key = K_KP_DEL; break;
-		case XK_Delete: key = K_DEL; break;
-
-		case XK_Pause:	key = K_PAUSE;		 break;
-
-		case XK_Shift_L:
-		case XK_Shift_R:	key = K_SHIFT;		break;
-
+  int key;
+  char buf[64];
+  KeySym keysym;
+  
+  key = 0;
+  
+  XLookupString(ev, buf, sizeof buf, &keysym, 0);
+  
+  switch(keysym)
+    {
+    case XK_KP_Page_Up:	 key = K_KP_PGUP; break;
+    case XK_Page_Up:	 key = K_PGUP; break;
+      
+    case XK_KP_Page_Down: key = K_KP_PGDN; break;
+    case XK_Page_Down:	 key = K_PGDN; break;
+      
+    case XK_KP_Home: key = K_KP_HOME; break;
+    case XK_Home:	 key = K_HOME; break;
+      
+    case XK_KP_End:  key = K_KP_END; break;
+    case XK_End:	 key = K_END; break;
+      
+    case XK_KP_Left: key = K_KP_LEFTARROW; break;
+    case XK_Left:	 key = K_LEFTARROW; break;
+      
+    case XK_KP_Right: key = K_KP_RIGHTARROW; break;
+    case XK_Right:	key = K_RIGHTARROW;		break;
+      
+    case XK_KP_Down: key = K_KP_DOWNARROW; break;
+    case XK_Down:	 key = K_DOWNARROW; break;
+      
+    case XK_KP_Up:   key = K_KP_UPARROW; break;
+    case XK_Up:		 key = K_UPARROW;	 break;
+      
+    case XK_Escape: key = K_ESCAPE;		break;
+      
+    case XK_KP_Enter: key = K_KP_ENTER;	break;
+    case XK_Return: key = K_ENTER;		 break;
+      
+    case XK_Tab:		key = K_TAB;			 break;
+      
+    case XK_F1:		 key = K_F1;				break;
+      
+    case XK_F2:		 key = K_F2;				break;
+      
+    case XK_F3:		 key = K_F3;				break;
+      
+    case XK_F4:		 key = K_F4;				break;
+      
+    case XK_F5:		 key = K_F5;				break;
+      
+    case XK_F6:		 key = K_F6;				break;
+      
+    case XK_F7:		 key = K_F7;				break;
+      
+    case XK_F8:		 key = K_F8;				break;
+      
+    case XK_F9:		 key = K_F9;				break;
+      
+    case XK_F10:		key = K_F10;			 break;
+      
+    case XK_F11:		key = K_F11;			 break;
+      
+    case XK_F12:		key = K_F12;			 break;
+      
+    case XK_BackSpace: key = K_BACKSPACE; break;
+      
+    case XK_KP_Delete: key = K_KP_DEL; break;
+    case XK_Delete: key = K_DEL; break;
+      
+    case XK_Pause:	key = K_PAUSE;		 break;
+      
+    case XK_Shift_L:
+    case XK_Shift_R:	key = K_SHIFT;		break;
+      
 		case XK_Execute: 
 		case XK_Control_L: 
 		case XK_Control_R:	key = K_CTRL;		 break;
@@ -629,117 +385,151 @@ static int XLateKey(XKeyEvent *ev)
 }
 
 
-static void HandleEvents(void)
+/* Check to see if this is a repeated key.
+   (idea shamelessly lifted from SDL who...)
+   (idea shamelessly lifted from GII -- thanks guys! :)
+   This has bugs if two keys are being pressed simultaneously and the
+   events start getting interleaved.
+*/
+int X11_KeyRepeat(Display *display, XEvent *event)
 {
-	XEvent event;
-	int b;
-	qboolean dowarp = false;
-	int mwx = vid.width/2;
-	int mwy = vid.height/2;
-   
-	if (!dpy)
-		return;
+	XEvent peekevent;
+	int repeated;
 
-	while (XPending(dpy)) {
-
-		XNextEvent(dpy, &event);
-
-		switch(event.type) {
-		case KeyPress:
-			myxtime = event.xkey.time;
-		case KeyRelease:
-			if (in_state && in_state->Key_Event_fp)
-				in_state->Key_Event_fp (XLateKey(&event.xkey), event.type == KeyPress);
-			break;
-
-		case MotionNotify:
-			if (mouse_active) {
-				if (dgamouse) {
-					mx += (event.xmotion.x + win_x) * 2;
-					my += (event.xmotion.y + win_y) * 2;
-				} 
-				else 
-				{
-					mx += ((int)event.xmotion.x - mwx) * 2;
-					my += ((int)event.xmotion.y - mwy) * 2;
-					mwx = event.xmotion.x;
-					mwy = event.xmotion.y;
-
-					if (mx || my)
-						dowarp = true;
-				}
-			}
-			break;
-
-
-		case ButtonPress:
-			myxtime = event.xbutton.time;
-			
-			b=-1;
-			if (event.xbutton.button == 1)
-				b = 0;
-			else if (event.xbutton.button == 2)
-				b = 2;
-			else if (event.xbutton.button == 3)
-				b = 1;
-			else if (event.xbutton.button == 4)
-				in_state->Key_Event_fp (K_MWHEELUP, 1);
-			else if (event.xbutton.button == 5)
-				in_state->Key_Event_fp (K_MWHEELDOWN, 1);
-			if (b>=0 && in_state && in_state->Key_Event_fp)
-				in_state->Key_Event_fp (K_MOUSE1 + b, true);
-			break;
-
-		case ButtonRelease:
-			b=-1;
-			if (event.xbutton.button == 1)
-				b = 0;
-			else if (event.xbutton.button == 2)
-				b = 2;
-			else if (event.xbutton.button == 3)
-				b = 1;
-			else if (event.xbutton.button == 4)
-				in_state->Key_Event_fp (K_MWHEELUP, 0);
-			else if (event.xbutton.button == 5)
-				in_state->Key_Event_fp (K_MWHEELDOWN, 0);
-			if (b>=0 && in_state && in_state->Key_Event_fp)
-				in_state->Key_Event_fp (K_MOUSE1 + b, false);
-			break;
-
-		case CreateNotify :
-			win_x = event.xcreatewindow.x;
-			win_y = event.xcreatewindow.y;
-			break;
-
-		case ConfigureNotify :
-			win_x = event.xconfigure.x;
-			win_y = event.xconfigure.y;
-			break;
-		
-		case ClientMessage:
-			if (event.xclient.data.l[0] == wmDeleteWindow)
-				ri.Cmd_ExecuteText(EXEC_NOW, "quit");
-			break;
+	repeated = 0;
+	if ( XPending(display) ) {
+		XPeekEvent(display, &peekevent);
+		if ( (peekevent.type == KeyPress) &&
+		     (peekevent.xkey.keycode == event->xkey.keycode) &&
+		     ((peekevent.xkey.time-event->xkey.time) < 2) ) {
+		  repeated = 1;
+		  XNextEvent(display, &peekevent);
 		}
 	}
-	   
-	if (dowarp) {
-		/* move the mouse to the window center again */
-		XWarpPointer(dpy,None,win,0,0,0,0, vid.width/2,vid.height/2);
-	}
+	return(repeated);
+}
+
+
+static void HandleEvents(void)
+{
+  XEvent event;
+  int b;
+  qboolean dowarp = false;
+  int mwx = vid.width/2;
+  int mwy = vid.height/2;
+  in_state_t *in_state = getState();
+  if (!dpy)
+    return;
+  
+  while (XPending(dpy)) {
+    XNextEvent(dpy, &event);
+    
+    switch(event.type) {
+    case KeyPress:
+      printf("foo\n");
+      myxtime = event.xkey.time;
+      if (in_state && in_state->Key_Event_fp)
+	in_state->Key_Event_fp (XLateKey(&event.xkey), true);
+      break;
+    case KeyRelease:
+      printf("bar\n");
+      if (! X11_KeyRepeat(dpy, &event)) {
+	if (in_state && in_state->Key_Event_fp)
+	  in_state->Key_Event_fp (XLateKey(&event.xkey), false);
+      }
+      break;
+    case MotionNotify:
+      if (mouse_active) {
+	if (dgamouse) {
+	  mx += (event.xmotion.x + win_x) * 2;
+	  my += (event.xmotion.y + win_y) * 2;
+	} 
+	else 
+	  {
+	    mx += ((int)event.xmotion.x - mwx) * 2;
+	    my += ((int)event.xmotion.y - mwy) * 2;
+	    mwx = event.xmotion.x;
+	    mwy = event.xmotion.y;
+	    
+	    if (mx || my)
+	      dowarp = true;
+	  }
+      }
+      break;
+      
+      
+    case ButtonPress:
+      myxtime = event.xbutton.time;
+      
+      b=-1;
+      if (event.xbutton.button == 1)
+	b = 0;
+      else if (event.xbutton.button == 2)
+	b = 2;
+      else if (event.xbutton.button == 3)
+	b = 1;
+      else if (event.xbutton.button == 4)
+	in_state->Key_Event_fp (K_MWHEELUP, 1);
+      else if (event.xbutton.button == 5)
+	in_state->Key_Event_fp (K_MWHEELDOWN, 1);
+      if (b>=0 && in_state && in_state->Key_Event_fp)
+	in_state->Key_Event_fp (K_MOUSE1 + b, true);
+      if (b>=0)
+	mouse_buttonstate |= 1<<b;
+      break;
+      
+    case ButtonRelease:
+      b=-1;
+      if (event.xbutton.button == 1)
+	b = 0;
+      else if (event.xbutton.button == 2)
+	b = 2;
+      else if (event.xbutton.button == 3)
+	b = 1;
+      else if (event.xbutton.button == 4)
+	in_state->Key_Event_fp (K_MWHEELUP, 0);
+      else if (event.xbutton.button == 5)
+	in_state->Key_Event_fp (K_MWHEELDOWN, 0);
+      if (b>=0 && in_state && in_state->Key_Event_fp)
+	in_state->Key_Event_fp (K_MOUSE1 + b, false);
+      if (b>=0)
+	mouse_buttonstate &= ~(1<<b);
+      break;
+      
+    case CreateNotify :
+      win_x = event.xcreatewindow.x;
+      win_y = event.xcreatewindow.y;
+      break;
+      
+    case ConfigureNotify :
+      win_x = event.xconfigure.x;
+      win_y = event.xconfigure.y;
+      break;
+      
+    case ClientMessage:
+      if (event.xclient.data.l[0] == wmDeleteWindow)
+	ri.Cmd_ExecuteText(EXEC_NOW, "quit");
+      break;
+    }
+  }
+  
+  if (dowarp) {
+    /* move the mouse to the window center again */
+    XWarpPointer(dpy,None,win,0,0,0,0, vid.width/2,vid.height/2);
+  }
 }
 
 Key_Event_fp_t Key_Event_fp;
 
 void KBD_Init(Key_Event_fp_t fp)
 {
-	Key_Event_fp = fp;
+  Key_Event_fp = fp;
 }
 
 void KBD_Update(void)
 {
-// get events from x server
-	HandleEvents();
+  // get events from x server
+  HandleEvents();
 }
 
 void KBD_Close(void)
@@ -1216,3 +1006,74 @@ void Fake_glColorTableEXT( GLenum target, GLenum internalformat,
 	}
 	qgl3DfxSetPaletteEXT((GLuint *)temptable);
 }
+
+
+#ifdef Joystick
+qboolean OpenJoystick(cvar_t *joy_dev) {
+  int i, err;
+  glob_t pglob;
+  struct js_event e;
+
+  err = glob(joy_dev->string, 0, NULL, &pglob);
+
+  if (err) {
+    switch (err) {
+    case GLOB_NOSPACE:
+      ri.Con_Printf(PRINT_ALL, "Error, out of memory while looking for joysticks\n");
+      break;
+    case GLOB_NOMATCH:
+      ri.Con_Printf(PRINT_ALL, "No joysticks found\n");
+      break;
+    default:
+      ri.Con_Printf(PRINT_ALL, "Error #%d while looking for joysticks\n",err);
+    }
+    return false;
+  }  
+  
+  for (i=0;i<pglob.gl_pathc;i++) {
+    ri.Con_Printf(PRINT_ALL, "Trying joystick dev %s\n", pglob.gl_pathv[i]);
+    joy_fd = open (pglob.gl_pathv[i], O_RDONLY | O_NONBLOCK);
+    if (joy_fd == -1) {
+      ri.Con_Printf(PRINT_ALL, "Error opening joystick dev %s\n", 
+		    pglob.gl_pathv[i]);
+      return false;
+    }
+    else {
+      while (read(joy_fd, &e, sizeof(struct js_event))!=-1 &&
+	     (e.type & JS_EVENT_INIT))
+	ri.Con_Printf(PRINT_ALL, "Read init event\n");
+      ri.Con_Printf(PRINT_ALL, "Using joystick dev %s\n", pglob.gl_pathv[i]);
+      return true;
+    }
+  }
+  globfree(&pglob);
+  return false;
+}
+
+void PlatformJoyCommands(int *axis_vals, int *axis_map) {
+  struct js_event e;
+  int key_index;
+  in_state_t *in_state = getState();
+  
+  while (read(joy_fd, &e, sizeof(struct js_event))!=-1) {
+    if (JS_EVENT_BUTTON & e.type) {
+      key_index = (e.number < 4) ? K_JOY1 : K_AUX1;
+      if (e.value) {
+	in_state->Key_Event_fp (key_index + e.number, true);
+      }
+      else {
+	in_state->Key_Event_fp (key_index + e.number, false);
+      }
+    }
+    else if (JS_EVENT_AXIS & e.type) {
+      axis_vals[axis_map[e.number]] = e.value;
+    }
+  }
+}
+
+qboolean CloseJoystick(void) {
+  if (close(joy_fd))
+    ri.Con_Printf(PRINT_ALL, "Error, Problem closing joystick.");
+  return true;
+}
+#endif

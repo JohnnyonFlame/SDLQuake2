@@ -1086,31 +1086,31 @@ void HandleEvents(void)
 int SWimp_Init( void *hInstance, void *wndProc )
 {
 
-	vid_xpos = ri.Cvar_Get ("vid_xpos", "3", CVAR_ARCHIVE);
-	vid_ypos = ri.Cvar_Get ("vid_ypos", "22", CVAR_ARCHIVE);
-
-// open the display
-	dpy = XOpenDisplay(NULL);
-	if (!dpy)
-	{
-		if (getenv("DISPLAY"))
-			Sys_Error("VID: Could not open display [%s]\n",
-				getenv("DISPLAY"));
-		else
-			Sys_Error("VID: Could not open local display\n");
-	}
-
-// catch signals so i can turn on auto-repeat
-
-	{
-		struct sigaction sa;
-		sigaction(SIGINT, 0, &sa);
-		sa.sa_handler = TragicDeath;
-		sigaction(SIGINT, &sa, 0);
-		sigaction(SIGTERM, &sa, 0);
-	}
-
-	return true;
+  vid_xpos = ri.Cvar_Get ("vid_xpos", "3", CVAR_ARCHIVE);
+  vid_ypos = ri.Cvar_Get ("vid_ypos", "22", CVAR_ARCHIVE);
+  
+  // open the display
+  dpy = XOpenDisplay(NULL);
+  if (!dpy)
+    {
+      if (getenv("DISPLAY"))
+	Sys_Error("VID: Could not open display [%s]\n",
+		  getenv("DISPLAY"));
+      else
+	Sys_Error("VID: Could not open local display\n");
+    }
+  
+  // catch signals so i can turn on auto-repeat
+  
+  {
+    struct sigaction sa;
+    sigaction(SIGINT, 0, &sa);
+    sa.sa_handler = TragicDeath;
+    sigaction(SIGINT, &sa, 0);
+    sigaction(SIGTERM, &sa, 0);
+  }
+  
+  return true;
 }
 #endif
 
@@ -1594,7 +1594,7 @@ Key_Event_fp_t Key_Event_fp;
 
 void KBD_Init(Key_Event_fp_t fp)
 {
-	Key_Event_fp = fp;
+  Key_Event_fp = fp;
 }
 
 void KBD_Update(void)
