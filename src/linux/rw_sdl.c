@@ -480,60 +480,60 @@ void GetEvent(SDL_Event *event)
 	  keyq_head = (keyq_head+1)&63;
 	  break;
 	case SDL_KEYDOWN:
-		if ( (KeyStates[SDLK_LALT] || KeyStates[SDLK_RALT]) &&
-			(event->key.keysym.sym == SDLK_RETURN) ) {
-			cvar_t *fullscreen;
-			
-			SDL_WM_ToggleFullScreen(surface);
-				
-			if (surface->flags & SDL_FULLSCREEN) {
-				ri.Cvar_SetValue( "vid_fullscreen", 1 );
-			} else {
-				ri.Cvar_SetValue( "vid_fullscreen", 0 );
-			}
-
-			fullscreen = ri.Cvar_Get( "vid_fullscreen", "0", 0 );
-			fullscreen->modified = false; /* we just changed it with SDL. */
-			
-			break; /* ignore this key */
-		}
-		
-		if ( (KeyStates[SDLK_LCTRL] || KeyStates[SDLK_RCTRL]) &&
-			(event->key.keysym.sym == SDLK_g) ) {
-			SDL_GrabMode gm = SDL_WM_GrabInput(SDL_GRAB_QUERY);
-			/*	
-			SDL_WM_GrabInput((gm == SDL_GRAB_ON) ? SDL_GRAB_OFF : SDL_GRAB_ON);
-			gm = SDL_WM_GrabInput(SDL_GRAB_QUERY);
-			*/	
-			ri.Cvar_SetValue( "_windowed_mouse", (gm == SDL_GRAB_ON) ? /*1*/ 0 : /*0*/ 1 );
-			
-			break; /* ignore this key */
-		}
-
-		KeyStates[event->key.keysym.sym] = 1;
-		
-		key = XLateKey(event->key.keysym.sym);
-		if (key) {
-			keyq[keyq_head].key = key;
-			keyq[keyq_head].down = true;
-			keyq_head = (keyq_head + 1) & 63;
-		}
-		break;
+	  if ( (KeyStates[SDLK_LALT] || KeyStates[SDLK_RALT]) &&
+	       (event->key.keysym.sym == SDLK_RETURN) ) {
+	    cvar_t *fullscreen;
+	    
+	    SDL_WM_ToggleFullScreen(surface);
+	    
+	    if (surface->flags & SDL_FULLSCREEN) {
+	      ri.Cvar_SetValue( "vid_fullscreen", 1 );
+	    } else {
+	      ri.Cvar_SetValue( "vid_fullscreen", 0 );
+	    }
+	    
+	    fullscreen = ri.Cvar_Get( "vid_fullscreen", "0", 0 );
+	    fullscreen->modified = false; /* we just changed it with SDL. */
+	    
+	    break; /* ignore this key */
+	  }
+	  
+	  if ( (KeyStates[SDLK_LCTRL] || KeyStates[SDLK_RCTRL]) &&
+	       (event->key.keysym.sym == SDLK_g) ) {
+	    SDL_GrabMode gm = SDL_WM_GrabInput(SDL_GRAB_QUERY);
+	    /*	
+	      SDL_WM_GrabInput((gm == SDL_GRAB_ON) ? SDL_GRAB_OFF : SDL_GRAB_ON);
+	      gm = SDL_WM_GrabInput(SDL_GRAB_QUERY);
+	    */	
+	    ri.Cvar_SetValue( "_windowed_mouse", (gm == SDL_GRAB_ON) ? /*1*/ 0 : /*0*/ 1 );
+	    
+	    break; /* ignore this key */
+	  }
+	  
+	  KeyStates[event->key.keysym.sym] = 1;
+	  
+	  key = XLateKey(event->key.keysym.sym);
+	  if (key) {
+	    keyq[keyq_head].key = key;
+	    keyq[keyq_head].down = true;
+	    keyq_head = (keyq_head + 1) & 63;
+	  }
+	  break;
 	case SDL_KEYUP:
-		if (KeyStates[event->key.keysym.sym]) {
-			KeyStates[event->key.keysym.sym] = 0;
-		
-			key = XLateKey(event->key.keysym.sym);
-			if (key) {
-				keyq[keyq_head].key = key;
-				keyq[keyq_head].down = false;
-				keyq_head = (keyq_head + 1) & 63;
-			}
-		}
-		break;
+	  if (KeyStates[event->key.keysym.sym]) {
+	    KeyStates[event->key.keysym.sym] = 0;
+	    
+	    key = XLateKey(event->key.keysym.sym);
+	    if (key) {
+	      keyq[keyq_head].key = key;
+	      keyq[keyq_head].down = false;
+	      keyq_head = (keyq_head + 1) & 63;
+	    }
+	  }
+	  break;
 	case SDL_QUIT:
-		ri.Cmd_ExecuteText(EXEC_NOW, "quit");
-		break;
+	  ri.Cmd_ExecuteText(EXEC_NOW, "quit");
+	  break;
 	}
 
 }
