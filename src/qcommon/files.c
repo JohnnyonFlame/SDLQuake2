@@ -521,7 +521,9 @@ void FS_AddGameDirectory (char *dir)
 	// add the base directory to the search path
 	//
 	search = Z_Malloc (sizeof(searchpath_t));
-	strncpy (search->filename, dir, sizeof(search->filename));
+	strncpy (search->filename, dir, sizeof(search->filename)-1);
+	search->filename[sizeof(search->filename)-1] = 0;
+	
 	search->next = fs_searchpaths;
 	fs_searchpaths = search;
 
@@ -562,7 +564,9 @@ void FS_AddHomeAsGameDirectory (char *dir)
 		if ((len > 0) && (len < sizeof(gdir)) && (gdir[len-1] == '/'))
 			gdir[len-1] = 0;
 
-		strncpy(fs_gamedir,gdir,sizeof(fs_gamedir));
+		strncpy(fs_gamedir,gdir,sizeof(fs_gamedir)-1);
+		fs_gamedir[sizeof(fs_gamedir)-1] = 0;
+		
 		FS_AddGameDirectory (gdir);
 	}
 #endif
