@@ -206,9 +206,7 @@ void R_TransformFrustum (void)
 }
 
 
-#if !(defined __linux__ && defined __i386__)
 #if !id386
-
 /*
 ================
 TransformVector
@@ -223,6 +221,7 @@ void TransformVector (vec3_t in, vec3_t out)
 
 #else
 
+#ifdef _WIN32 /* non-windows version is elsewhere */
 __declspec( naked ) void TransformVector( vec3_t vin, vec3_t vout )
 {
 	__asm mov eax, dword ptr [esp+4]
@@ -267,8 +266,8 @@ __declspec( naked ) void TransformVector( vec3_t vin, vec3_t vout )
 
 	__asm ret
 }
-
 #endif
+
 #endif
 
 

@@ -11,9 +11,9 @@
 # Here are your build options, no more will be added!
 # (Note: not all options are available for all platforms).
 # quake2 (uses OSS for sound, cdrom ioctls for cd audio) is automatically built.
-# gamei386.so is automatically built.
+# game{i386,axp,ppc}.so is automatically built.
 BUILD_SDLQUAKE2=YES	# sdlquake2 executable (uses SDL for cdrom and sound)
-BUILD_SVGA=YES		# SVGAlib driver. Seems to work fine.
+BUILD_SVGA=NO		# SVGAlib driver. Seems to work fine.
 BUILD_X11=YES		# X11 software driver. Works somewhat ok.
 BUILD_GLX=YES		# X11 GLX driver. Works somewhat ok.
 BUILD_FXGL=NO		# FXMesa driver. Not tested. (used only for V1 and V2).
@@ -79,6 +79,9 @@ CTF_DIR=$(MOUNT_DIR)/ctf
 XATRIX_DIR=$(MOUNT_DIR)/xatrix
 
 BASE_CFLAGS=-Dstricmp=strcasecmp
+ifneq ($(ARCH),i386)
+ BASE_CFLAGS+=-DC_ONLY
+endif
 
 DEBUG_CFLAGS=$(BASE_CFLAGS) -g
 
@@ -165,11 +168,13 @@ ifeq ($(ARCH),ppc)
  endif
 
  ifeq ($(strip $(BUILD_X11)),YES)
-  $(warning Warning: X11 support not supported for $(ARCH))
+  #$(warning Warning: X11 support not supported for $(ARCH))
+  TARGETS += $(BUILDDIR)/ref_softx.$(SHLIBEXT)
  endif
 
  ifeq ($(strip $(BUILD_GLX)),YES)
-  $(warning Warning: GLX support not supported for $(ARCH))
+  #$(warning Warning: GLX support not supported for $(ARCH))
+  TARGETS += $(BUILDDIR)/ref_glx.$(SHLIBEXT)
  endif
 
  ifeq ($(strip $(BUILD_FXGL)),YES)
@@ -177,7 +182,8 @@ ifeq ($(ARCH),ppc)
  endif
 
  ifeq ($(strip $(BUILD_SDL)),YES)
-  $(warning Warning: SDL support not supported for $(ARCH))
+  #$(warning Warning: SDL support not supported for $(ARCH))
+  TARGETS += $(BUILDDIR)/ref_softsdl.$(SHLIBEXT)
  endif
 
  ifeq ($(strip $(BUILD_SDLGL)),YES)
@@ -1010,6 +1016,12 @@ REF_SOFT_OBJS = \
 	$(BUILDDIR)/ref_soft/r_sprite.o \
 	$(BUILDDIR)/ref_soft/r_surf.o \
 	\
+	$(BUILDDIR)/ref_soft/q_shared.o \
+	$(BUILDDIR)/ref_soft/q_shlinux.o \
+	$(BUILDDIR)/ref_soft/glob.o
+
+ifeq ($(ARCH),i386)
+REF_SOFT_OBJS += \
 	$(BUILDDIR)/ref_soft/r_aclipa.o \
 	$(BUILDDIR)/ref_soft/r_draw16.o \
 	$(BUILDDIR)/ref_soft/r_drawa.o \
@@ -1020,11 +1032,8 @@ REF_SOFT_OBJS = \
 	$(BUILDDIR)/ref_soft/math.o \
 	$(BUILDDIR)/ref_soft/d_polysa.o \
 	$(BUILDDIR)/ref_soft/r_varsa.o \
-	$(BUILDDIR)/ref_soft/sys_dosa.o \
-	\
-	$(BUILDDIR)/ref_soft/q_shared.o \
-	$(BUILDDIR)/ref_soft/q_shlinux.o \
-	$(BUILDDIR)/ref_soft/glob.o
+	$(BUILDDIR)/ref_soft/sys_dosa.o
+endif
 
 REF_SOFT_SVGA_OBJS = \
 	$(BUILDDIR)/ref_soft/rw_svgalib.o \
