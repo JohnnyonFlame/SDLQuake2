@@ -93,7 +93,7 @@ int i;
 
 	for (i = 0; i < num_modes; i++)
 		if (modes[i].width)
-			ri.Con_Printf(PRINT_ALL, "mode %d: %d %d\n", modes[i].width, modes[i].height);
+			ri.Con_Printf(PRINT_ALL, "mode %d: %d %d\n", i, modes[i].width, modes[i].height);
 
 }
 
