@@ -1,7 +1,7 @@
 /*
 ** RW_X11.C
 **
-** This file contains ALL Linux specific stuff having to do with the
+** This file contains ALL Solaris specific stuff having to do with the
 ** software refresh.  When a port is being made the following functions
 ** must be implemented by the port:
 **
@@ -50,6 +50,7 @@ static GC				x_gc;
 static Visual			*x_vis;
 static XVisualInfo		*x_visinfo;
 static int win_x, win_y;
+static Atom wmDeleteWindow;
 
 #define KEY_MASK (KeyPressMask | KeyReleaseMask)
 #define MOUSE_MASK (ButtonPressMask | ButtonReleaseMask | \
@@ -260,6 +261,7 @@ static cvar_t *m_pitch;
 static cvar_t *m_forward;
 static cvar_t *freelook;
 static cvar_t *_windowed_mouse;
+static Time myxtime;
 
 static void Force_CenterView_f (void)
 {
@@ -664,6 +666,30 @@ int XLateKey(XKeyEvent *ev)
   return key;
 }
 
+/* Check to see if this is a repeated key.
+   (idea shamelessly lifted from SDL who...)
+   (idea shamelessly lifted from GII -- thanks guys! :)
+   This has bugs if two keys are being pressed simultaneously and the
+   events start getting interleaved.
+*/
+int X11_KeyRepeat(Display *display, XEvent *event)
+{
+	XEvent peekevent;
+	int repeated;
+
+	repeated = 0;
+	if ( XPending(display) ) {
+		XPeekEvent(display, &peekevent);
+		if ( (peekevent.type == KeyPress) &&
+			(peekevent.xkey.keycode == event->xkey.keycode) &&
+			((peekevent.xkey.time-event->xkey.time) < 2) ) {
+			repeated = 1;
+			XNextEvent(display, &peekevent);
+		}
+	}
+	return(repeated);
+}
+
 void HandleEvents(void)
 {
   XEvent event;
@@ -679,34 +705,16 @@ void HandleEvents(void)
 
     switch(event.type) {
     case KeyPress:
+      myxtime = event.xkey.time;
       if( in_state && in_state->Key_Event_fp ) {
-	in_state->Key_Event_fp( XLateKey(&event.xkey), 1 );
+	in_state->Key_Event_fp( XLateKey(&event.xkey), true );
       }
       break;
 
     case KeyRelease:
-      /*
-       *  This is a hack in order to avoid disabling key repeat, which
-       *  would cause a lot of problems when changing to other windows
-       *  or when the program crashes.
-       *
-       *  Whenever a key release event occurs, we check to see if the
-       *  next event in the queue is a press event of the same key
-       *  with the same time stamp. If it is, we simply discard this
-       *  and the next event.
-       */
-      if( XPending( dpy ) > 0 ) {
-	XEvent tmp_event;
-	XPeekEvent( dpy, &tmp_event );
-	if( tmp_event.type == KeyPress &&
-	    tmp_event.xkey.keycode == event.xkey.keycode &&
-	    tmp_event.xkey.time == event.xkey.time ) {
-	  XNextEvent( dpy, &tmp_event );
-	  break;
-	}
-      }
-    if( in_state && in_state->Key_Event_fp ) {
-      in_state->Key_Event_fp( XLateKey(&event.xkey), 0 );
+	if (! X11_KeyRepeat(dpy, &event)) {
+	  if (in_state && in_state->Key_Event_fp)
+		in_state->Key_Event_fp (XLateKey(&event.xkey), false);
     }
     break;
 
@@ -804,6 +812,11 @@ void HandleEvents(void)
       }
       break;
 
+    case ClientMessage:
+      if (event.xclient.data.l[0] == wmDeleteWindow) {
+        ri.Cmd_ExecuteText(EXEC_NOW, "quit");
+      }
+      break;
     default:
       if (doShm && event.type == x_shmeventtype) {
 	oktodraw = true;
@@ -984,6 +997,9 @@ static qboolean SWimp_InitGraphics( qboolean fullscreen )
     XSetWMHints( dpy, win, &hints );
   }
 
+  wmDeleteWindow = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
+  XSetWMProtocols(dpy, win, &wmDeleteWindow, 1);
+  
   XMapWindow(dpy, win);
   XMoveWindow(dpy, win, (int)vid_xpos->value, (int)vid_ypos->value);
 

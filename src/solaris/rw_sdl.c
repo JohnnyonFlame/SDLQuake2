@@ -1,7 +1,7 @@
 /*
 ** RW_SDL.C
 **
-** This file contains ALL Linux specific stuff having to do with the
+** This file contains ALL Solaris specific stuff having to do with the
 ** software refresh.  When a port is being made the following functions
 ** must be implemented by the port:
 **

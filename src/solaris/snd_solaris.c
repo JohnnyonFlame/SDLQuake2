@@ -1,323 +1,286 @@
-/**
- *
- * TODO: change printf to output things on the Quake console instead
- */
+/*
+Copyright (C) 1997-2001 Id Software, Inc.
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+
+See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+*/
+#include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/ioctl.h>
-#include <sys/mman.h>
-#include <sys/shm.h>
-#include <sys/wait.h>
-#include <stdio.h>
-#include <sys/audioio.h>
 #include <errno.h>
 #include <stropts.h>
-#include <time.h>
-#include <signal.h>
+#include <sys/types.h>
+#include <sys/audioio.h>
 
 #include "../client/client.h"
 #include "../client/snd_loc.h"
 
+#define	SND_DEBUG	0
 
+#if	SND_DEBUG
+#define	DPRINTF(...)	printf(__VA_ARGS__)
+#else
+#define	DPRINTF(...)	/**/
+#endif
+
+static int audio_fd = -1;
+static int snd_inited;
+
+static cvar_t *sndbits;
+static cvar_t *sndspeed;
+static cvar_t *sndchannels;
+static cvar_t *snddevice;
+
+
+static int tryrates[] = { 11025, 22051, 44100, 8000 };
+
+#define	QSND_NUM_CHUNKS	2
 
 /*
- *	How this works:
- *
- *	Quake[12] are designed to use a dma buffer into which the sound is mixed by
- *	the snd_mix.c routines. This is used as a simple ring buffer.  The routine
- *	SNDDMA_GetDMAPos should return the point in the buffer where the dma engine
- *	is currently playing.  The global variable paintedtime indicates how far
- *	the sound code has already written the buffer data.
- *	
- *	Originally we used the audio driver's idea of how many samples had been written
- *	in order to compute the play location.  This turned out to be unreliable, and
- *	led to weird echos, etc in the sample stream.  We now use time, knowing that
- *	we send exactly SAMPLE_RATE samples/sec.
- *	
- *	I've hard-coded this to require stero and SAMPLE_RATE samples/sec; this is a perf.
- *	win and all ultrasparcs support this.
- *
- *      Note that the flush appears to cause some probs. with static; I'll try and
- *	get around this in the future.
- *
- *
- */
+==================
+SNDDMA_Init
 
-int audio_fd;
-int snd_inited;
-
-static int bufpos;
-static int prevbufpos;
-
-static audio_info_t info;
-
-#define BUFFER_SIZE		2048*16		// nice and big = about 3 seconds worth so
-						// the sound is ok if the game slows down
-#define SAMPLE_BITS		16		// fixed to speed things up a bit
-
-#define	SAMPLE_RATE		(11025)
-
-#define WRITE_SIZE		(((SAMPLE_RATE)/100) << 2) /* write 1 tick's worth of data */
-
-unsigned char dma_buffer[BUFFER_SIZE];
-
-static volatile dma_t  *shm = 0;
-
-static long long timestart;
-
-static timer_t timer_id;
-struct sigevent ev;
-struct itimerspec itimerspec;
-
-static void sig_sound();
-
-static int bytes_so_far;
-
-control_timer(int on)
-{
-	struct sigaction act;
-
-	if (on) {
-		itimerspec.it_value.tv_nsec =
-			itimerspec.it_interval.tv_nsec = 10000000;
-
-		itimerspec.it_value.tv_sec =
-			itimerspec.it_interval.tv_sec = 0;			
-	} else {
-		itimerspec.it_value.tv_nsec = 
-			itimerspec.it_value.tv_sec = 0;
-	}
-
-	memset(&act, 0, sizeof (act));
-	act.sa_handler = sig_sound;
-
-	if (sigaction(SIGALRM, &act, NULL) < 0) {
-		perror("sigaction failure");
-		close (audio_fd);
-		return (0);
-	}
-
-	if (timer_settime(timer_id, 0, &itimerspec, NULL) < 0) {
-		perror("timer failure");
-		close (audio_fd);
-		return (0);
-	}	
-
-	return (1);
-}
-
+Try to find a sound device to mix for.
+Returns false if nothing is found.
+Returns true and fills in the "dma" structure with information for the mixer.
+==================
+*/
 qboolean SNDDMA_Init(void)
 {
-	shm = &dma;
+    int i;
+    int samples;
+    audio_info_t au_info;
 
-	audio_fd = open("/dev/audio", O_WRONLY|O_NDELAY);
+    if (snd_inited)
+	return 1;
 
-	if (timer_id == 0) {
-		ev.sigev_notify = SIGEV_SIGNAL;
-		ev.sigev_signo = SIGALRM;
+    if (!snddevice) {
+	sndbits = Cvar_Get("sndbits", "16", CVAR_ARCHIVE);
+	sndspeed = Cvar_Get("sndspeed", "0", CVAR_ARCHIVE);
+	sndchannels = Cvar_Get("sndchannels", "2", CVAR_ARCHIVE);
+	snddevice = Cvar_Get("snddevice", "/dev/audio", CVAR_ARCHIVE);
+    }
 
-		itimerspec.it_value.tv_nsec =
-			itimerspec.it_interval.tv_nsec = 10000000;
+// open /dev/audio
 
-		itimerspec.it_value.tv_sec =
-			itimerspec.it_interval.tv_sec = 0;			
+    if (audio_fd < 0) {
 
-		if (timer_create(CLOCK_REALTIME, &ev, &timer_id) < 0) {
-			perror("timer_create");
-			return (0);
-		}
-	}
+	audio_fd = open(snddevice->string, O_WRONLY);
 
 	if (audio_fd < 0) {
-		if (errno == EBUSY) {
-			printf("Audio device is being used by another process\n");
+	    Com_Printf("Could not open %s: %s\n", snddevice->string, strerror(errno));
+	    return 0;
 		}
-		perror("/dev/audio");
-		printf("Could not open /dev/audio\n");
-		return (0);
 	}
 
-	if (ioctl(audio_fd, AUDIO_GETINFO, &info) < 0) {
-		perror("/dev/audio");
-		printf("Could not communicate with audio device.\n");
-		close(audio_fd);
+// set sample bits & speed
+
+    if ((int)sndspeed->value > 0) {
+	AUDIO_INITINFO(&au_info);
+
+	au_info.play.precision = (int)sndbits->value;
+	au_info.play.encoding =
+	    ( au_info.play.precision == 8
+	      ? AUDIO_ENCODING_LINEAR8
+	      : AUDIO_ENCODING_LINEAR ); 
+	au_info.play.sample_rate = (int)sndspeed->value;
+	au_info.play.channels = (int)sndchannels->value;
+
+	if (ioctl(audio_fd, AUDIO_SETINFO, &au_info) == -1) {
+	    Com_Printf("AUDIO_SETINFO failed: %s\n", strerror(errno));
 		return 0;
 	}
+    } else {
+	for (i=0 ; i<sizeof(tryrates)/sizeof(tryrates[0]) ; i++) {
+	    AUDIO_INITINFO(&au_info);
 
-	//
-	// set to nonblock
-	//
+	    au_info.play.precision = (int)sndbits->value;
+	    au_info.play.encoding =
+		( au_info.play.precision == 8
+		  ? AUDIO_ENCODING_LINEAR8
+		  : AUDIO_ENCODING_LINEAR ); 
+	    au_info.play.sample_rate = tryrates[i];
+	    au_info.play.channels = (int)sndchannels->value;
 
-	if (fcntl(audio_fd, F_SETFL, O_NONBLOCK) < 0) {
-		perror("/dev/audio");
-		close(audio_fd);
+	    if (ioctl(audio_fd, AUDIO_SETINFO, &au_info) == 0)
+		break;
+
+	    Com_Printf("AUDIO_SETINFO failed: %s\n", strerror(errno));
+	}
+	if (i >= sizeof(tryrates)/sizeof(tryrates[0]))
 		return 0;
 	}
-
-	AUDIO_INITINFO(&info);
-
-	shm->speed = SAMPLE_RATE;
-
-	// require 16 bit stereo - all recent hardware supports this
-
-	info.play.encoding = AUDIO_ENCODING_LINEAR;
-	info.play.sample_rate = SAMPLE_RATE;
-	info.play.channels = 2;
-	info.play.precision = 16;
-
-	if (ioctl(audio_fd, AUDIO_SETINFO, &info) < 0) {
-		printf("Incapable sound hardware.\n");
-		close(audio_fd);
-		return 0;
-	}
+    dma.samplebits = au_info.play.precision;
+    dma.channels = au_info.play.channels;
+    dma.speed = au_info.play.sample_rate;
 	
+    /*
+     * submit some sound data every ~ 0.1 seconds, and try to buffer 2*0.1 
+     * seconds in sound driver
+     */
+    samples = dma.channels * dma.speed / 10;
+    for (i = 0; (1 << i) < samples; i++)
+	;
+    dma.submission_chunk = 1 << (i-1);
+    DPRINTF("channels %d, speed %d, log2(samples) %d, submission chunk %d\n",
+	    dma.channels, dma.speed, i-1,
+	    dma.submission_chunk);
+
+    dma.samples = QSND_NUM_CHUNKS * dma.submission_chunk;
+    dma.buffer = calloc(dma.samples, dma.samplebits/8);
+    if (dma.buffer == NULL) {
+	Com_Printf("Could not alloc sound buffer\n");
+	return 0;
+    }
 	
+    AUDIO_INITINFO(&au_info);
+    au_info.play.eof = 0;
+    au_info.play.samples = 0;
+    ioctl(audio_fd, AUDIO_SETINFO, &au_info);
 
-
-	shm->samplebits = SAMPLE_BITS;
-	shm->channels = 2;
-	shm->samples = sizeof(dma_buffer) / (SAMPLE_BITS/8); // assume mono stream
-	shm->samplepos = 0;
-	shm->submission_chunk = 1;
-	shm->buffer = (unsigned char *)dma_buffer;
+    dma.samplepos = 0;
 
 	snd_inited = 1;
 	
-	control_timer(1);
-	       
-	printf("16 bit stereo sound initialized\n");	
 	return 1;
 }
 
-static void sig_sound()
+/*
+==============
+SNDDMA_GetDMAPos
+
+return the current sample position (in mono samples, not stereo)
+inside the recirculating dma buffer, so the mixing code will know
+how many sample are required to fill it up.
+===============
+*/
+int SNDDMA_GetDMAPos(void)
 {
-	/*
-	  compute the time, write the data, but don't pass
-	  paintedtime
-	  */
+    int s_pos;
+    audio_info_t au_info;
 
+    if (!snd_inited) 
+	return 0;
 
-
-	long long delta = gethrtime()-timestart; 
-
-	int samples = (int)((float)(delta) / 1.e9 * (double)SAMPLE_RATE);
-	int ret = (samples << 1) & (sizeof(dma_buffer) / (SAMPLE_BITS/8) - 1) ;
-	int start = ((ret) << 1 ) & (BUFFER_SIZE-1);
-	int dont_pass = (paintedtime << 2) & (BUFFER_SIZE - 1);
-	int count;
-	int slop;
-	int write_size;
-	int sav;
-
-	/*
-	 * check how we're doing...
-	 * we want many bytes of buffering (sigh) to prevent noise 
-	 * this causes some game lag, but is better than the static
-	 */
-
-	if (ioctl(audio_fd, AUDIO_GETINFO, &info) < 0) {
-		perror("/dev/audio");
-		printf("Could not communicate with audio device.\n");
-		close(audio_fd);
+    if (ioctl(audio_fd, AUDIO_GETINFO, &au_info) == -1) {
+	Com_Printf("AUDIO_GETINFO failed: %s\n", strerror(errno));
+	return 0;
  	}
 
-	slop = (SAMPLE_RATE<<4) / 100 - (bytes_so_far - (info.play.samples << 2));
-	slop &= ~3;
-
-	write_size = slop + WRITE_SIZE  ;
- 			
-	/*
-	 *  write enough so we keep a few ticks of sound in the pipe.
-	 */
-
-	sav = bytes_so_far;
-
-	if (start + (write_size) > BUFFER_SIZE) { /* wrap around */
-		if (dont_pass > start) {
-			write(audio_fd, dma_buffer + start, dont_pass - start);
-			return;
-		}
-		count =  BUFFER_SIZE - start;
-		writesmall (audio_fd, dma_buffer + start, count);
-		bytes_so_far += count;
-		count = start + (write_size) - BUFFER_SIZE;
-		if (count > dont_pass)
-			count = dont_pass;
-		writesmall (audio_fd, dma_buffer, count);
-		bytes_so_far += count;
-	} else {
-		if (dont_pass > start &&
-		    dont_pass < start + (write_size))
-			count = dont_pass - start;
-		else
-			count = write_size;
-		writesmall(audio_fd, dma_buffer + start, count);
-		bytes_so_far += count;
-	}
-
-	//printf("wrote %d bytes\n", bytes_so_far - sav);
-
+    s_pos = au_info.play.samples * dma.channels;
+    return s_pos & (dma.samples - 1);
 }
 
-int
-writesmall(int fd, char * s, int count)
-{
-	int i;
-	
-	write(fd, s, count);
-	return (0);
-}
+/*
+==============
+SNDDMA_Shutdown
 
-		
-	
-	
-int	SNDDMA_GetDMAPos(void)
-{
-	int ret;
-	int samples;
-	static int last;
-
-
-	if (!snd_inited)
-		return (0);
-
-	if (timestart == 0LL)
-		timestart = gethrtime();
-
-	/*
-	 * we'll just use time directly here; the audiodriver doesn't
-	 * seem to be reliable here
-	 */
-
-	samples = (int)((float)(gethrtime()-timestart)/1.e9*(double)SAMPLE_RATE);
-
-	ret = (samples << 1) & (sizeof(dma_buffer) / (SAMPLE_BITS/8) - 1) ;
-
-	prevbufpos = bufpos;
-	bufpos = ((ret) << 1 ) & (BUFFER_SIZE-1);
- 
-	return (ret);
-}
-
+Reset the sound device for exiting
+===============
+*/
 void SNDDMA_Shutdown(void)
 {
-	printf("SNDDMA_Shutdown\n");
-	
-	if (snd_inited) {
-		bytes_so_far = 0;
-		control_timer(0);
-		close(audio_fd);
-		snd_inited = 0;
+    if (snd_inited) {
+	if (audio_fd >= 0) {
+	    ioctl(audio_fd, I_FLUSH, FLUSHW);
+	    close(audio_fd);
+	    audio_fd = -1;
+		}
+	snd_inited = 0;
 	}
 }
 
-void SNDDMA_BeginPainting (void)
+/*
+==============
+SNDDMA_Submit
+	
+Send sound to device if buffer isn't really the dma buffer
+===============
+*/
+void SNDDMA_Submit(void)
 {
+    int samplebytes = dma.samplebits/8;
+    audio_info_t au_info;
+    int s_pos;
+    int chunk_idx;
+    static int last_chunk_idx = -1;
+
+	if (!snd_inited)
+	return;
+    
+    if (last_chunk_idx == -1) {
+	if (write(audio_fd, dma.buffer, dma.samples * samplebytes) != dma.samples * samplebytes)
+	    Com_Printf("initial write on audio device failed\n");
+	last_chunk_idx = 0;
+	dma.samplepos = 0;
+	return;
+    }
+
+    if (ioctl(audio_fd, AUDIO_GETINFO, &au_info) == -1) {
+	Com_Printf("AUDIO_GETINFO failed: %s\n", strerror(errno));
+	return;
+    }
+
+    if (au_info.play.error) {
+
+	/*
+	 * underflow? clear the error flag and reset the HW sample counter
+	 * and send the whole dma_buffer, to get sound output working again
+	 */
+
+	DPRINTF("audio data underflow\n");
+
+	AUDIO_INITINFO(&au_info);
+	au_info.play.error = 0;
+	au_info.play.samples = 0;
+	ioctl(audio_fd, AUDIO_SETINFO, &au_info);
+
+	if (write(audio_fd, dma.buffer, dma.samples * samplebytes) != dma.samples * samplebytes)
+	    Com_Printf("refill sound driver after underflow failed\n");
+	last_chunk_idx = 0;
+	dma.samplepos = 0;
+	return;
+    }
+
+    s_pos = au_info.play.samples * dma.channels;
+    chunk_idx = (s_pos % dma.samples) / dma.submission_chunk;
+ 
+    DPRINTF("HW DMA Pos=%u (%u), dma.samplepos=%u, play in=%d, last=%d\n",
+	    au_info.play.samples, s_pos, dma.samplepos,
+	    chunk_idx, last_chunk_idx);
+
+    while (chunk_idx != last_chunk_idx) {
+	
+	if (write(audio_fd,
+		  dma.buffer + dma.samplepos * samplebytes,
+		  dma.submission_chunk * samplebytes) != dma.submission_chunk * samplebytes) {
+	    Com_Printf("write error on audio device\n");
+	}
+
+	if ((dma.samplepos += dma.submission_chunk) >= dma.samples)
+	    dma.samplepos = 0;
+
+	if (++last_chunk_idx >= QSND_NUM_CHUNKS)
+	    last_chunk_idx = 0;
+    }
 }
 
-void SNDDMA_Submit(void)
+
+void SNDDMA_BeginPainting (void)
 {
 }
 

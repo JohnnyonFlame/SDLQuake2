@@ -1,14 +1,23 @@
-Not much here yet. Wed Mar 27 15:51:23 MET 2002
+Updated. Wed Jul 31 14:06:00 MEST 2002
 (Vincent S. Cojot <coyote@step.polymtl.ca>)
 
 Tested with:
 -----------------------------------------------------
+Machine 1:
 - Solaris 8 10/00 for Sparc on an Ultra2 (1300) with a Creator3D card.
 - SDL-1.2.3 (http://www.libsdl.org)
 - X11R6.4 (comes with Solaris 8).
 - XIL-1.4 (comes with Solaris 8).
-- OpenGL-1.2.2 (http://www.sun.com/solaris/opengl if using Solaris 8
+- OpenGL-1.2.2 (see http://www.sun.com/solaris/opengl if using Solaris 8
   older than 10/01).
+
+Machine 2:
+- Solaris 8 02/02 for Sparc on a SunBlade 2000 (900Mhz CU) and XVR-1000 card.
+- SDL-1.2.4 (http://www.libsdl.org)
+- X11R6.4 (comes with Solaris 8).
+- XIL-1.4 (comes with Solaris 8).
+- OpenGL-1.2.3.
+(BIG PROBLEM: SEE BELOW)
 
 Installation instructions:
 -----------------------------------------------------
@@ -22,6 +31,31 @@ BUILD_SDL=YES		(for SDL rendering)
 BUILD_SDLGL=YES		(for GLX rendering with SDL)
 BUILD_XIL=YES		(for XIL rendering)
 BUILD_CORONA=YES	(for the SunRay Terminal, -unverified- by me since I don't have the SDK)
+BUILD_DEDICATED=YES	(Will build a dedicated quake2 server binary).
+BUILD_SOLARIS_PKG=YES   # Build a Solaris package of all of the binaries for use  with pkgadd.
+BUILD_DATA_PKG=YES      # Build a Solaris package of the game (shareware or final) \
+			# data files for use with pkgadd.
+
+Notes on packages:
+-----------------------------------------------------
+The "release" and "debug" packages of the binaries get built by default.
+This should result in something like this:
+# ls -la releasesparc/pkg/*pkg debugsparc/pkg/*pkg
+-rw-r--r--   1 root     other    16548352 Aug  2 11:33 debugsparc/pkg/iDquake2-debug-r0.13.1-sparc.pkg
+-rw-r--r--   1 root     other    5249536 Aug  2 11:27 releasesparc/pkg/iDquake2-release-r0.13.1-sparc.pkg
+
+To build the the data "iDquake2d" package, edit the line in the Makefile
+that says "PKG_DATA_BUILD_DIR=/usr/local/src/quake2-data/quake2" and point
+it to the correct location for your data files.
+(WARNING: -everything- under ../baseq2 gets taken.
+Next, run "gmake -f Makefile.Solaris build_extra".
+This should result in something like this:
+-rw-r--r--   1 root     other    52185600 Aug  2 11:27 releasesparc/pkg/iDquake2d-release-r0.13.1-sparc.pkg
+
+After installation, you get:
+# pkginfo |grep -i quake2
+application iDquake2       ID Software Quake2 3.21 for Solaris 8 (X11,XIL,GLX,SDL)
+application iDquake2d      ID Software Quake2 shareware data files for Solaris 8 (X11,XIL,GLX,SDL)
 
 What's working:
 -----------------------------------------------------
@@ -43,6 +77,13 @@ What's still broken:
   (not a show stoppper but being worked on, priority #1).
   Update: FIXED (replace exit(0) with commented out
   _exit(0) in Sys_Quit() in src/solaris/sys_solaris.c.
+- WARNING: On my new XVR-1000 card and with OpenGL-1.2.3
+  the textures are messed up and jumping in GLX mode!
+  All of the quake2-r versions hexibit this problem.
+  I'm investigating the issue....
+  Note: the Utah-GLX project has a quake2 solaris source
+  port that does -not- exhibit this problem (seems to be in
+  ref_gl).
 
 Thank you!
 -----------------------------------------------------
@@ -51,10 +92,13 @@ Thanks for this Solaris release go to:
 - Martin englund and Elias Mårtensson from SUN (sweden).
 They ported Quake2 to Solaris with XIL and OpenGL
 and Martin made this release possible by contributing the source code
-once Quake2 was open-source by Id Software in dec' 2001.
+once Quake2 was open-source'd by Id Software in dec' 2001.
 
 - Id software.
-(for such a great multi-platform game).
+(for such a great multi-platform game, Zoid for porting it to Linux).
+
+- The guys at icculus for hosting this quake2 project
+ (Steven Fuller, Brendan Burns and others..).
 
 This file written by Vincent S. Cojot <coyote@step.polymtl.ca>
 (Maintainer wannabe).

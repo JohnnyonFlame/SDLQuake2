@@ -8,7 +8,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
 
 See the GNU General Public License for more details.
 
@@ -18,19 +18,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+#ifndef __GL_GLX_SOLARIS_H__
+#define __GL_GLX_SOLARIS_H__
 
-typedef void (*Key_Event_fp_t)(int key, qboolean down);
+//GLX Functions
+XVisualInfo * (APIENTRY * qglXChooseVisual)( Display *dpy, int screen, int *attribList );
+GLXContext (APIENTRY * qglXCreateContext)( Display *dpy, XVisualInfo *vis, GLXContext shareList, Bool direct );
+void (APIENTRY * qglXDestroyContext)( Display *dpy, GLXContext ctx );
+Bool (APIENTRY * qglXMakeCurrent)( Display *dpy, GLXDrawable drawable, GLXContext ctx);
+void (APIENTRY * qglXCopyContext)( Display *dpy, GLXContext src, GLXContext dst, GLuint mask );
+void (APIENTRY * qglXSwapBuffers)( Display *dpy, GLXDrawable drawable );
 
-extern void (*KBD_Update_fp)(void);
-extern void (*KBD_Init_fp)(Key_Event_fp_t fp);
-extern void (*KBD_Close_fp)(void);
-extern void VID_MenuShutdown(void);
-
-typedef struct in_state {
-	// Pointers to functions back in client, set by vid_so
-	void (*IN_CenterView_fp)(void);
-	Key_Event_fp_t Key_Event_fp;
-	vec_t *viewangles;
-	int *in_strafe_state;
-} in_state_t;
-
+#endif

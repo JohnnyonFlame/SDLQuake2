@@ -277,8 +277,16 @@ void DrawGLPolyChain( glpoly_t *p, float soffset, float toffset )
 			float *v;
 			int j;
 
-			qglBegin (GL_POLYGON);
+			/* There is a crash somewheres around old line 282.
+			 * I am trying to find a workaround.
+			 * -- Phil Brown
+			 */
 			v = p->verts[0];
+			if(v==NULL){
+				fprintf(stderr,"BUGFIX: DrawGLPolyChain: v==NULL\n");
+				return;
+			}
+			qglBegin (GL_POLYGON);
 			for (j=0 ; j<p->numverts ; j++, v+= VERTEXSIZE)
 			{
 				qglTexCoord2f (v[5], v[6] );

@@ -41,7 +41,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "../qcommon/qcommon.h"
 #include "../solaris/rw_solaris.h"
 
-#if defined(SOL8_XIL_WORKAROUND)
+#if defined(SOL8_XIL_WORKAROUND) && !defined(DEDICATED_ONLY)
 #include <xil/xil.h>
 typedef struct
 {
@@ -337,16 +337,21 @@ char *Sys_GetClipboardData( void )
 {
 	return NULL;
 }
-#if defined(SOL8_XIL_WORKAROUND)
+#if defined(SOL8_XIL_WORKAROUND) && !defined(DEDICATED_ONLY)
 XilSystemState xil_state;
 #endif
 
 int main( int argc, char **argv )
 {
+#ifdef DEDICATED_ONLY
+	int newargc;
+	char **newargv;
+	int i;
+#endif
 	int 	time, oldtime, newtime;
 	sigset_t sigs;
 
-#if defined(SOL8_XIL_WORKAROUND)
+#if defined(SOL8_XIL_WORKAROUND) && !defined(DEDICATED_ONLY)
 	{
 	  extern cinematics_t cin;
 
@@ -385,9 +390,6 @@ int main( int argc, char **argv )
 	base_hrtime = gethrtime();
 
 #ifdef DEDICATED_ONLY
-	int newargc;
-	char **newargv;
-	int i;
 
 	// force dedicated
 	newargc = argc;
@@ -411,7 +413,7 @@ int main( int argc, char **argv )
 
 	if (!nostdout->value) {
 		fcntl(0, F_SETFL, fcntl (0, F_GETFL, 0) | FNDELAY);
-//		printf ("Linux Quake -- Version %0.3f\n", LINUX_VERSION);
+//		printf ("Solaris Quake 2 -- Version %0.3f\n", SOLARIS_VERSION);
 	}
 
     oldtime = Sys_Milliseconds ();

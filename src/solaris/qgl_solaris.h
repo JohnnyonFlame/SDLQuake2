@@ -1,15 +1,6 @@
 #ifndef QGL_SOLARIS_H
 #define QGL_SOLARIS_H
 
-/* Solaris glue functions... */
-
-#define qglXChooseVisual glXChooseVisual
-#define qglXCreateContext glXCreateContext
-#define qglXDestroyContext glXDestroyContext
-#define qglXMakeCurrent glXMakeCurrent
-#define qglXCopyContext glXCopyContext
-#define qglXSwapBuffers glXSwapBuffers
-
 void ( APIENTRY * qglAccum )(GLenum op, GLfloat value);
 void ( APIENTRY * qglAlphaFunc )(GLenum func, GLclampf ref);
 GLboolean ( APIENTRY * qglAreTexturesResident )(GLsizei n, const GLuint *textures, GLboolean *residences);

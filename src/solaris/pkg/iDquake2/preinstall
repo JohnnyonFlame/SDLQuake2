@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+# @(#)postinstall	$Id$
+#
+# postinstall script for quake2
+
+quake2_dir=$BASEDIR
+
+exit 0
+

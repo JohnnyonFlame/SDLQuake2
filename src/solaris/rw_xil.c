@@ -54,6 +54,26 @@ struct
 static int keyq_head=0;
 static int keyq_tail=0;
 
+typedef struct
+{
+	qboolean	restart_sound;
+	int		s_rate;
+	int		s_width;
+	int		s_channels;
+
+	int		width;
+	int		height;
+	byte	*pic;
+	byte	*pic_pending;
+
+	// order 1 huffman stuff
+	int		*hnodes1;	// [256][256][2];
+	int		numhnodes1[256];
+
+	int		h_used[512];
+	int		h_count[512];
+} cinematics_t;
+
 static int config_notify=0;
 static int config_notify_width;
 static int config_notify_height;
@@ -103,12 +123,7 @@ static cvar_t *xil_interpolation_mode;
 /**************************************************************
  * XIL stuff
  **************************************************************/
-#if !defined(SOL8_XIL_WORKAROUND)
-static
-#else
-extern
-#endif
-       XilSystemState xil_state = NULL;
+static XilSystemState xil_state = NULL;
 static XilImage window_image, draw_image;
 static XilImage tmp8to24_image;
 static XilLookup xil_8to24_lookup;
@@ -299,11 +314,9 @@ void ResetXILFrameBuffers( void )
 {
   XilMemoryStorage storage_info;
 
-#if !defined(SOL8_XIL_WORKAROUND)
   if( (xil_state = xil_open()) == NULL ) {
     Sys_Error( "can't start XIL\n" );
   }
-#endif
 
   create_xil_window();
 
@@ -662,6 +675,13 @@ void GetEvent(void)
 */
 int SWimp_Init( void *hInstance, void *wndProc )
 {
+  extern cinematics_t cin;
+
+  if( (xil_state = xil_open()) == NULL ) {
+    fprintf( stderr, "can't open XIL\n" );
+    exit( 1 );
+  }
+  memset( &cin, 0, sizeof( cin ) );
 
   // initialize threading
   XInitThreads();
@@ -1027,10 +1047,8 @@ void SWimp_Shutdown( void )
 
     X11_active = false;
 
-#if !defined(SOL8_XIL_WORKAROUND)
     xil_close( xil_state );
     xil_state = NULL;
-#endif
 
     XSync( x_disp, False );
   }

@@ -29,9 +29,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 ** QGL_Shutdown() - unloads libraries, NULLs function pointers
 */
 
+#include <GL/glx.h>
+#include <X11/keysym.h>
+#include <X11/cursorfont.h>
+#include <X11/Sunkeysym.h>
+
 #include "../ref_gl/gl_local.h"
 #include "../solaris/glw_solaris.h"
 #include "../solaris/qgl_solaris.h"
+#include "../solaris/gl_glx.h"
 
 #include <dlfcn.h>
 
@@ -2273,6 +2279,12 @@ void QGL_Shutdown( void )
 	qglVertex4sv                 = NULL;
 	qglVertexPointer             = NULL;
 	qglViewport                  = NULL;
+	qglXChooseVisual             = NULL;
+	qglXCreateContext            = NULL;
+	qglXDestroyContext           = NULL;
+	qglXMakeCurrent              = NULL;
+	qglXCopyContext              = NULL;
+	qglXSwapBuffers              = NULL;
 }
 
 #define GPA( a ) dlsym( glw_state.OpenGLLib, a )
@@ -2656,6 +2668,12 @@ qboolean QGL_Init( const char *dllname )
 	qglVertex4sv                 = 	dllVertex4sv                 = GPA( "glVertex4sv" );
 	qglVertexPointer             = 	dllVertexPointer             = GPA( "glVertexPointer" );
 	qglViewport                  = 	dllViewport                  = GPA( "glViewport" );
+	qglXChooseVisual             =  GPA("glXChooseVisual");
+	qglXCreateContext            =  GPA("glXCreateContext");
+	qglXDestroyContext           =  GPA("glXDestroyContext");
+	qglXMakeCurrent              =  GPA("glXMakeCurrent");
+	qglXCopyContext              =  GPA("glXCopyContext");
+	qglXSwapBuffers              =  GPA("glXSwapBuffers");
 	
 	qglLockArraysEXT = 0;
 	qglUnlockArraysEXT = 0;
@@ -3028,6 +3046,12 @@ void GLimp_EnableLogging( qboolean enable )
 		qglVertex4sv                 = 	logVertex4sv                 ;
 		qglVertexPointer             = 	logVertexPointer             ;
 		qglViewport                  = 	logViewport                  ;
+		qglXChooseVisual             =  glXChooseVisual              ;
+		qglXCreateContext            =  glXCreateContext             ;
+		qglXDestroyContext           =  glXDestroyContext            ;
+		qglXMakeCurrent              =  glXMakeCurrent               ;
+		qglXCopyContext              =  glXCopyContext               ;
+		qglXSwapBuffers              =  glXSwapBuffers               ;
 	}
 	else
 	{
@@ -3367,6 +3391,12 @@ void GLimp_EnableLogging( qboolean enable )
 		qglVertex4sv                 = 	dllVertex4sv                 ;
 		qglVertexPointer             = 	dllVertexPointer             ;
 		qglViewport                  = 	dllViewport                  ;
+		qglXChooseVisual             =  glXChooseVisual              ;
+		qglXCreateContext            =  glXCreateContext             ;
+		qglXDestroyContext           =  glXDestroyContext            ;
+		qglXMakeCurrent              =  glXMakeCurrent               ;
+		qglXCopyContext              =  glXCopyContext               ;
+		qglXSwapBuffers              =  glXSwapBuffers               ;
 	}
 }
 

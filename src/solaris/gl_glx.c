@@ -1,7 +1,27 @@
 /*
+Copyright (C) 1997-2001 Id Software, Inc.
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+
+See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+*/
+
+/*
 ** GLW_IMP.C
 **
-** This file contains ALL Linux specific stuff having to do with the
+** This file contains ALL Solaris specific stuff having to do with the
 ** OpenGL refresh.  When a port is being made the following functions
 ** must be implemented by the port:
 **
@@ -18,6 +38,12 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <signal.h>
+#include <dlfcn.h>
+
+#include <GL/glx.h>
+#include <X11/keysym.h>
+#include <X11/cursorfont.h>
+#include <X11/Sunkeysym.h>
 
 #include "../ref_gl/gl_local.h"
 
@@ -25,13 +51,7 @@
 
 #include "../solaris/rw_solaris.h"
 #include "../solaris/glw_solaris.h"
-#include "../solaris/qgl_solaris.h"
-
-#include <GL/glx.h>
-
-#include <X11/keysym.h>
-#include <X11/cursorfont.h>
-#include <X11/Sunkeysym.h>
+#include "../solaris/gl_glx.h"
 
 glwstate_t glw_state;
 
@@ -78,7 +98,7 @@ static cvar_t	*m_filter;
 static cvar_t	*in_mouse;
 
 static qboolean	mlooking;
-
+static qboolean mouse_active = false;
 
 // state struct passed in Init
 static in_state_t	*in_state;
@@ -92,6 +112,94 @@ static cvar_t *m_forward;
 static cvar_t *freelook;
 static cvar_t   *r_fakeFullscreen;
 
+static Cursor CreateNullCursor(Display *display, Window root)
+{
+  Pixmap cursormask; 
+  XGCValues xgc;
+  GC gc;
+  XColor dummycolour;
+  Cursor cursor;
+
+  cursormask = XCreatePixmap( display, root, 1, 1, 1 );
+  xgc.function = GXclear;
+  gc =  XCreateGC( display, cursormask, GCFunction, &xgc );
+  XFillRectangle( display, cursormask, gc, 0, 0, 1, 1 );
+  dummycolour.pixel = 0;
+  dummycolour.red = 0;
+  dummycolour.flags = DoRed;
+  cursor = XCreatePixmapCursor( display, cursormask, cursormask,
+				&dummycolour, &dummycolour, 0,0 );
+  XFreePixmap( display, cursormask );
+  XFreeGC( display, gc );
+  return cursor;
+}
+
+static void install_grabs(void)
+{
+
+// inviso cursor
+	XDefineCursor(dpy, win, CreateNullCursor(dpy, win));
+
+	XGrabPointer(dpy, win,
+				 True,
+				 0,
+				 GrabModeAsync, GrabModeAsync,
+				 win,
+				 None,
+				 CurrentTime);
+
+
+#ifdef __linux__
+	if (in_dgamouse->value) {
+		int MajorVersion, MinorVersion;
+
+		if (!XF86DGAQueryVersion(dpy, &MajorVersion, &MinorVersion)) { 
+			// unable to query, probalby not supported
+			VID_Printf( PRINT_ALL, "Failed to detect XF86DGA Mouse\n" );
+			Cvar_Set( "in_dgamouse", "0" );
+		} else {
+			dgamouse = true;
+			XF86DGADirectVideo(dpy, DefaultScreen(dpy), XF86DGADirectMouse);
+			XWarpPointer(dpy, None, win, 0, 0, 0, 0, 0, 0);
+		}
+	} else
+#endif /*__linux__ */
+	{
+		XWarpPointer(dpy, None, win,
+					 0, 0, 0, 0,
+					 vid.width / 2, vid.height / 2);
+	}
+
+	XGrabKeyboard(dpy, win,
+				  False,
+				  GrabModeAsync, GrabModeAsync,
+				  CurrentTime);
+
+	mouse_active = true;
+
+//	XSync(dpy, True);
+}
+
+static void uninstall_grabs(void)
+{
+	if (!dpy || !win)
+		return;
+
+#ifdef __linux__
+	if (dgamouse) {
+		dgamouse = false;
+		XF86DGADirectVideo(dpy, DefaultScreen(dpy), 0);
+	}
+#endif
+
+	XUngrabPointer(dpy, CurrentTime);
+	XUngrabKeyboard(dpy, CurrentTime);
+
+// inviso cursor
+	XUndefineCursor(dpy, win);
+
+	mouse_active = false;
+}
 
 static void Force_CenterView_f (void)
 {
@@ -179,7 +287,8 @@ void RW_IN_Move (usercmd_t *cmd)
   if (!mouse_avail)
     return;
    
-  if( m_filter->value ) {
+  if( m_filter->value )
+  {
     mx = (mx + old_mouse_x) * 0.5;
     my = (my + old_mouse_y) * 0.5;
   }
@@ -211,6 +320,28 @@ void RW_IN_Move (usercmd_t *cmd)
   my = 0;
 }
 
+static void IN_DeactivateMouse( void ) 
+{
+	if (!mouse_avail || !dpy || !win)
+		return;
+
+	if (mouse_active) {
+		uninstall_grabs();
+		mouse_active = false;
+	}
+}
+
+static void IN_ActivateMouse( void ) 
+{
+	if (!mouse_avail || !dpy || !win)
+		return;
+
+	if (!mouse_active) {
+		mx = my = 0; // don't spazz
+		install_grabs();
+		mouse_active = true;
+	}
+}
 
 void RW_IN_Frame (void)
 {
@@ -220,40 +351,9 @@ void RW_IN_Activate(qboolean active)
 {
 }
 
-
-// ========================================================================
-// makes a null cursor
-// ========================================================================
-
-static Cursor CreateNullCursor(Display *display, Window root)
-{
-  Pixmap cursormask; 
-  XGCValues xgc;
-  GC gc;
-  XColor dummycolour;
-  Cursor cursor;
-
-  cursormask = XCreatePixmap( display, root, 1, 1, 1 );
-  xgc.function = GXclear;
-  gc =  XCreateGC( display, cursormask, GCFunction, &xgc );
-  XFillRectangle( display, cursormask, gc, 0, 0, 1, 1 );
-  dummycolour.pixel = 0;
-  dummycolour.red = 0;
-  dummycolour.flags = DoRed;
-  cursor = XCreatePixmapCursor( display, cursormask, cursormask,
-				&dummycolour, &dummycolour, 0,0 );
-  XFreePixmap( display, cursormask );
-  XFreeGC( display, gc );
-  return cursor;
-}
-
-
-
-
 /*****************************************************************************/
 /* KEYBOARD                                                                  */
 /*****************************************************************************/
-
 
 int XLateKey(XKeyEvent *ev)
 {
@@ -686,6 +786,8 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
   attr.border_pixel = 0;
   attr.colormap = XCreateColormap(dpy, root, visinfo->visual, AllocNone);
   attr.event_mask = X_MASK;
+  puts("DEBUG: GLimp_SetMode() IS setting X_MASK");
+
   mask = CWBackPixel | CWBorderPixel | CWColormap | CWEventMask;
 
   win = XCreateWindow(dpy, root, 0, 0, width, height,
@@ -749,7 +851,20 @@ int GLimp_Init( void *hinstance, void *wndproc )
 {
   InitSig();
 
+	if ( glw_state.OpenGLLib) {
+		#define GPA( a ) dlsym( glw_state.OpenGLLib, a )
+
+		qglXChooseVisual             =  GPA("glXChooseVisual");
+		qglXCreateContext            =  GPA("glXCreateContext");
+		qglXDestroyContext           =  GPA("glXDestroyContext");
+		qglXMakeCurrent              =  GPA("glXMakeCurrent");
+		qglXCopyContext              =  GPA("glXCopyContext");
+		qglXSwapBuffers              =  GPA("glXSwapBuffers");
+		
   return true;
+	}
+	
+	return false;
 }
 
 /*
