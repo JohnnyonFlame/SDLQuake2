@@ -28,6 +28,12 @@ void CDAudio_Play(int track, qboolean looping)
 }
 
 
+void CDAudio_RandomPlay(void)
+{
+        Com_Printf("XXX - CDAudio_RandomPlay\n");
+}
+
+
 void CDAudio_Stop(void)
 {
         Com_Printf("XXX - CDAudio_Stop\n");

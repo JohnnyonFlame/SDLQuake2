@@ -1029,6 +1029,7 @@ static menulist_s		s_options_crosshair_box;
 static menuslider_s		s_options_sfxvolume_slider;
 static menulist_s		s_options_joystick_box;
 static menulist_s		s_options_cdvolume_box;
+static menulist_s               s_options_cdshuffle_box;
 static menulist_s		s_options_quality_list;
 static menulist_s		s_options_compatibility_list;
 static menulist_s		s_options_console_action;
@@ -1081,6 +1082,9 @@ static void ControlsSetMenuItemValues( void )
 {
 	s_options_sfxvolume_slider.curvalue		= Cvar_VariableValue( "s_volume" ) * 10;
 	s_options_cdvolume_box.curvalue 		= !Cvar_VariableValue("cd_nocd");
+	
+	Cvar_SetValue( "cd_shuffle", 0);
+
 	s_options_quality_list.curvalue			= !Cvar_VariableValue( "s_loadas8bit" );
 	s_options_sensitivity_slider.curvalue	= ( sensitivity->value ) * 2;
 
@@ -1135,9 +1139,30 @@ static void UpdateVolumeFunc( void *unused )
 	Cvar_SetValue( "s_volume", s_options_sfxvolume_slider.curvalue / 10 );
 }
 
+static void CDShuffleFunc(void *unused)
+{
+  Cvar_SetValue("cd_shuffle", !s_options_cdshuffle_box.curvalue);
+}
+
 static void UpdateCDVolumeFunc( void *unused )
 {
 	Cvar_SetValue( "cd_nocd", !s_options_cdvolume_box.curvalue );
+	if (s_options_cdvolume_box.curvalue)
+	{
+	  CDAudio_Init();
+	  if (s_options_cdshuffle_box.curvalue)
+	    {
+	      CDAudio_RandomPlay();
+	    }
+	  else
+	    {
+	      CDAudio_Play(atoi(cl.configstrings[CS_CDTRACK]), true);
+	    }
+	}
+	else
+	{
+	  CDAudio_Stop();
+	}
 }
 
 static void ConsoleFunc( void *unused )
@@ -1194,6 +1219,14 @@ void Options_MenuInit( void )
 		"enabled",
 		0
 	};
+
+	static const char *cd_shuffle[] =
+	  {
+	    "disabled",
+	    "enabled",
+	    0
+	  };
+
 	static const char *quality_items[] =
 	{
 		"low", "high", 0
@@ -1246,9 +1279,17 @@ void Options_MenuInit( void )
 	s_options_cdvolume_box.itemnames		= cd_music_items;
 	s_options_cdvolume_box.curvalue 		= !Cvar_VariableValue("cd_nocd");
 
+	s_options_cdshuffle_box.generic.type = MTYPE_SPINCONTROL;
+	s_options_cdshuffle_box.generic.x = 0;
+	s_options_cdshuffle_box.generic.y = 20;
+	s_options_cdshuffle_box.generic.name = "CD shuffle";
+	s_options_cdshuffle_box.generic.callback = CDShuffleFunc;
+	s_options_cdshuffle_box.itemnames = cd_shuffle;
+	s_options_cdshuffle_box.curvalue = Cvar_VariableValue("cd_shuffle");;
+
 	s_options_quality_list.generic.type	= MTYPE_SPINCONTROL;
 	s_options_quality_list.generic.x		= 0;
-	s_options_quality_list.generic.y		= 20;;
+	s_options_quality_list.generic.y		= 30;;
 	s_options_quality_list.generic.name		= "sound quality";
 	s_options_quality_list.generic.callback = UpdateSoundQualityFunc;
 	s_options_quality_list.itemnames		= quality_items;
@@ -1256,7 +1297,7 @@ void Options_MenuInit( void )
 
 	s_options_compatibility_list.generic.type	= MTYPE_SPINCONTROL;
 	s_options_compatibility_list.generic.x		= 0;
-	s_options_compatibility_list.generic.y		= 30;
+	s_options_compatibility_list.generic.y		= 40;
 	s_options_compatibility_list.generic.name	= "sound compatibility";
 	s_options_compatibility_list.generic.callback = UpdateSoundQualityFunc;
 	s_options_compatibility_list.itemnames		= compatibility_items;
@@ -1264,7 +1305,7 @@ void Options_MenuInit( void )
 
 	s_options_sensitivity_slider.generic.type	= MTYPE_SLIDER;
 	s_options_sensitivity_slider.generic.x		= 0;
-	s_options_sensitivity_slider.generic.y		= 50;
+	s_options_sensitivity_slider.generic.y		= 60;
 	s_options_sensitivity_slider.generic.name	= "mouse speed";
 	s_options_sensitivity_slider.generic.callback = MouseSpeedFunc;
 	s_options_sensitivity_slider.minvalue		= 2;
@@ -1272,75 +1313,75 @@ void Options_MenuInit( void )
 
 	s_options_alwaysrun_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_alwaysrun_box.generic.x	= 0;
-	s_options_alwaysrun_box.generic.y	= 60;
+	s_options_alwaysrun_box.generic.y	= 70;
 	s_options_alwaysrun_box.generic.name	= "always run";
 	s_options_alwaysrun_box.generic.callback = AlwaysRunFunc;
 	s_options_alwaysrun_box.itemnames = yesno_names;
 
 	s_options_invertmouse_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_invertmouse_box.generic.x	= 0;
-	s_options_invertmouse_box.generic.y	= 70;
+	s_options_invertmouse_box.generic.y	= 80;
 	s_options_invertmouse_box.generic.name	= "invert mouse";
 	s_options_invertmouse_box.generic.callback = InvertMouseFunc;
 	s_options_invertmouse_box.itemnames = yesno_names;
 
 	s_options_lookspring_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_lookspring_box.generic.x	= 0;
-	s_options_lookspring_box.generic.y	= 80;
+	s_options_lookspring_box.generic.y	= 90;
 	s_options_lookspring_box.generic.name	= "lookspring";
 	s_options_lookspring_box.generic.callback = LookspringFunc;
 	s_options_lookspring_box.itemnames = yesno_names;
 
 	s_options_lookstrafe_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_lookstrafe_box.generic.x	= 0;
-	s_options_lookstrafe_box.generic.y	= 90;
+	s_options_lookstrafe_box.generic.y	= 100;
 	s_options_lookstrafe_box.generic.name	= "lookstrafe";
 	s_options_lookstrafe_box.generic.callback = LookstrafeFunc;
 	s_options_lookstrafe_box.itemnames = yesno_names;
 
 	s_options_freelook_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_freelook_box.generic.x	= 0;
-	s_options_freelook_box.generic.y	= 100;
+	s_options_freelook_box.generic.y	= 110;
 	s_options_freelook_box.generic.name	= "free look";
 	s_options_freelook_box.generic.callback = FreeLookFunc;
 	s_options_freelook_box.itemnames = yesno_names;
 
 	s_options_crosshair_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_crosshair_box.generic.x	= 0;
-	s_options_crosshair_box.generic.y	= 110;
+	s_options_crosshair_box.generic.y	= 120;
 	s_options_crosshair_box.generic.name	= "crosshair";
 	s_options_crosshair_box.generic.callback = CrosshairFunc;
 	s_options_crosshair_box.itemnames = crosshair_names;
 #if 0
 	s_options_noalttab_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_noalttab_box.generic.x	= 0;
-	s_options_noalttab_box.generic.y	= 110;
+	s_options_noalttab_box.generic.y	= 120;
 	s_options_noalttab_box.generic.name	= "disable alt-tab";
 	s_options_noalttab_box.generic.callback = NoAltTabFunc;
 	s_options_noalttab_box.itemnames = yesno_names;
 #endif
 	s_options_joystick_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_joystick_box.generic.x	= 0;
-	s_options_joystick_box.generic.y	= 120;
+	s_options_joystick_box.generic.y	= 130;
 	s_options_joystick_box.generic.name	= "use joystick";
 	s_options_joystick_box.generic.callback = JoystickFunc;
 	s_options_joystick_box.itemnames = yesno_names;
 
 	s_options_customize_options_action.generic.type	= MTYPE_ACTION;
 	s_options_customize_options_action.generic.x		= 0;
-	s_options_customize_options_action.generic.y		= 140;
+	s_options_customize_options_action.generic.y		= 150;
 	s_options_customize_options_action.generic.name	= "customize controls";
 	s_options_customize_options_action.generic.callback = CustomizeControlsFunc;
 
 	s_options_defaults_action.generic.type	= MTYPE_ACTION;
 	s_options_defaults_action.generic.x		= 0;
-	s_options_defaults_action.generic.y		= 150;
+	s_options_defaults_action.generic.y		= 160;
 	s_options_defaults_action.generic.name	= "reset defaults";
 	s_options_defaults_action.generic.callback = ControlsResetDefaultsFunc;
 
 	s_options_console_action.generic.type	= MTYPE_ACTION;
 	s_options_console_action.generic.x		= 0;
-	s_options_console_action.generic.y		= 160;
+	s_options_console_action.generic.y		= 170;
 	s_options_console_action.generic.name	= "go to console";
 	s_options_console_action.generic.callback = ConsoleFunc;
 
@@ -1348,6 +1389,7 @@ void Options_MenuInit( void )
 
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_sfxvolume_slider );
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_cdvolume_box );
+	Menu_AddItem( &s_options_menu, ( void * ) &s_options_cdshuffle_box );
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_quality_list );
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_compatibility_list );
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_sensitivity_slider );

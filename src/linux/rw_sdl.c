@@ -388,17 +388,21 @@ void GetEvent(SDL_Event *event)
 	case SDL_MOUSEBUTTONUP:
 		break;
 	case SDL_KEYDOWN:
-#if 0
 		if ( (KeyStates[SDLK_LALT] || KeyStates[SDLK_RALT]) &&
 			(event->key.keysym.sym == SDLK_RETURN) ) {
-			/* SDL_WM_ToggleFullScreen(surface); */
+			cvar_t *fullscreen;
+			
+			SDL_WM_ToggleFullScreen(surface);
 				
 			if (surface->flags & SDL_FULLSCREEN) {
-				ri.Cvar_SetValue( "vid_fullscreen", /*1*/ 0 );
+				ri.Cvar_SetValue( "vid_fullscreen", 1 );
 			} else {
-				ri.Cvar_SetValue( "vid_fullscreen", /*0*/ 1 );
+				ri.Cvar_SetValue( "vid_fullscreen", 0 );
 			}
 
+			fullscreen = ri.Cvar_Get( "vid_fullscreen", "0", 0 );
+			fullscreen->modified = false; /* we just changed it with SDL. */
+			
 			break; /* ignore this key */
 		}
 		
@@ -413,7 +417,7 @@ void GetEvent(SDL_Event *event)
 			
 			break; /* ignore this key */
 		}
-#endif		
+
 		KeyStates[event->key.keysym.sym] = 1;
 		
 		key = XLateKey(event->key.keysym.sym);

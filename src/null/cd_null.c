@@ -23,6 +23,9 @@ void CDAudio_Play(int track, qboolean looping)
 {
 }
 
+void CDAudio_RandomPlay(void)
+{
+}
 
 void CDAudio_Stop(void)
 {
