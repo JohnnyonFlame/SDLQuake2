@@ -1083,7 +1083,7 @@ static void ControlsSetMenuItemValues( void )
 	s_options_sfxvolume_slider.curvalue		= Cvar_VariableValue( "s_volume" ) * 10;
 	s_options_cdvolume_box.curvalue 		= !Cvar_VariableValue("cd_nocd");
 	
-	Cvar_SetValue( "cd_shuffle", 0);
+	s_options_cdshuffle_box.curvalue		= Cvar_VariableValue("cd_shuffle");
 
 	s_options_quality_list.curvalue			= !Cvar_VariableValue( "s_loadas8bit" );
 	s_options_sensitivity_slider.curvalue	= ( sensitivity->value ) * 2;
@@ -1141,7 +1141,7 @@ static void UpdateVolumeFunc( void *unused )
 
 static void CDShuffleFunc(void *unused)
 {
-  Cvar_SetValue("cd_shuffle", !s_options_cdshuffle_box.curvalue);
+  Cvar_SetValue("cd_shuffle", s_options_cdshuffle_box.curvalue);
 }
 
 static void UpdateCDVolumeFunc( void *unused )

@@ -125,7 +125,7 @@ void CDAudio_Play(int track, qboolean looping)
 
 	// don't try to play a non-audio track
 	entry.cdte_track = track;
-	entry.cdte_format = CDROM_MSF;
+	entry.cdte_format = CDROM_LBA;
     if ( ioctl(cdfile, CDROMREADTOCENTRY, &entry) == -1 )
 	{
 		Com_DPrintf("ioctl cdromreadtocentry failed\n");
@@ -146,8 +146,8 @@ void CDAudio_Play(int track, qboolean looping)
 
 	ti.cdti_trk0 = track;
 	ti.cdti_trk1 = track;
-	ti.cdti_ind0 = 1;
-	ti.cdti_ind1 = 99;
+	ti.cdti_ind0 = 0;
+	ti.cdti_ind1 = 0;
 
 	if ( ioctl(cdfile, CDROMPLAYTRKIND, &ti) == -1 ) 
     {
@@ -182,7 +182,7 @@ void CDAudio_RandomPlay(void)
   for (; i < maxTrack; i++)
     {
 	entry.cdte_track = remap[i];
-	entry.cdte_format = CDROM_MSF;
+	entry.cdte_format = CDROM_LBA;
 	if ( ioctl(cdfile, CDROMREADTOCENTRY, &entry) == -1 )
 	{
 	  track_bools[i] = 0;
@@ -220,8 +220,8 @@ void CDAudio_RandomPlay(void)
 
       ti.cdti_trk0 = remap_track;
       ti.cdti_trk1 = remap_track;
-      ti.cdti_ind0 = 1;
-      ti.cdti_ind1 = 99;
+      ti.cdti_ind0 = 0;
+      ti.cdti_ind1 = 0;
 
       if ( ioctl(cdfile, CDROMPLAYTRKIND, &ti) == -1 ) 
 	{
@@ -468,7 +468,7 @@ int CDAudio_Init(void)
 
 	seteuid(saved_euid);
 
-	cdfile = open(cd_dev->string, O_RDONLY);
+	cdfile = open(cd_dev->string, O_RDONLY | O_NONBLOCK | O_EXCL);
 
 	seteuid(getuid());
 

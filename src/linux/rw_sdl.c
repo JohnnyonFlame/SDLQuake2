@@ -858,9 +858,9 @@ void KBD_Update(void)
 	bstate = SDL_GetMouseState(NULL, NULL);
 	if (SDL_BUTTON(1) & bstate)
 		mouse_buttonstate |= (1 << 0);
-	if (SDL_BUTTON(2) & bstate)
+	if (SDL_BUTTON(3) & bstate) /* quake2 has the right button be mouse2 */
 		mouse_buttonstate |= (1 << 1);
-	if (SDL_BUTTON(3) & bstate)
+	if (SDL_BUTTON(2) & bstate) /* quake2 has the middle button be mouse3 */
 		mouse_buttonstate |= (1 << 2);
 	
 	if (old_windowed_mouse != _windowed_mouse->value) {
