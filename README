@@ -139,6 +139,9 @@ added visual candy:
 2. set BUILD_QMAX to YES in the makefile
 3. make
 
+You will also need to download http://www.icculus.org/quake2/files/maxpak.pak
+and place it in your quake2/baseq2 directory.
+
 Please note that the resulting Quake2 binaries and video drivers are 
 incompatible with binaries and drivers built with BUILD_QMAX set to NO.
 
