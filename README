@@ -145,6 +145,12 @@ incompatible with binaries and drivers built with BUILD_QMAX set to NO.
 For right now, the driver gets built as ref_glx.so and ref_sdlgl.so.  
 In the future this will change so that both drivers can be build in parallel.
 
+***************** Important Note *************************
+There is a bug in Quake2-max which causes giant sparks to shoot from floor to 
+ceiling when you shoot the floor.  The only wrok-around (for now) is to save 
+your game, quit and reload the game.  (also don't shoot the floor!)
+**********************************************************
+
 AALib Video Driver
 ------------------
 The AALib video driver is written by jfedor@jfedor.org it provides text 
