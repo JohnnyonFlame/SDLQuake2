@@ -50,8 +50,10 @@ BUILD_JOYSTICK		Build quake2 with support for SDL and Linux joysticks,
 			[default = YES].
 BUILD_ARTS		Build support for the aRts sound system 
 			(src/linux/snd_arts.c) [default = NO]
+BUILD_DEDICATED		Build the quake 2 dedicated server q2ded.
 
 To install the Quake2 demo data:
+--------------------------------
 (installdir is whereever you want to install quake2)
 1. download ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe
 2. unzip -L q2-314-demo-x86.exe into a temp directory
@@ -330,7 +332,7 @@ Victor Shkamerda
 Zachary 'zakk' Slater
 Matti Valtonen
 
-v 0.12: [?/??/??]
+v 0.12: [6/11/02]
 -----
 Added Joystick support to GLX, start migration to unified X event handling
 Modified video driver selection to reflect drivers actually present (Stephen 
