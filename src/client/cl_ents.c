@@ -1227,12 +1227,10 @@ void CL_AddPacketEntities (frame_t *frame)
 				else											// PGM
 					V_AddLight (ent.origin, 200, 1, 1, 0);
 			}
-#ifndef QMAX
 			else if (effects & EF_GIB)
 			{
 			  CL_DiminishingTrail (cent->lerp_origin, ent.origin, cent, effects);
 			}
-#endif
 			else if (effects & EF_GRENADE)
 			{
 			  CL_DiminishingTrail (cent->lerp_origin, ent.origin, cent, effects);

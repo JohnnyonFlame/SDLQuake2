@@ -2711,7 +2711,7 @@ void CL_DiminishingTrail (vec3_t start, vec3_t end, centity_t *old, int flags)
 			// drop less particles as it flies
 			if ((rand()&1023) < old->trailcount)
 			{
-				if (flags & EF_GIB)
+			  if (flags & EF_GIB)
 				{
 				  setupParticle (
 						0,	0,	random()*360,
@@ -2721,7 +2721,7 @@ void CL_DiminishingTrail (vec3_t start, vec3_t end, centity_t *old, int flags)
 						255,		255,		255,
 						0,	0,	0,
 						0.75,		-0.75 / (1+frand()*0.4),
-						1 + random()*3,			-1,			
+						1+3*frand(),			-1,			
 						particle_blooddrop,
 						PART_TRANS|PART_GRAVITY|PART_SHADED,
 						NULL,0);
