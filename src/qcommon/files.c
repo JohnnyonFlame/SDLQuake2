@@ -530,30 +530,17 @@ void FS_AddGameDirectory (char *dir)
 	//
 	// add any pak files in the format pak0.pak pak1.pak, ...
 	//
-	for (i=0; i<10; i++)
+	for (i=0; i<50; i++)
 	{
 	  Com_sprintf (pakfile, sizeof(pakfile), "%s/pak%i.pak", dir, i);
-		pak = FS_LoadPackFile (pakfile);
-		if (!pak)
-			continue;
-		search = Z_Malloc (sizeof(searchpath_t));
-		search->pack = pak;
-		search->next = fs_searchpaths;
-		fs_searchpaths = search;		
+	  pak = FS_LoadPackFile (pakfile);
+	  if (!pak)
+	    continue;
+	  search = Z_Malloc (sizeof(searchpath_t));
+	  search->pack = pak;
+	  search->next = fs_searchpaths;
+	  fs_searchpaths = search;		
 	}
-#ifdef RETEX
-	for (i=0; i<10; i++)
-	  {
-	    Com_sprintf (pakfile, sizeof(pakfile), "%s/pak1%i.pak", dir, i);
-	    pak = FS_LoadPackFile (pakfile);
-	    if (!pak)
-	      continue;
-	    search = Z_Malloc (sizeof(searchpath_t));
-	    search->pack = pak;
-	    search->next = fs_searchpaths;
-	    fs_searchpaths = search;		
-	  }
-#endif
 #ifdef QMAX
 	Com_sprintf (pakfile, sizeof(pakfile), "%s/maxpak.pak", dir);
 	pak = FS_LoadPackFile (pakfile);
