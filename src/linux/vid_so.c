@@ -73,6 +73,7 @@ void Real_IN_Init (void);
 
 char *(*RW_Sys_GetClipboardData_fp)(void);
 
+extern void	VID_MenuShutdown(void);
 /*
 ==========================================================================
 
@@ -459,8 +460,33 @@ void VID_Shutdown (void)
 		re.Shutdown ();
 		VID_FreeReflib ();
 	}
+
+	VID_MenuShutdown();
 }
 
+/*
+============
+VID_CheckRefExists
+
+Checks to see if the given ref_NAME.so exists.
+Placed here to avoid complicating other code if the library .so files
+ever have their names changed.
+============
+*/
+qboolean VID_CheckRefExists (const char *ref)
+{
+	char	fn[MAX_OSPATH];
+	char	*path;
+	struct stat st;
+
+	path = Cvar_Get ("basedir", ".", CVAR_NOSET)->string;
+	snprintf (fn, MAX_OSPATH, "%s/ref_%s.so", path, ref );
+	
+	if (stat(fn, &st) == 0)
+		return true;
+	else
+		return false;
+}
 
 /*****************************************************************************/
 /* INPUT                                                                     */

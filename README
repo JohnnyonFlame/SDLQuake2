@@ -1,5 +1,5 @@
         Minor OS-oriented changes to id Software's Quake2 3.21: 
-                        "It works for me and a few others, v0.10"
+                        "It works for me and a few others, v0.12"
 
 (NOTE: throughout this document, references to i386 [debugi386, releasei386,
  gamei386.so] are used.  If your architecture is not i386, just substitute
@@ -304,7 +304,6 @@ TODO:
 Fix save games.
 Verify that FXGL works.
 Fullscreen/DGA support in X11 driver.
-Have menu only list ref libs that are available.
 Have menu only list window sizes that are available.
 Make a list of tested mods.
 Make Q2 as Arch/OS independent as possible.
@@ -330,6 +329,12 @@ Florent Parent
 Victor Shkamerda
 Zachary 'zakk' Slater
 Matti Valtonen
+
+v 0.12: [?/??/??]
+-----
+Added Joystick support to GLX, start migration to unified X event handling
+Modified video driver selection to reflect drivers actually present (Stephen 
+Anthony)
 
 v 0.11: [5/10/02]
 -----
