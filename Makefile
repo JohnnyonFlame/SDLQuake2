@@ -24,10 +24,10 @@ BUILD_XATRIX=NO		# game$(ARCH).so for xatrix (see README.r for details)
 BUILD_ROGUE=NO		# game$(ARCH).so for rogue (see README.r for details)
 BUILD_JOYSTICK=YES	# build in joystick support
 BUILD_ARTS=NO		# build in support for libaRts sound.
-BUILD_ALSA=NO		# build in support for ALSA (default sound on 2.6)
+BUILD_ALSA=YES		# build in support for ALSA (default sound on 2.6)
 BUILD_DEDICATED=NO	# build a dedicated quake2 server
 BUILD_AA=YES		# build the ascii soft renderer.
-BUILD_QMAX=YES		# build the fancier GL graphics
+BUILD_QMAX=NO		# build the fancier GL graphics
 BUILD_RETEXTURE=YES     # build a version supporting retextured graphics
 BUILD_REDBLUE=NO	# build a red-blue 3d glasses renderer...
 STATICSDL=NO
@@ -1546,6 +1546,10 @@ REF_SOFT_OBJS = \
 	$(BUILDDIR)/ref_soft/q_shlinux.o \
 	$(BUILDDIR)/ref_soft/glob.o
 
+ifeq ($(strip $(BUILD_JOYSTICK)),YES)
+REF_SOFT_OBJS += $(BUILDDIR)/ref_soft/joystick.o
+endif
+
 ifeq ($(ARCH),i386)
 REF_SOFT_OBJS += \
 	$(BUILDDIR)/ref_soft/r_aclipa.o \
@@ -1567,9 +1571,11 @@ REF_SOFT_SVGA_OBJS = \
 	$(BUILDDIR)/ref_soft/rw_in_svgalib.o
 
 REF_SOFT_X11_OBJS = \
+	$(BUILDDIR)/ref_soft/rw_linux.o \
 	$(BUILDDIR)/ref_soft/rw_x11.o
 
 REF_SOFT_SDL_OBJS = \
+	$(BUILDDIR)/ref_soft/rw_linux.o \
 	$(BUILDDIR)/ref_soft/rw_sdl.o
 
 REF_SOFT_AA_OBJS = \
@@ -1695,6 +1701,12 @@ $(BUILDDIR)/ref_soft/rw_in_svgalib.o : $(LINUX_DIR)/rw_in_svgalib.c
 	$(DO_SHLIB_CC)
 
 $(BUILDDIR)/ref_soft/rw_x11.o :       $(LINUX_DIR)/rw_x11.c
+	$(DO_SHLIB_CC) $(XCFLAGS)
+
+$(BUILDDIR)/ref_soft/joystick.o :       $(LINUX_DIR)/joystick.c
+	$(DO_SHLIB_CC) $(XCFLAGS)
+
+$(BUILDDIR)/ref_soft/rw_linux.o :       $(LINUX_DIR)/rw_linux.c
 	$(DO_SHLIB_CC) $(XCFLAGS)
 
 $(BUILDDIR)/ref_soft/rw_sdl.o :       $(LINUX_DIR)/rw_sdl.c

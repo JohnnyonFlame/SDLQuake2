@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <GL/gl.h>
 #ifndef SOLARIS
-#include <GL/glext.h>
+//#include <GL/glext.h>
 #endif
 
 qboolean QGL_Init( const char *dllname );

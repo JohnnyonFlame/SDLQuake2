@@ -33,7 +33,11 @@
 #endif
 
 #include "../client/keys.h"
-#include "../linux/rw_linux.h"
+#include "rw_linux.h"
+
+#ifdef Joystick
+#include "joystick.h"
+#endif
 
 /*****************************************************************************/
 
@@ -49,8 +53,8 @@ static unsigned int sdl_palettemode;
 
 struct
 {
-	int key;
-	int down;
+  int key;
+  int down;
 } keyq[64];
 int keyq_head=0;
 int keyq_tail=0;
@@ -72,307 +76,97 @@ static cvar_t *use_stencil;
 
 #define MOUSE_MAX 3000
 #define MOUSE_MIN 40
+qboolean mouse_active;
+int mx, my, mouse_buttonstate;
 
 // this is inside the renderer shared lib, so these are called from vid_so
 
-static qboolean        mouse_avail;
-static int     mouse_buttonstate;
-static int     mouse_oldbuttonstate;
-static int   mouse_x, mouse_y;
-static int	old_mouse_x, old_mouse_y;
-static int		mx, my;
 static float old_windowed_mouse;
 
 static cvar_t	*_windowed_mouse;
-static cvar_t	*m_filter;
-static cvar_t	*in_mouse;
-
-static qboolean	mlooking;
 
 // state struct passed in Init
-static in_state_t	*in_state;
-
-static cvar_t *sensitivity;
-static cvar_t *exponential_speedup;
-static cvar_t *my_lookstrafe;
-static cvar_t *m_side;
-static cvar_t *m_yaw;
-static cvar_t *m_pitch;
-static cvar_t *m_forward;
-static cvar_t *my_freelook;
+extern in_state_t	*in_state;
 
 /************************
  * Joystick
  ************************/
 #ifdef Joystick
-static cvar_t   *in_joystick;
-static cvar_t   *j_invert_y;
-static qboolean joystick_avail;
 static SDL_Joystick *joy;
 static int joy_oldbuttonstate;
 static int joy_numbuttons;
-static int jx, jy, jt;
-static int lr_axis, ud_axis, throttle_axis;
 #endif
 
-static void Force_CenterView_f (void)
-{
-	in_state->viewangles[PITCH] = 0;
+void RW_IN_PlatformInit() {
+  _windowed_mouse = ri.Cvar_Get ("_windowed_mouse", "0", CVAR_ARCHIVE);
 }
 
-static void RW_IN_MLookDown (void) 
-{ 
-	mlooking = true; 
-}
-
-static void RW_IN_MLookUp (void) 
-{
-	mlooking = false;
-	in_state->IN_CenterView_fp ();
-}
-
-void RW_IN_Init(in_state_t *in_state_p)
-{
-	in_state = in_state_p;
-
-	// mouse variables
-	_windowed_mouse = ri.Cvar_Get ("_windowed_mouse", "0", CVAR_ARCHIVE);
-	m_filter = ri.Cvar_Get ("m_filter", "0", 0);
-	in_mouse = ri.Cvar_Get ("in_mouse", "1", CVAR_ARCHIVE);
-#ifdef OPENGL
-	use_stencil = ri.Cvar_Get("use_stencil", "1", CVAR_ARCHIVE);
-#endif
 #ifdef Joystick
-	in_joystick = ri.Cvar_Get ("in_joystick", "0", CVAR_ARCHIVE);
-	j_invert_y = ri.Cvar_Get("j_invert_y", "1", 0);
-	lr_axis = (int)ri.Cvar_Get("j_lr_axis", "0", CVAR_ARCHIVE)->value;
-	ud_axis = (int)ri.Cvar_Get("j_ud_axis", "1", CVAR_ARCHIVE)->value;
-	throttle_axis = (int)ri.Cvar_Get("j_throttle","3",CVAR_ARCHIVE)->value;
-#endif
-	my_freelook = ri.Cvar_Get( "freelook", "0", 0);
-	my_lookstrafe = ri.Cvar_Get ("lookstrafe", "0", 0);
-	
-	sensitivity = ri.Cvar_Get ("sensitivity", "3", 0);
-	exponential_speedup = ri.Cvar_Get("exponential_speedup", "0", 
-					  CVAR_ARCHIVE);
-	m_pitch = ri.Cvar_Get ("m_pitch", "0.022", 0);
-	m_yaw = ri.Cvar_Get ("m_yaw", "0.022", 0);
-	m_forward = ri.Cvar_Get ("m_forward", "1", 0);
-	m_side = ri.Cvar_Get ("m_side", "0.8", 0);
-
-	ri.Cmd_AddCommand ("+mlook", RW_IN_MLookDown);
-	ri.Cmd_AddCommand ("-mlook", RW_IN_MLookUp);
-
-	ri.Cmd_AddCommand ("force_centerview", Force_CenterView_f);
-
-	mouse_x = mouse_y = 0.0;
-	mouse_avail = true;
+qboolean CloseJoystick(void) {
+  if (joy) {
+    SDL_JoystickClose(joy);
+    joy = NULL;
+  }
+  return true;
 }
 
-void RW_IN_Shutdown(void)
-{
-	if (mouse_avail) {
-		mouse_avail = false;
-
-		ri.Cmd_RemoveCommand ("+mlook");
-		ri.Cmd_RemoveCommand ("-mlook");
-
-		ri.Cmd_RemoveCommand ("force_centerview");
-	}	
-#ifdef Joystick
-	if (joy) {
-	  SDL_JoystickClose(joy);
-	  joy = NULL;
-	}
-#endif
-}
-
-/*
-===========
-IN_Commands
-===========
-*/
-void RW_IN_Commands (void)
-{
-	int i;
-#ifdef Joystick
-	int key_index;
-#endif
-	if (mouse_avail) {
-	  for (i=0 ; i<3 ; i++) {
-	    if ( (mouse_buttonstate & (1<<i)) && !(mouse_oldbuttonstate & (1<<i)) )
-	      in_state->Key_Event_fp (K_MOUSE1 + i, true);
-	    
-	    if ( !(mouse_buttonstate & (1<<i)) && (mouse_oldbuttonstate & (1<<i)) )
-	      in_state->Key_Event_fp (K_MOUSE1 + i, false);
-	  }
-	  if ( (mouse_buttonstate & (1<<3)) && !(mouse_oldbuttonstate & (1<<3)) )
-	    in_state->Key_Event_fp (K_MOUSE4, true);
-	  
-	  if ( !(mouse_buttonstate & (1<<3)) && (mouse_oldbuttonstate & (1<<3)) )
-	    in_state->Key_Event_fp (K_MOUSE4, false);
-	  
-	  if ( (mouse_buttonstate & (1<<4)) && !(mouse_oldbuttonstate & (1<<4)) )
-	    in_state->Key_Event_fp (K_MOUSE5, true);
-	  
-	  if ( !(mouse_buttonstate & (1<<4)) && (mouse_oldbuttonstate & (1<<4)) )
-	    in_state->Key_Event_fp (K_MOUSE5, false);
-	  
-	  mouse_oldbuttonstate = mouse_buttonstate;
-	}
-#ifdef Joystick
-	if (joystick_avail && joy) {
-	  for (i=0 ; i < joy_numbuttons ; i++)
-	    {
-	      if ( SDL_JoystickGetButton(joy, i) && joy_oldbuttonstate!=i )
-		{
-		  key_index = (i < 4) ? K_JOY1 : K_AUX1;
-		  in_state->Key_Event_fp (key_index + i, true);
-		  joy_oldbuttonstate = i;
-		}
-	      
-	      if ( !SDL_JoystickGetButton(joy, i) && joy_oldbuttonstate!=i )
-		{
-		  key_index = (i < 4) ? K_JOY1 : K_AUX1;
-		  in_state->Key_Event_fp (key_index + i, false);
-		  joy_oldbuttonstate = i;
-		}
-	    }
-	}
-#endif
-}
-
-/*
-===========
-IN_Move
-===========
-*/
-void RW_IN_Move (usercmd_t *cmd)
-{
-  /*** FIXME 
-   *   You can accelerate while in the air, this doesn't
-   *   make physical sense.  Try falling off something and then moving
-   *   forward.
-   ***/
-  
-  if (mouse_avail) {
-    if (m_filter->value)
-      {
-	mouse_x = (mx + old_mouse_x) * 0.5;
-	mouse_y = (my + old_mouse_y) * 0.5;
-      } else {
-	mouse_x = mx;
-	mouse_y = my;
+void PlatformJoyCommands(int *axis_vals, int *axis_map) {
+  int i;
+  int key_index;
+  if (joy) {
+    for (i=0 ; i < joy_numbuttons ; i++) {
+      if ( SDL_JoystickGetButton(joy, i) && joy_oldbuttonstate!=i ) {
+	key_index = (i < 4) ? K_JOY1 : K_AUX1;
+	in_state->Key_Event_fp (key_index + i, true);
+	joy_oldbuttonstate = i;
       }
-    
-    old_mouse_x = mx;
-    old_mouse_y = my;
-    
-    if (mouse_x || mouse_y) {
-      if (!exponential_speedup->value) {
-	mouse_x *= sensitivity->value;
-	mouse_y *= sensitivity->value;
-      }
-      else {
-	if (mouse_x > MOUSE_MIN || mouse_y > MOUSE_MIN || 
-	    mouse_x < -MOUSE_MIN || mouse_y < -MOUSE_MIN) {
-	  mouse_x = (mouse_x*mouse_x*mouse_x)/4;
-	  mouse_y = (mouse_y*mouse_y*mouse_y)/4;
-	  if (mouse_x > MOUSE_MAX)
-	    mouse_x = MOUSE_MAX;
-	  else if (mouse_x < -MOUSE_MAX)
-	    mouse_x = -MOUSE_MAX;
-	  if (mouse_y > MOUSE_MAX)
-	    mouse_y = MOUSE_MAX;
-	  else if (mouse_y < -MOUSE_MAX)
-	    mouse_y = -MOUSE_MAX;
-	}
-      }
-            
-      // add mouse X/Y movement to cmd
-      if ( (*in_state->in_strafe_state & 1) || 
-	   (my_lookstrafe->value && mlooking ))
-	cmd->sidemove += m_side->value * mouse_x;
-      else
-	in_state->viewangles[YAW] -= m_yaw->value * mouse_x;
       
-      
-      if ( (mlooking || my_freelook->value) && 
-	   !(*in_state->in_strafe_state & 1))
-	{
-	  in_state->viewangles[PITCH] += m_pitch->value * mouse_y;
-	}
-      else
-	{
-	  cmd->forwardmove -= m_forward->value * mouse_y;
-	}
-      mx = my = 0;
+      if ( !SDL_JoystickGetButton(joy, i) && joy_oldbuttonstate!=i ) {
+	key_index = (i < 4) ? K_JOY1 : K_AUX1;
+	in_state->Key_Event_fp (key_index + i, false);
+	joy_oldbuttonstate = i;
+      }
+    }
+    for (i=0;i<6;i++) {
+      axis_vals[axis_map[i]] = SDL_JoystickGetAxis(joy, i);
     }
   }
-#ifdef Joystick
-  if (joystick_avail && joy) {
-    // add joy X/Y movement to cmd
-    if ( (*in_state->in_strafe_state & 1) || 
-	 (my_lookstrafe->value && mlooking ))
-      cmd->sidemove += m_side->value * (jx/100);
-    else
-      in_state->viewangles[YAW] -= m_yaw->value * (jx/100);
-    
-    if ( (mlooking || my_freelook->value) && 
-	 !(*in_state->in_strafe_state & 1))
-      {
-	if (j_invert_y)
-	  in_state->viewangles[PITCH] -= m_pitch->value * (jy/100);
-	else
-	  in_state->viewangles[PITCH] += m_pitch->value * (jy/100);
-	cmd->forwardmove -= m_forward->value * (jt/100);
-      }
-    else
-      {
-	cmd->forwardmove -= m_forward->value * (jy/100);
-      }
-    
-    jt = jx = jy = 0;
-  }
-#endif
 }
+#endif
+
 
 #if 0
 static void IN_DeactivateMouse( void ) 
 { 
-	if (!mouse_avail)
-		return;
-
-	if (mouse_active) {
-		/* uninstall_grabs(); */
-		mouse_active = false;
-	}
+  if (!mouse_avail)
+    return;
+  
+  if (mouse_active) {
+    /* uninstall_grabs(); */
+    mouse_active = false;
+  }
 }
 
 static void IN_ActivateMouse( void ) 
 {
-	if (!mouse_avail)
-		return;
-
-	if (!mouse_active) {
-		mx = my = 0; // don't spazz
-		/* install_grabs(); */
-		mouse_active = true;
-	}
+  if (!mouse_avail)
+    return;
+  
+  if (!mouse_active) {
+    mx = my = 0; // don't spazz
+    /* install_grabs(); */
+    mouse_active = true;
+  }
 }
 #endif
-
-void RW_IN_Frame (void)
-{
-}
 
 void RW_IN_Activate(qboolean active)
 {
 #if 0
-	if (active || vidmode_active)
-		IN_ActivateMouse();
-	else
-		IN_DeactivateMouse();
+  if (active || vidmode_active)
+    IN_ActivateMouse();
+  else
+    IN_DeactivateMouse();
 #endif		
 }
 
@@ -385,99 +179,99 @@ void RW_IN_Activate(qboolean active)
 
 void TragicDeath(int signal_num)
 {
-	/* SDL_Quit(); */
-	Sys_Error("This death brought to you by the number %d\n", signal_num);
+  /* SDL_Quit(); */
+  Sys_Error("This death brought to you by the number %d\n", signal_num);
 }
 #endif
 
 int XLateKey(unsigned int keysym)
 {
-	int key;
-	
-	key = 0;
-	switch(keysym) {
-		case SDLK_KP9:			key = K_KP_PGUP; break;
-		case SDLK_PAGEUP:		key = K_PGUP; break;
-		
-		case SDLK_KP3:			key = K_KP_PGDN; break;
-		case SDLK_PAGEDOWN:		key = K_PGDN; break;
-		
-		case SDLK_KP7:			key = K_KP_HOME; break;
-		case SDLK_HOME:			key = K_HOME; break;
-		
-		case SDLK_KP1:			key = K_KP_END; break;
-		case SDLK_END:			key = K_END; break;
-		
-		case SDLK_KP4:			key = K_KP_LEFTARROW; break;
-		case SDLK_LEFT:			key = K_LEFTARROW; break;
-		
-		case SDLK_KP6:			key = K_KP_RIGHTARROW; break;
-		case SDLK_RIGHT:		key = K_RIGHTARROW; break;
-		
-		case SDLK_KP2:			key = K_KP_DOWNARROW; break;
-		case SDLK_DOWN:			key = K_DOWNARROW; break;
-		
-		case SDLK_KP8:			key = K_KP_UPARROW; break;
-		case SDLK_UP:			key = K_UPARROW; break;
-		
-		case SDLK_ESCAPE:		key = K_ESCAPE; break;
-		
-		case SDLK_KP_ENTER:		key = K_KP_ENTER; break;
-		case SDLK_RETURN:		key = K_ENTER; break;
-		
-		case SDLK_TAB:			key = K_TAB; break;
-		
-		case SDLK_F1:			key = K_F1; break;
-		case SDLK_F2:			key = K_F2; break;
-		case SDLK_F3:			key = K_F3; break;
-		case SDLK_F4:			key = K_F4; break;
-		case SDLK_F5:			key = K_F5; break;
-		case SDLK_F6:			key = K_F6; break;
-		case SDLK_F7:			key = K_F7; break;
-		case SDLK_F8:			key = K_F8; break;
-		case SDLK_F9:			key = K_F9; break;
-		case SDLK_F10:			key = K_F10; break;
-		case SDLK_F11:			key = K_F11; break;
-		case SDLK_F12:			key = K_F12; break;
-		
-		case SDLK_BACKSPACE:		key = K_BACKSPACE; break;
-		
-		case SDLK_KP_PERIOD:		key = K_KP_DEL; break;
-		case SDLK_DELETE:		key = K_DEL; break;
-		
-		case SDLK_PAUSE:		key = K_PAUSE; break;
-		
-		case SDLK_LSHIFT:
-		case SDLK_RSHIFT:		key = K_SHIFT; break;
-		
-		case SDLK_LCTRL:
-		case SDLK_RCTRL:		key = K_CTRL; break;
-		
-		case SDLK_LMETA:
-		case SDLK_RMETA:
-		case SDLK_LALT:
-		case SDLK_RALT:			key = K_ALT; break;
-
-		case SDLK_KP5:			key = K_KP_5; break;
-		
-		case SDLK_INSERT:		key = K_INS; break;
-		case SDLK_KP0:			key = K_KP_INS; break;
-		
-		case SDLK_KP_MULTIPLY:		key = '*'; break;
-		case SDLK_KP_PLUS:		key = K_KP_PLUS; break;
-		case SDLK_KP_MINUS:		key = K_KP_MINUS; break;
-		case SDLK_KP_DIVIDE:		key = K_KP_SLASH; break;
-		
-		/* suggestions on how to handle this better would be appreciated */
-		case SDLK_WORLD_7:		key = '`'; break;
-		
-		default: /* assuming that the other sdl keys are mapped to ascii */
-			if (keysym < 128)
-				key = keysym;
-			break;
-	}
-
-	return key;		
+  int key;
+  
+  key = 0;
+  switch(keysym) {
+  case SDLK_KP9:			key = K_KP_PGUP; break;
+  case SDLK_PAGEUP:		key = K_PGUP; break;
+    
+  case SDLK_KP3:			key = K_KP_PGDN; break;
+  case SDLK_PAGEDOWN:		key = K_PGDN; break;
+    
+  case SDLK_KP7:			key = K_KP_HOME; break;
+  case SDLK_HOME:			key = K_HOME; break;
+    
+  case SDLK_KP1:			key = K_KP_END; break;
+  case SDLK_END:			key = K_END; break;
+    
+  case SDLK_KP4:			key = K_KP_LEFTARROW; break;
+  case SDLK_LEFT:			key = K_LEFTARROW; break;
+    
+  case SDLK_KP6:			key = K_KP_RIGHTARROW; break;
+  case SDLK_RIGHT:		key = K_RIGHTARROW; break;
+    
+  case SDLK_KP2:			key = K_KP_DOWNARROW; break;
+  case SDLK_DOWN:			key = K_DOWNARROW; break;
+    
+  case SDLK_KP8:			key = K_KP_UPARROW; break;
+  case SDLK_UP:			key = K_UPARROW; break;
+    
+  case SDLK_ESCAPE:		key = K_ESCAPE; break;
+    
+  case SDLK_KP_ENTER:		key = K_KP_ENTER; break;
+  case SDLK_RETURN:		key = K_ENTER; break;
+    
+  case SDLK_TAB:			key = K_TAB; break;
+    
+  case SDLK_F1:			key = K_F1; break;
+  case SDLK_F2:			key = K_F2; break;
+  case SDLK_F3:			key = K_F3; break;
+  case SDLK_F4:			key = K_F4; break;
+  case SDLK_F5:			key = K_F5; break;
+  case SDLK_F6:			key = K_F6; break;
+  case SDLK_F7:			key = K_F7; break;
+  case SDLK_F8:			key = K_F8; break;
+  case SDLK_F9:			key = K_F9; break;
+  case SDLK_F10:			key = K_F10; break;
+  case SDLK_F11:			key = K_F11; break;
+  case SDLK_F12:			key = K_F12; break;
+    
+  case SDLK_BACKSPACE:		key = K_BACKSPACE; break;
+    
+  case SDLK_KP_PERIOD:		key = K_KP_DEL; break;
+  case SDLK_DELETE:		key = K_DEL; break;
+    
+  case SDLK_PAUSE:		key = K_PAUSE; break;
+    
+  case SDLK_LSHIFT:
+  case SDLK_RSHIFT:		key = K_SHIFT; break;
+    
+  case SDLK_LCTRL:
+  case SDLK_RCTRL:		key = K_CTRL; break;
+    
+  case SDLK_LMETA:
+  case SDLK_RMETA:
+  case SDLK_LALT:
+  case SDLK_RALT:			key = K_ALT; break;
+    
+  case SDLK_KP5:			key = K_KP_5; break;
+    
+  case SDLK_INSERT:		key = K_INS; break;
+  case SDLK_KP0:			key = K_KP_INS; break;
+    
+  case SDLK_KP_MULTIPLY:		key = '*'; break;
+  case SDLK_KP_PLUS:		key = K_KP_PLUS; break;
+  case SDLK_KP_MINUS:		key = K_KP_MINUS; break;
+  case SDLK_KP_DIVIDE:		key = K_KP_SLASH; break;
+    
+    /* suggestions on how to handle this better would be appreciated */
+  case SDLK_WORLD_7:		key = '`'; break;
+    
+  default: /* assuming that the other sdl keys are mapped to ascii */
+    if (keysym < 128)
+      key = keysym;
+    break;
+  }
+  
+  return key;		
 }
 
 static unsigned char KeyStates[SDLK_LAST];
@@ -581,7 +375,7 @@ void GetEvent(SDL_Event *event)
 
 }
 
-void InitJoystick() {
+qboolean InitJoystick() {
 #ifdef Joystick
   int num_joysticks, i;
   joy = NULL;
@@ -590,36 +384,30 @@ void InitJoystick() {
     ri.Con_Printf(PRINT_ALL, "SDL Joystick not initialized, trying to init...\n");
     SDL_Init(SDL_INIT_JOYSTICK);
   }
-  if (in_joystick) {
-    ri.Con_Printf(PRINT_ALL, "Trying to start-up joystick...\n");
-    if ((num_joysticks=SDL_NumJoysticks())) {
-      for(i=0;i<num_joysticks;i++) {
-	ri.Con_Printf(PRINT_ALL, "Trying joystick [%s]\n", 
-		      SDL_JoystickName(i));
-	if (!SDL_JoystickOpened(i)) {
-	  joy = SDL_JoystickOpen(i);
-	  if (joy) {
-	    ri.Con_Printf(PRINT_ALL, "Joytick activated.\n");
-	    joystick_avail = true;
-	    joy_numbuttons = SDL_JoystickNumButtons(joy);
-	    break;
-	  }
+  ri.Con_Printf(PRINT_ALL, "Trying to start-up joystick...\n");
+  if ((num_joysticks=SDL_NumJoysticks())) {
+    for(i=0;i<num_joysticks;i++) {
+      ri.Con_Printf(PRINT_ALL, "Trying joystick [%s]\n", 
+		    SDL_JoystickName(i));
+      if (!SDL_JoystickOpened(i)) {
+	joy = SDL_JoystickOpen(i);
+	if (joy) {
+	  ri.Con_Printf(PRINT_ALL, "Joytick activated.\n");
+	  joy_numbuttons = SDL_JoystickNumButtons(joy);
+	  break;
 	}
       }
-      if (!joy) {
-	ri.Con_Printf(PRINT_ALL, "Failed to open any joysticks\n");
-	joystick_avail = false;
-      }
     }
-    else {
-      ri.Con_Printf(PRINT_ALL, "No joysticks available\n");
-      joystick_avail = false;
+    if (!joy) {
+      ri.Con_Printf(PRINT_ALL, "Failed to open any joysticks\n");
+      return false;
     }
   }
   else {
-    ri.Con_Printf(PRINT_ALL, "Joystick Inactive\n");
-    joystick_avail = false;
+    ri.Con_Printf(PRINT_ALL, "No joysticks available\n");
+    return false;
   }
+  return true;
 #endif
 }
 
@@ -1029,6 +817,12 @@ void Sys_MakeCodeWriteable (unsigned long startaddr, unsigned long length)
 
 Key_Event_fp_t Key_Event_fp;
 
+void getMouse(int *x, int *y, int *state) {
+  *x = mx;
+  *y = my;
+  *state = mouse_buttonstate;
+}
+
 void KBD_Init(Key_Event_fp_t fp)
 {
 	Key_Event_fp = fp;
@@ -1036,65 +830,57 @@ void KBD_Init(Key_Event_fp_t fp)
 
 void KBD_Update(void)
 {
-	SDL_Event event;
-	static int KBD_Update_Flag;
+  SDL_Event event;
+  static int KBD_Update_Flag;
+  
+  if (KBD_Update_Flag == 1)
+    return;
+  
+  KBD_Update_Flag = 1;
+  
+  // get events from x server
+  if (X11_active)
+    {
+      int bstate;
+      
+      while (SDL_PollEvent(&event))
+	GetEvent(&event);
+      
+      if (!mx && !my)
+	SDL_GetRelativeMouseState(&mx, &my);
+      mouse_buttonstate = 0;
+      bstate = SDL_GetMouseState(NULL, NULL);
+      if (SDL_BUTTON(1) & bstate)
+	mouse_buttonstate |= (1 << 0);
+      if (SDL_BUTTON(3) & bstate) /* quake2 has the right button be mouse2 */
+	mouse_buttonstate |= (1 << 1);
+      if (SDL_BUTTON(2) & bstate) /* quake2 has the middle button be mouse3 */
+	mouse_buttonstate |= (1 << 2);
+      if (SDL_BUTTON(6) & bstate)
+	mouse_buttonstate |= (1 << 3);
+      if (SDL_BUTTON(7) & bstate)
+	mouse_buttonstate |= (1 << 4);
+      
+      
+      if (old_windowed_mouse != _windowed_mouse->value) {
+	old_windowed_mouse = _windowed_mouse->value;
 	
-	if (KBD_Update_Flag == 1)
-		return;
-	
-	KBD_Update_Flag = 1;
-	
-// get events from x server
-	if (X11_active)
+	if (!_windowed_mouse->value) {
+	  /* ungrab the pointer */
+	  SDL_WM_GrabInput(SDL_GRAB_OFF);
+	} else {
+	  /* grab the pointer */
+	  SDL_WM_GrabInput(SDL_GRAB_ON);
+	}
+      }			
+      while (keyq_head != keyq_tail)
 	{
-		int bstate;
-		
-		while (SDL_PollEvent(&event))
-			GetEvent(&event);
-
-	if (!mx && !my)
-		SDL_GetRelativeMouseState(&mx, &my);
-	
-#ifdef Joystick
-	if (joystick_avail && joy) {
-	  jx = SDL_JoystickGetAxis(joy, lr_axis);
-	  jy = SDL_JoystickGetAxis(joy, ud_axis);
-	  jt = SDL_JoystickGetAxis(joy, throttle_axis);
+	  Key_Event_fp(keyq[keyq_tail].key, keyq[keyq_tail].down);
+	  keyq_tail = (keyq_tail + 1) & 63;
 	}
-#endif	
-	mouse_buttonstate = 0;
-	bstate = SDL_GetMouseState(NULL, NULL);
-	if (SDL_BUTTON(1) & bstate)
-		mouse_buttonstate |= (1 << 0);
-	if (SDL_BUTTON(3) & bstate) /* quake2 has the right button be mouse2 */
-		mouse_buttonstate |= (1 << 1);
-	if (SDL_BUTTON(2) & bstate) /* quake2 has the middle button be mouse3 */
-		mouse_buttonstate |= (1 << 2);
-	if (SDL_BUTTON(6) & bstate)
-		mouse_buttonstate |= (1 << 3);
-	if (SDL_BUTTON(7) & bstate)
-		mouse_buttonstate |= (1 << 4);
-
-	
-	if (old_windowed_mouse != _windowed_mouse->value) {
-		old_windowed_mouse = _windowed_mouse->value;
-
-		if (!_windowed_mouse->value) {
-			/* ungrab the pointer */
-			SDL_WM_GrabInput(SDL_GRAB_OFF);
-		} else {
-			/* grab the pointer */
-			SDL_WM_GrabInput(SDL_GRAB_ON);
-		}
-	}			
-		while (keyq_head != keyq_tail)
-		{
-			Key_Event_fp(keyq[keyq_tail].key, keyq[keyq_tail].down);
-			keyq_tail = (keyq_tail + 1) & 63;
-		}
-	}
-	
-	KBD_Update_Flag = 0;
+    }
+  
+  KBD_Update_Flag = 0;
 }
 
 void KBD_Close(void)

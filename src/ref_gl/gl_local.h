@@ -1,3 +1,5 @@
+#ifndef __GL_LOCAL__
+#define __GL_LOCAL__
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
 
@@ -27,7 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <GL/gl.h>
 #ifndef SOLARIS
-#include <GL/glext.h>
+//#include <GL/glxext.h>
 #else
 #include <GL/glu.h>
 #ifndef GL_COLOR_INDEX8_EXT
@@ -465,3 +467,4 @@ void		GLimp_AppActivate( qboolean active );
 void		GLimp_EnableLogging( qboolean enable );
 void		GLimp_LogNewFrame( void );
 
+#endif

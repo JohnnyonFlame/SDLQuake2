@@ -306,6 +306,7 @@ qboolean VID_LoadRefresh( char *name )
 	in_state.Key_Event_fp = Do_Key_Event;
 	in_state.viewangles = cl.viewangles;
 	in_state.in_strafe_state = &in_strafe.state;
+	in_state.in_speed_state = &in_speed.state;
 
 	if ((RW_IN_Init_fp = dlsym(reflib_library, "RW_IN_Init")) == NULL ||
 		(RW_IN_Shutdown_fp = dlsym(reflib_library, "RW_IN_Shutdown")) == NULL ||

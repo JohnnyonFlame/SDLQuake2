@@ -259,13 +259,10 @@ Joystick should function on all compatible SDL platforms using the sdlquake2
 binary as well as on linux using the linux kernel joystick API.  If you want
 to build with joystick support (the default) set BUILD_JOYSTICK to YES in
 the Makefile.  
-Joystick obeys the same free-look/strafe rules as mouse.  You can set these in
-the options menu.
-There are four command line settings for joystick:
-j_invert_y [1],0 if set to zero pulling back on the joystick points down
-j_lr_axis [0] set the axis which controls left right movement
-j_ud_axis [1] set the axis which controls up down (in free-look) or forward back (freelock off)
-j_throttle [3] set the axis which controls the players forward backward throttle (if free-look is true)
+
+Have a look at src/docs/joystick.tx for the details
+There is a single linux specific option: 
+	* joy_dev : this sets the device name of the joystick to use (/dev/js*)
 
 
 Windows Support:
