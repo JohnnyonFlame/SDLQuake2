@@ -224,12 +224,43 @@ void RW_IN_Move (usercmd_t *cmd)
 	mx = my = 0;
 }
 
+#if 0
+static void IN_DeactivateMouse( void ) 
+{
+	if (!mouse_avail)
+		return;
+
+	if (mouse_active) {
+		/* uninstall_grabs(); */
+		mouse_active = false;
+	}
+}
+
+static void IN_ActivateMouse( void ) 
+{
+	if (!mouse_avail)
+		return;
+
+	if (!mouse_active) {
+		mx = my = 0; // don't spazz
+		/* install_grabs(); */
+		mouse_active = true;
+	}
+}
+#endif
+
 void RW_IN_Frame (void)
 {
 }
 
-void RW_IN_Activate(void)
+void RW_IN_Activate(qboolean active)
 {
+#if 0
+	if (active || vidmode_active)
+		IN_ActivateMouse();
+	else
+		IN_DeactivateMouse();
+#endif		
 }
 
 /*****************************************************************************/
