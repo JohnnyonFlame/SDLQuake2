@@ -1,5 +1,5 @@
         Minor OS-oriented changes to id Software's Quake2 3.21: 
-                        "It works for me and a few others, v0.15"
+                        "Sorry, real life (tm) got in the way,0.16"
 
 ***************************************************************************
 Important Note:  If you received an installer which installed the Quake II
@@ -320,13 +320,6 @@ More information can be found in src/docs/.
 
 Known Bugs and Workarounds:
 ---------------------------
-Bug: Shooting the Tank Commander in the boss2 easter egg can cause Quake 2
-     to lock up (reported by Gary Briggs).
-Workaround: Don't do that, I guess.  The problem is with game/g_weapon.c,
-     line 674 (fire_rail).  Something goes wrong(?) with the raytrace and
-     tr.endpos ends up changing very little, if at all, so the game gets stuck
-     in the loop.
-
 FAQ:
 ----
 Q: Quake2 crashes when starting a new game.
@@ -390,8 +383,15 @@ Zachary 'zakk' Slater
 Matti Valtonen
 Rusty Mellinger
 Karen Pouelle
+Toni Spets
+Nicolas Regnault
+Nick Warne
 
-v 0.16 [??/??/??]
+v 0.16 [09/13/04]
+Load more pakfiles [Toni Spets]
+Load bigger PCX images [Toni Spets]
+Railgun easter egg bug fixed [Nick Warne]
+Preliminary x86_64 support [Nicolas Regnault]
 Red/Blue 3D support <http://www.jfedor.org>
 Retexturing support (thanks to Karen Pouelle)
 Better FreeBSD support (thanks to /danfe)

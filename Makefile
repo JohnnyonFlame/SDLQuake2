@@ -99,7 +99,7 @@ RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
 endif
 
-VERSION=3.21+rCVS
+VERSION=3.21+r0.16
 
 MOUNT_DIR=src
 
