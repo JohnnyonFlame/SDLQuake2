@@ -2,10 +2,9 @@
 // sys_dosa.s
 // x86 assembly-language DOS-dependent routines.
 
-#if	id386
-
 #include "qasm.h"
 
+#if	id386
 
 	.data
 
