@@ -179,6 +179,14 @@ export LD_PRELOAD=/usr/lib/libGL.so, and run quake2 again.
 Is lighting slow in OpenGL (while firing, explosions, etc.)? Disable
 multitexturing (gl_ext_multitexture 0; vid_restart).
 
+Known Bugs and Workarounds:
+---------------------------
+Bug: Shooting the Tank Commander in the boss2 easter egg can cause Quake 2
+     to lock up (reported by Gary Briggs).
+Workaround: Don't do that, I guess.  The problem is with game/g_weapon.c,
+     line 674 (fire_rail).  Something goes wrong(?) with the raytrace and
+     tr.endpos ends up changing very little, if at all, so the game gets stuck
+     in the loop.
 
 FAQ:
 ----
@@ -215,13 +223,14 @@ https://bugzilla.icculus.org
 
 TODO:
 -----
-Try out RCG's key idea.
 Fix save games.
 Verify that FXGL works.
 Joystick support.
 Fullscreen/DGA support in X11 driver.
-Fully switch to glext.h.
-Suggestions, anyone?
+Have menu only list ref libs that are available.
+Have menu only list window sizes that are available.
+Make a list of tested mods.
+Make Q2 as Arch/OS independent as possible.
 
 v0.0.9: [XX/XX/XX] CVS
 -------

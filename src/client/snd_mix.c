@@ -30,7 +30,7 @@ short	*snd_out;
 
 void S_WriteLinearBlastStereo16 (void);
 
-#if !(defined __linux__ && defined __i386__)
+#if !((defined __linux__ || defined __FreeBSD__) && defined __i386__)
 #if	!id386
 
 void S_WriteLinearBlastStereo16 (void)
@@ -362,7 +362,7 @@ void S_InitScaletable (void)
 }
 
 
-#if !(defined __linux__ && defined __i386__)
+#if !((defined __linux__ || __FreeBSD__) && defined __i386__)
 #if	!id386
 
 void S_PaintChannelFrom8 (channel_t *ch, sfxcache_t *sc, int count, int offset)

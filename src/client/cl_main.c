@@ -1787,7 +1787,7 @@ void CL_Init (void)
 	// all archived variables will now be loaded
 
 	Con_Init ();	
-#if defined __linux__ || defined __sgi
+#if defined __linux__ || defined __FreeBSD__ || defined __sgi
 	S_Init ();	
 	VID_Init ();
 #else

@@ -526,7 +526,7 @@ char *RW_Sys_GetClipboardData()
 	unsigned long len, bytes_left, tmp;
 	unsigned char *data;
 	int format, result;
-	char *ret;
+	char *ret = NULL;
 			
 	sowner = XGetSelectionOwner(dpy, XA_PRIMARY);
 			

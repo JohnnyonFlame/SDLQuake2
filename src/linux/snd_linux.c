@@ -25,7 +25,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/mman.h>
 #include <sys/shm.h>
 #include <sys/wait.h>
+#if defined(__FreeBSD__)
+#include <sys/soundcard.h>
+#endif
+#if defined(__linux__)
 #include <linux/soundcard.h>
+#endif
 #include <stdio.h>
 
 #include "../client/client.h"
@@ -129,54 +134,6 @@ qboolean SNDDMA_Init(void)
 		else if (fmt & AFMT_U8) dma.samplebits = 8;
 	}
 
-	dma.speed = (int)sndspeed->value;
-	if (!dma.speed)
-	{
-		for (i=0 ; i<sizeof(tryrates)/4 ; i++)
-			if (!ioctl(audio_fd, SNDCTL_DSP_SPEED, &tryrates[i]))
-				break;
-		dma.speed = tryrates[i];
-	}
-
-	dma.channels = (int)sndchannels->value;
-	if (dma.channels < 1 || dma.channels > 2)
-		dma.channels = 2;
-	
-	dma.samples = info.fragstotal * info.fragsize / (dma.samplebits/8);
-	dma.submission_chunk = 1;
-
-// memory map the dma buffer
-
-	if (!dma.buffer)
-		dma.buffer = (unsigned char *) mmap(NULL, info.fragstotal
-			* info.fragsize, PROT_WRITE, MAP_FILE|MAP_SHARED, audio_fd, 0);
-	if (!dma.buffer || dma.buffer == MAP_FAILED)
-	{
-		perror(snddevice->string);
-		Com_Printf("SNDDMA_Init: Could not mmap %s.\n", snddevice->string);
-		close(audio_fd);
-		audio_fd = -1;
-		return 0;
-	}
-
-	tmp = 0;
-	if (dma.channels == 2)
-		tmp = 1;
-	rc = ioctl(audio_fd, SNDCTL_DSP_STEREO, &tmp);
-	if (rc < 0)
-	{
-		perror(snddevice->string);
-		Com_Printf("SNDDMA_Init: Could not set %s to stereo=%d.", snddevice->string, dma.channels);
-		close(audio_fd);
-		audio_fd = -1;
-		return 0;
-	}
-
-	if (tmp)
-		dma.channels = 2;
-	else
-		dma.channels = 1;
-
 	if (dma.samplebits == 16)
 	{
         	rc = AFMT_S16_LE;
@@ -212,11 +169,60 @@ qboolean SNDDMA_Init(void)
 		return 0;
 	}
 
+	dma.speed = (int)sndspeed->value;
+	if (!dma.speed)
+	{
+		for (i=0 ; i<sizeof(tryrates)/4 ; i++)
+			if (!ioctl(audio_fd, SNDCTL_DSP_SPEED, &tryrates[i]))
+				break;
+		dma.speed = tryrates[i];
+	}
+
+	dma.channels = (int)sndchannels->value;
+	if (dma.channels < 1 || dma.channels > 2)
+		dma.channels = 2;
+        
+	tmp = 0;
+	if (dma.channels == 2)
+		tmp = 1;
+	rc = ioctl(audio_fd, SNDCTL_DSP_STEREO, &tmp); //FP: bugs here.
+	if (rc < 0)
+	{
+		perror(snddevice->string);
+		Com_Printf("SNDDMA_Init: Could not set %s to stereo=%d.", snddevice->string, dma.channels);
+		close(audio_fd);
+		audio_fd = -1;
+		return 0;
+	}
+
+	if (tmp)
+		dma.channels = 2;
+	else
+		dma.channels = 1;
+
+
 	rc = ioctl(audio_fd, SNDCTL_DSP_SPEED, &dma.speed);
 	if (rc < 0)
 	{
 		perror(snddevice->string);
 		Com_Printf("SNDDMA_Init: Could not set %s speed to %d.", snddevice->string, dma.speed);
+		close(audio_fd);
+		audio_fd = -1;
+		return 0;
+	}
+
+	dma.samples = info.fragstotal * info.fragsize / (dma.samplebits/8);
+	dma.submission_chunk = 1;
+
+// memory map the dma buffer
+
+	if (!dma.buffer)
+		dma.buffer = (unsigned char *) mmap(NULL, info.fragstotal
+			* info.fragsize, PROT_WRITE|PROT_READ, MAP_FILE|MAP_SHARED, audio_fd, 0);
+	if (!dma.buffer || dma.buffer == MAP_FAILED)
+	{
+		perror(snddevice->string);
+		Com_Printf("SNDDMA_Init: Could not mmap %s.\n", snddevice->string);
 		close(audio_fd);
 		audio_fd = -1;
 		return 0;

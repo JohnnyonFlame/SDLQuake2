@@ -27,7 +27,9 @@ BUILD_ROGUE=NO		# gamei386.so for rogue (see README.r for details)
 OSTYPE := $(shell uname -s)
 
 ifneq ($(OSTYPE),Linux)
+ifneq ($(OSTYPE),FreeBSD)
 $(error OS $(OSTYPE) is currently not supported)
+endif
 endif
 
 # this nice line comes from the linux kernel makefile
@@ -94,11 +96,16 @@ endif
 
 DEBUG_CFLAGS=$(BASE_CFLAGS) -g
 
+ifeq ($(OSTYPE),FreeBSD)
+LDFLAGS=-lm
+endif
+ifeq ($(OSTYPE),Linux)
 LDFLAGS=-lm -ldl
+endif
 
 SVGALDFLAGS=-lvga
 
-XCFLAGS=
+XCFLAGS=-I/usr/X11R6/include
 XLDFLAGS=-L/usr/X11R6/lib -lX11 -lXext -lXxf86dga -lXxf86vm
 
 SDLCFLAGS=$(shell sdl-config --cflags)
@@ -108,7 +115,7 @@ FXGLCFLAGS=
 FXGLLDFLAGS=-L/usr/local/glide/lib -L/usr/X11/lib -L/usr/local/lib \
 	-L/usr/X11R6/lib -lX11 -lXext -lGL -lvga
 
-GLXCFLAGS=
+GLXCFLAGS=-I/usr/X11R6/include
 GLXLDFLAGS=-L/usr/X11R6/lib -lX11 -lXext -lXxf86dga -lXxf86vm
 
 SDLGLCFLAGS=$(SDLCFLAGS) -DOPENGL
@@ -1469,7 +1476,7 @@ $(BUILDDIR)/ref_soft/rw_in_svgalib.o : $(LINUX_DIR)/rw_in_svgalib.c
 	$(DO_SHLIB_CC)
 
 $(BUILDDIR)/ref_soft/rw_x11.o :       $(LINUX_DIR)/rw_x11.c
-	$(DO_SHLIB_CC)
+	$(DO_SHLIB_CC) $(XCFLAGS)
 
 $(BUILDDIR)/ref_soft/rw_sdl.o :       $(LINUX_DIR)/rw_sdl.c
 	$(DO_SHLIB_CC) $(SDLCFLAGS)
