@@ -1647,7 +1647,6 @@ void pExplosionThink (cparticle_t *p, vec3_t org, vec3_t angle, float *alpha, fl
 #define EXPLODESTAININTESITY 75
 void CL_Explosion_Particle (vec3_t org, float size, qboolean large, qboolean rocket)
 {
-  /*
     cparticle_t *p;
 
 	if (large)
@@ -1709,7 +1708,7 @@ void CL_Explosion_Particle (vec3_t org, float size, qboolean large, qboolean roc
 					particle_inferno,
 					0,
 					NULL,0);
-	}*/
+	}
   */
 }
 
@@ -2419,11 +2418,14 @@ void pExplosionSparksThink (cparticle_t *p, vec3_t org, vec3_t angle, float *alp
 	p->thinknext = true;
 }
 
+// This is buggy, not sure why... -bb 10/08/02
+/*
 void CL_ExplosionParticles (vec3_t org, float scale)
 {
 	vec3_t vel;
 	int			i;
 
+  printf("%d %d %d %g\n", org[0], org[1], org[2], scale);
 	for (i=0 ; i<256 ; i++)
 	{
 		VectorSet(vel, crandom(), crandom(), crandom());
@@ -2444,7 +2446,38 @@ void CL_ExplosionParticles (vec3_t org, float scale)
 			pExplosionSparksThink, true);
 	}
 }
+*/
+void CL_ExplosionParticles (vec3_t org)
+{
+	int			i, j;
+	cparticle_t	*p;
 
+	for (i=0 ; i<256 ; i++)
+	{
+		if (!free_particles)
+			return;
+		p = free_particles;
+		free_particles = p->next;
+		p->next = active_particles;
+		active_particles = p;
+
+		p->time = cl.time;
+		p->color[0] = 255;
+		p->color[1] = 0;
+		p->color[2] = rand() & 7;
+		for (j=0 ; j<3 ; j++)
+		{
+			p->org[j] = org[j] + ((rand()%32)-16);
+			p->vel[j] = (rand()%384)-192;
+		}
+
+		p->accel[0] = p->accel[1] = 0;
+		p->accel[2] = -PARTICLE_GRAVITY;
+		p->alpha = 1.0;
+
+		p->alphavel = -0.8 / (0.5 + frand()*0.3);
+	}
+}
 /*
 ===============
 CL_BigTeleportParticles

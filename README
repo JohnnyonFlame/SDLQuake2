@@ -1,5 +1,5 @@
         Minor OS-oriented changes to id Software's Quake2 3.21: 
-                        "It works for me and a few others, v0.14"
+                        "It works for me and a few others, v0.15"
 
 ***************************************************************************
 Important Note:  If you received an installer which installed the Quake II
@@ -159,11 +159,6 @@ incompatible with binaries and drivers built with BUILD_QMAX set to NO.
 For right now, the driver gets built as ref_glx.so and ref_sdlgl.so.  
 In the future this will change so that both drivers can be build in parallel.
 
-***************** Important Note *************************
-There is a bug in Quake2-max which causes giant sparks to shoot from floor to 
-ceiling when you shoot the floor.  The only wrok-around (for now) is to save 
-your game, quit and reload the game.  (also don't shoot the floor!)
-**********************************************************
 
 AALib Video Driver
 ------------------
@@ -350,7 +345,6 @@ TODO:
 Fix save games.
 Verify that FXGL works.
 Fullscreen/DGA support in X11 driver.
-Have menu only list window sizes that are available.
 Make a list of tested mods.
 Make Q2 as Arch/OS independent as possible.
 
@@ -375,6 +369,13 @@ Florent Parent
 Victor Shkamerda
 Zachary 'zakk' Slater
 Matti Valtonen
+Russell Mellinger
+
+v 0.15 [10/08/02]
+Solaris updates from Vincent
+TiBook and Vaio video modes
+Stencil Shadows in non-quake2-max
+Spark o' death bug fixed (thanks to Russell Mellinger!)
 
 v 0.14 [9/5/02]
 Massive Solaris updates including packaging code [Vincent Cojot]

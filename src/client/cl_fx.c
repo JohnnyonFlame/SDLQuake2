@@ -1275,61 +1275,6 @@ void CL_ItemRespawnParticles (vec3_t org)
 CL_ExplosionParticles
 ===============
 */
-#ifdef QMAX
-/*
-===============
-CL_ExplosionParticles
-===============
-*/
-
-
-
-void pExplosionSparksThink (cparticle_t *p, vec3_t org, vec3_t angle, float *alpha, float *size, int *image, float *time)
-{
-	int i;
-
-	//setting up angle for sparks
-	{
-		float time1, time2;
-
-		time1 = *time;
-		time2 = time1*time1;
-
-		for (i=0;i<2;i++)
-			angle[i] = 0.25*(p->vel[i]*time1 + (p->accel[i])*time2);
-		angle[2] = 0.25*(p->vel[2]*time1 + (p->accel[2]-PARTICLE_GRAVITY)*time2);
-
-	}
-
-	p->thinknext = true;
-}
-
-void CL_ExplosionParticles (vec3_t org, float scale)
-{
-	vec3_t vel;
-	int			i;
-
-	for (i=0 ; i<256 ; i++)
-	{
-		VectorSet(vel, crandom(), crandom(), crandom());
-		VectorNormalize(vel);
-		VectorScale(vel, scale*75.0f, vel);
-
-		setupParticle (
-			0,	0,	0,
-			org[0] + ((rand()%32)-16),	org[1] + ((rand()%32)-16),	org[2] + ((rand()%32)-16),
-			vel[0], vel[1], vel[2],
-			0,		0,		0,
-			255,	255,	255,
-			0,		-200,	-400,
-			1,		-0.8 / (0.5 + frand()*0.3),
-			scale,		-scale,			
-			particle_blaster,
-			PART_GRAVITY|PART_DIRECTION,//PART_SPARK,
-			pExplosionSparksThink, true);
-	}
-}
-#else
 void CL_ExplosionParticles (vec3_t org)
 {
 	int			i, j;
@@ -1345,9 +1290,7 @@ void CL_ExplosionParticles (vec3_t org)
 		active_particles = p;
 
 		p->time = cl.time;
-#ifndef QMAX
 		p->color = 0xe0 + (rand()&7);
-#endif
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = org[j] + ((rand()%32)-16);
@@ -1361,7 +1304,6 @@ void CL_ExplosionParticles (vec3_t org)
 		p->alphavel = -0.8 / (0.5 + frand()*0.3);
 	}
 }
-#endif
 
 /*
 ===============
