@@ -1111,8 +1111,56 @@ ROGUE_OBJS = \
 	$(BUILDDIR)/rogue/g_misc.o \
 	$(BUILDDIR)/rogue/g_monster.o \
 	$(BUILDDIR)/rogue/g_newai.o \
-	$(BUI37,3)=*(274,15),416,32;i_lc_size:(274,15),448,32;i_lc_shift:(274,15),480,32;i_lc_mask:(274,15),512,32;i_ac:(337,4)=*(337,1),544,32;i_ext_last:(274,15),576,32;i_ext_bh:(285,6),608,32;mmu_private:(0,5),640,32;i_protect:(274,15),672,32;i_lastalloc:(274,15),704,32;i_pa_cnt:(0,1),736,32;; /usr/src/linux-2.4.18/include/linux/ufs_fs_i.h ufs_inode_info:T(342,1)=s92i_u1:(342,2)=u60i_data:(326,2),0,480;i_symlink:(342,3)=ar(0,1);0;59;(274,3),0,480;;,0,480;i_flags:(274,7),480,32;i_gen:(274,7),512,32;i_shadow:(274,7),544,32;i_unused1:(274,7),576,32;i_unused2:(274,7),608,32;i_oeftflag:(274,7),640,32;i_osync:(274,5),672,16;i_lastfrag:(274,7),704,32;; /usr/src/linux-2.4.18/include/linux/efs_fs_i.h efs_block_t:t(343,1)=(292,37) efs_ino_t:t(343,2)=(292,40) extent_s:T(343,3)=s8ex_magic:(0,4),0,8;ex_bn:(0,4),8,24;ex_length:(0,4),32,8;ex_offset:(0,4),40,24;; extent_u:T(343,4)=u8raw:(343,5)=ar(0,1);0;7;(0,11),0,64;cooked:(343,3),0,64;; efs_extent:t(343,6)=(343,4) edevs:T(343,7)=s8odev:(0,8),0,16;ndev:(0,4),32,32;; efs_devs:t(343,8)=(343,7) di_addr:T(343,9)=u96di_extents:(343,10)=ar(0,1);0;11;(343,6),0,768;di_dev:(343,8),0,64;; efs_dinode:T(343,11)=s128di_mode:(292,25),0,16;di_nlink:(0,8),16,16;di_uid:(292,25),32,16;di_gid:(292,25),48,16;di_size:(292,37),64,32;di_atime:(292,37),96,32;di_mtime:(292,37),128,32;di_ctime:(292,37),160,32;di_gen:(292,40),192,32;di_numextents:(0,8),224,16;di_version:(292,24),240,8;di_spare:(292,24),248,8;di_u:(343,9),256,768;; efs_inode_info:T(343,12)=s104numextents:(0,1),0,32;lastextent:(0,1),32,32;extents:(343,10),64,768;; /usr/src/linux-2.4.18/include/linux/coda_fs_i.h /usr/src/linux-2.4.18/include/linux/coda.h u_quad_t:t(345,1)=(0,7) venus_dirent:T(345,2)=s264d_fileno:(0,5),0,32;d_reclen:(0,9),32,16;d_type:(0,11),48,8;d_namlen:(0,11),56,8;d_name:(345,3)=ar(0,1);0;255;(0,2),64,2048;; VolumeId:t(345,4)=(292,27) VnodeId:t(345,5)=(292,27) Unique_t:t(345,6)=(292,27) FileVersion:t(345,7)=(292,27) ViceFid:T(345,8)=s12Volume:(345,4),0,32;Vnode:(345,5),32,32;Unique:(345,6),64,32;; ViceFid:t(345,9)=(345,8) vuid_t:t(345,10)=(292,36) vgid_t:t(345,11)=(292,36) coda_cred:T(345,12)=s32cr_uid:(345,10),0,32;cr_euid:(345,10),32,32;cr_suid:(345,10),64,32;cr_fsuid:(345,10),96,32;cr_groupid:(345,11),128,32;cr_egid:(345,11),160,32;cr_sgid:(345,11),192,32;cr_fsgid:(345,11),224,32;; coda_vtype:T(345,13)=eC_VNON:0,C_VREG:1,C_VDIR:2,C_VBLK:3,C_VCHR:4,C_VLNK:5,C_VSOCK:6,C_VFIFO:7,C_VBAD:8,; coda_vattr:T(345,14)=s88va_type:(0,3),0,32;va_mode:(292,25),32,16;va_nlink:(0,8),48,16;va_uid:(345,10),64,32;va_gid:(345,11),96,32;va_fileid:(0,3),128,32;va_size:(345,1),160,64;va_blocksize:(0,3),224,32;va_atime:(340,1),256,64;va_mtime:(340,1),320,64;va_ctime:(340,1),384,64;va_gen:(292,27),448,32;va_flags:(292,27),480,32;va_rdev:(345,1),512,64;va_bytes:(345,1),576,64;va_filerev:(345,1),640,64;; coda_statfs:T(345,15)=s20f_blocks:(292,37),0,32;f_bfree:(292,37),32,32;f_bavail:(292,37),64,32;f_files:(292,37),96,32;f_ffree:(292,37),128,32;; coda_in_hdr:T(345,16)=s48opcode:(0,5),0,32;unique:(0,5),32,32;pid:(292,25),64,16;pgid:(292,25),80,16;sid:(292,25),96,16;cred:(345,12),128,256;; coda_out_hdr:T(345,17)=s12opcode:(0,5),0,32;unique:(0,5),32,32;result:(0,5),64,32;; coda_root_out:T(345,18)=s24oh:(345,17),0,96;VFid:(345,9),96,96;; coda_root_in:T(345,19)=s48in:(345,16),0,384;; coda_open_in:T(345,20)=s64ih:(345,16),0,384;VFid:(345,9),384,96;flags:(0,1),480,32;; coda_open_out:T(345,21)=s24oh:(345,17),0,96;dev:(345,1),96,64;inode:(292,3),160,32;; coda_store_in:T(345,22)=s64ih:(345,16),0,384;VFid:(345,9),384,96;flags:(0,1),480,32;; coda_store_out:T(345,23)=s12out:(345,17),0,96;; coda_release_in:T(345,24)=s64ih:(345,16),0,384;VFid:(345,9),384,96;flags:(0,1),480,32;; coda_release_out:T(345,25)=s12out:(345,17),0,96;; coda_close_in:T(345,26)=s64ih:(345,16),0,384;VFid:(345,9),384,96;flags:(0,1),480,32;; coda_close_out:T(345,27)=s12out:(345,17),0,96;; coda_ioctl_in:T(345,28)=s76ih:(345,16),0,384;VFid:(345,9),384,96;cmd:(0,1),480,32;len:(0,1),512,32;rwflag:(0,1),544,32;data:(294,18),576,32;; coda_ioctl_out:T(345,29)=s20oh:(345,17),0,96;len:(0,1),96,32;data:(292,23),128,32;HLIB_CC)
-
+	$(BUILDDIR)/rogue/g_newdm.o \
+	$(BUILDDIR)/rogue/g_newfnc.o \
+	$(BUILDDIR)/rogue/g_newtarg.o \
+	$(BUILDDIR)/rogue/g_newtrig.o \
+	$(BUILDDIR)/rogue/g_newweap.o \
+	$(BUILDDIR)/rogue/g_phys.o \
+	$(BUILDDIR)/rogue/g_save.o \
+	$(BUILDDIR)/rogue/g_spawn.o \
+	$(BUILDDIR)/rogue/g_sphere.o \
+	$(BUILDDIR)/rogue/g_svcmds.o \
+	$(BUILDDIR)/rogue/g_target.o \
+	$(BUILDDIR)/rogue/g_trigger.o \
+	$(BUILDDIR)/rogue/g_turret.o \
+	$(BUILDDIR)/rogue/g_utils.o \
+	$(BUILDDIR)/rogue/g_weapon.o \
+	$(BUILDDIR)/rogue/m_actor.o \
+	$(BUILDDIR)/rogue/m_berserk.o \
+	$(BUILDDIR)/rogue/m_boss2.o \
+	$(BUILDDIR)/rogue/m_boss3.o \
+	$(BUILDDIR)/rogue/m_boss31.o \
+	$(BUILDDIR)/rogue/m_boss32.o \
+	$(BUILDDIR)/rogue/m_brain.o \
+	$(BUILDDIR)/rogue/m_carrier.o \
+	$(BUILDDIR)/rogue/m_chick.o \
+	$(BUILDDIR)/rogue/m_flash.o \
+	$(BUILDDIR)/rogue/m_flipper.o \
+	$(BUILDDIR)/rogue/m_float.o \
+	$(BUILDDIR)/rogue/m_flyer.o \
+	$(BUILDDIR)/rogue/m_gladiator.o \
+	$(BUILDDIR)/rogue/m_gunner.o \
+	$(BUILDDIR)/rogue/m_hover.o \
+	$(BUILDDIR)/rogue/m_infantry.o \
+	$(BUILDDIR)/rogue/m_insane.o \
+	$(BUILDDIR)/rogue/m_medic.o \
+	$(BUILDDIR)/rogue/m_move.o \
+	$(BUILDDIR)/rogue/m_mutant.o \
+	$(BUILDDIR)/rogue/m_parasite.o \
+	$(BUILDDIR)/rogue/m_soldier.o \
+	$(BUILDDIR)/rogue/m_stalker.o \
+	$(BUILDDIR)/rogue/m_supertank.o \
+	$(BUILDDIR)/rogue/m_tank.o \
+	$(BUILDDIR)/rogue/m_turret.o \
+	$(BUILDDIR)/rogue/m_widow.o \
+	$(BUILDDIR)/rogue/m_widow2.o \
+	$(BUILDDIR)/rogue/p_client.o \
+	$(BUILDDIR)/rogue/p_hud.o \
+	$(BUILDDIR)/rogue/p_trail.o \
+	$(BUILDDIR)/rogue/p_view.o \
+	$(BUILDDIR)/rogue/p_weapon.o \
+	$(BUILDDIR)/rogue/q_shared.o
 $(BUILDDIR)/rogue/m_boss32.o :     $(ROGUE_DIR)/m_boss32.c
 	$(DO_SHLIB_CC)
 
