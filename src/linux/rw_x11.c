@@ -317,16 +317,6 @@ void RW_IN_Init(in_state_t *in_state_p)
 	mouse_avail = true;
 }
 
-void RW_IN_Shutdown(void)
-{
-	if (mouse_avail) {
-		mouse_avail = false;
-		
-		ri.Cmd_RemoveCommand ("+mlook");
-		ri.Cmd_RemoveCommand ("-mlook");
-		ri.Cmd_RemoveCommand ("force_centerview");
-	}
-}
 
 /*
 ===========
@@ -509,7 +499,20 @@ void RW_IN_Activate(qboolean active)
 	if (active)
 		IN_ActivateMouse();
 	else
-		IN_DeactivateMouse ();
+		IN_DeactivateMouse();
+}
+
+void RW_IN_Shutdown(void)
+{
+	if (mouse_avail) {
+		RW_IN_Activate (false);
+		
+		mouse_avail = false;
+		
+		ri.Cmd_RemoveCommand ("+mlook");
+		ri.Cmd_RemoveCommand ("-mlook");
+		ri.Cmd_RemoveCommand ("force_centerview");
+	}
 }
 
 /*****************************************************************************/
@@ -874,7 +877,7 @@ int SWimp_Init( void *hInstance, void *wndProc )
 	vid_ypos = ri.Cvar_Get ("vid_ypos", "22", CVAR_ARCHIVE);
 
 // open the display
-	dpy = XOpenDisplay(0);
+	dpy = XOpenDisplay(NULL);
 	if (!dpy)
 	{
 		if (getenv("DISPLAY"))
@@ -1271,6 +1274,8 @@ void SWimp_Shutdown( void )
 
 	XDestroyWindow(	dpy, win );
 
+	win = 0;
+	
 //	XAutoRepeatOn(dpy);
 //	XCloseDisplay(dpy);
 
