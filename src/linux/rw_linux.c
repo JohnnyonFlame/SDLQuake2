@@ -196,6 +196,7 @@ void RW_IN_Move (usercmd_t *cmd)
 	  cmd->forwardmove -= m_forward->value * mouse_y;
 	}
       mouse_x = mouse_y = 0;
+      doneMouse();
     }
   }
 #ifdef Joystick
