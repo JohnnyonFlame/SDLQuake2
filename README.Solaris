@@ -1,0 +1,60 @@
+Not much here yet. Wed Mar 27 15:51:23 MET 2002
+(Vincent S. Cojot <coyote@step.polymtl.ca>)
+
+Tested with:
+-----------------------------------------------------
+- Solaris 8 10/00 for Sparc on an Ultra2 (1300) with a Creator3D card.
+- SDL-1.2.3 (http://www.libsdl.org)
+- X11R6.4 (comes with Solaris 8).
+- XIL-1.4 (comes with Solaris 8).
+- OpenGL-1.2.2 (http://www.sun.com/solaris/opengl if using Solaris 8
+  older than 10/01).
+
+Installation instructions:
+-----------------------------------------------------
+Use the README file at the top level for installation instructions..
+See the Solaris-Specific make options at the top of
+the Solaris Makefile (Makefile.Solaris). Most interesting options
+are:
+BUILD_X11=YES		(for X11 rendering)
+BUILD_GLX=YES		(for GLX rendering)
+BUILD_SDL=YES		(for SDL rendering)
+BUILD_SDLGL=YES		(for GLX rendering with SDL)
+BUILD_XIL=YES		(for XIL rendering)
+BUILD_CORONA=YES	(for the SunRay Terminal, -unverified- by me since I don't have the SDK)
+
+What's working:
+-----------------------------------------------------
+- The Quake2 binary
+- The SDL Quake2 binary (uses SDL for sound and CD).
+- X11 rendering (ref_softx.so)
+- XIL rendering (ref_xil.so) (Faster for some routines)
+- SDL rendering (ref_softsdl.so) (Nice full screen effect on Solaris displays)
+- GLX rendering (ref_glx.so) (Works semi-OK on my Ultra2/Creator3d but
+  it's s-l-o-w).
+
+What's still broken:
+-----------------------------------------------------
+- SDLGL renderer (loads, colors are all wrong. Colormap
+  problem? Update: it may be an endianness problem in
+  SDL since it displays fine to a remote x86 Linux machine
+  with NVidia drivers. Being worked on, priority #2).
+- quake2 and sdlquake2 Seg fault when quitting the game
+  (not a show stoppper but being worked on, priority #1).
+  Update: FIXED (replace exit(0) with commented out
+  _exit(0) in Sys_Quit() in src/solaris/sys_solaris.c.
+
+Thank you!
+-----------------------------------------------------
+Thanks for this Solaris release go to:
+
+- Martin englund and Elias Mårtensson from SUN (sweden).
+They ported Quake2 to Solaris with XIL and OpenGL
+and Martin made this release possible by contributing the source code
+once Quake2 was open-source by Id Software in dec' 2001.
+
+- Id software.
+(for such a great multi-platform game).
+
+This file written by Vincent S. Cojot <coyote@step.polymtl.ca>
+(Maintainer wannabe).
