@@ -278,11 +278,21 @@ void RW_IN_Move (usercmd_t *cmd)
     else
       in_state->viewangles[YAW] -= m_yaw->value * (jx/100);
     
-    if (j_invert_y)
-      in_state->viewangles[PITCH] -= m_pitch->value * (jy/100);
+    if ( (mlooking || my_freelook->value) && 
+	 !(*in_state->in_strafe_state & 1))
+      {
+	if (j_invert_y)
+	  in_state->viewangles[PITCH] -= m_pitch->value * (jy/100);
+	else
+	  in_state->viewangles[PITCH] += m_pitch->value * (jy/100);
+	cmd->forwardmove -= m_forward->value * (jt/100);
+      }
     else
-      in_state->viewangles[PITCH] += m_pitch->value * (jy/100);
-    cmd->forwardmove -= m_forward->value * (jt/100);
+      {
+	cmd->forwardmove -= m_forward->value * (jy/100);
+      }
+    
+    jt = jx = jy = 0;
   }
 }
 
