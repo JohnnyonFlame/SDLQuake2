@@ -798,8 +798,8 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
     }
   }
 
-#if 0
 	/* do some pantsness */
+	if ( qglXGetConfig )
 	{
 		int red_bits, blue_bits, green_bits, depth_bits, alpha_bits;
 
@@ -815,9 +815,9 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 		ri.Con_Printf(PRINT_ALL, "I: got %d bits of depth\n", depth_bits);
 		ri.Con_Printf(PRINT_ALL, "I: got %d bits of alpha\n", alpha_bits);
 	}
-#endif
 
 	/* stencilbuffer shadows */
+	if ( qglXGetConfig )
 	{
 		int stencil_bits;
 
@@ -910,6 +910,7 @@ int GLimp_Init( void *hinstance, void *wndproc )
 		qglXMakeCurrent              =  GPA("glXMakeCurrent");
 		qglXCopyContext              =  GPA("glXCopyContext");
 		qglXSwapBuffers              =  GPA("glXSwapBuffers");
+		qglXGetConfig                =  GPA("glXGetConfig");
 		
   return true;
 	}

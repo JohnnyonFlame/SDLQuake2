@@ -83,6 +83,7 @@ static void (*qglXDestroyContext)( Display *dpy, GLXContext ctx );
 static Bool (*qglXMakeCurrent)( Display *dpy, GLXDrawable drawable, GLXContext ctx);
 static void (*qglXCopyContext)( Display *dpy, GLXContext src, GLXContext dst, GLuint mask );
 static void (*qglXSwapBuffers)( Display *dpy, GLXDrawable drawable );
+static int (*qglXGetConfig) (Display *dpy, XVisualInfo *vis, int attrib, int *value);
 
 #ifdef Joystick
 static cvar_t   *in_joystick;
@@ -904,16 +905,16 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 
 	gl_state.hwgamma = false;
 
-#if 0
 	/* do some pantsness */
+	if ( qglXGetConfig )
 	{
 		int red_bits, blue_bits, green_bits, depth_bits, alpha_bits;
 
-		glXGetConfig(dpy, visinfo, GLX_RED_SIZE, &red_bits);
-		glXGetConfig(dpy, visinfo, GLX_BLUE_SIZE, &blue_bits);
-		glXGetConfig(dpy, visinfo, GLX_GREEN_SIZE, &green_bits);
-		glXGetConfig(dpy, visinfo, GLX_DEPTH_SIZE, &depth_bits);
-		glXGetConfig(dpy, visinfo, GLX_ALPHA_SIZE, &alpha_bits);
+		qglXGetConfig(dpy, visinfo, GLX_RED_SIZE, &red_bits);
+		qglXGetConfig(dpy, visinfo, GLX_BLUE_SIZE, &blue_bits);
+		qglXGetConfig(dpy, visinfo, GLX_GREEN_SIZE, &green_bits);
+		qglXGetConfig(dpy, visinfo, GLX_DEPTH_SIZE, &depth_bits);
+		qglXGetConfig(dpy, visinfo, GLX_ALPHA_SIZE, &alpha_bits);
 
 		ri.Con_Printf(PRINT_ALL, "I: got %d bits of red\n", red_bits);
 		ri.Con_Printf(PRINT_ALL, "I: got %d bits of blue\n", blue_bits);
@@ -921,22 +922,21 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 		ri.Con_Printf(PRINT_ALL, "I: got %d bits of depth\n", depth_bits);
 		ri.Con_Printf(PRINT_ALL, "I: got %d bits of alpha\n", alpha_bits);
 	}
-#endif
-#if 0
+
 	/* stencilbuffer shadows */
+	if ( qglXGetConfig )
 	{
 		int stencil_bits;
 
-		if (!glXGetConfig(dpy, visinfo, GLX_STENCIL_SIZE, &stencil_bits)) {
+		if (!qglXGetConfig(dpy, visinfo, GLX_STENCIL_SIZE, &stencil_bits)) {
 			ri.Con_Printf(PRINT_ALL, "I: got %d bits of stencil\n", stencil_bits);
 			if (stencil_bits >= 1) {
 				have_stencil = true;
 			}
 		}
+	} else {
+		have_stencil = true;
 	}
-#else
-	have_stencil = true;
-#endif
 
 	if (vidmode_ext) {
 		int best_fit, best_dist, dist, x, y;
@@ -1140,6 +1140,7 @@ int GLimp_Init( void *hinstance, void *wndproc )
 		qglXMakeCurrent              =  GPA("glXMakeCurrent");
 		qglXCopyContext              =  GPA("glXCopyContext");
 		qglXSwapBuffers              =  GPA("glXSwapBuffers");
+		qglXGetConfig                =  GPA("glXGetConfig");
 		
 		return true;
 	}

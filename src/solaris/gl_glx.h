@@ -28,5 +28,6 @@ void (APIENTRY * qglXDestroyContext)( Display *dpy, GLXContext ctx );
 Bool (APIENTRY * qglXMakeCurrent)( Display *dpy, GLXDrawable drawable, GLXContext ctx);
 void (APIENTRY * qglXCopyContext)( Display *dpy, GLXContext src, GLXContext dst, GLuint mask );
 void (APIENTRY * qglXSwapBuffers)( Display *dpy, GLXDrawable drawable );
+int (APIENTRY * qglXGetConfig) (Display *dpy, XVisualInfo *vis, int attrib, int *value);
 
 #endif

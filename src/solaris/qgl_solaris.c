@@ -2285,6 +2285,7 @@ void QGL_Shutdown( void )
 	qglXMakeCurrent              = NULL;
 	qglXCopyContext              = NULL;
 	qglXSwapBuffers              = NULL;
+	qglXGetConfig                = NULL;
 }
 
 #define GPA( a ) dlsym( glw_state.OpenGLLib, a )
@@ -2674,6 +2675,7 @@ qboolean QGL_Init( const char *dllname )
 	qglXMakeCurrent              =  GPA("glXMakeCurrent");
 	qglXCopyContext              =  GPA("glXCopyContext");
 	qglXSwapBuffers              =  GPA("glXSwapBuffers");
+	qglXGetConfig                =  GPA("glXGetConfig");
 	
 	qglLockArraysEXT = 0;
 	qglUnlockArraysEXT = 0;
@@ -3052,6 +3054,7 @@ void GLimp_EnableLogging( qboolean enable )
 		qglXMakeCurrent              =  glXMakeCurrent               ;
 		qglXCopyContext              =  glXCopyContext               ;
 		qglXSwapBuffers              =  glXSwapBuffers               ;
+		qglXGetConfig                =  glXGetConfig                 ;
 	}
 	else
 	{
@@ -3397,6 +3400,7 @@ void GLimp_EnableLogging( qboolean enable )
 		qglXMakeCurrent              =  glXMakeCurrent               ;
 		qglXCopyContext              =  glXCopyContext               ;
 		qglXSwapBuffers              =  glXSwapBuffers               ;
+		qglXGetConfig                =  glXGetConfig                 ;
 	}
 }
 
