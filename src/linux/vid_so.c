@@ -48,8 +48,6 @@ qboolean	reflib_active = 0;
 
 #define VID_NUM_MODES ( sizeof( vid_modes ) / sizeof( vid_modes[0] ) )
 
-const char so_file[] = "/etc/quake2.conf";
-
 /** KEYBOARD **************************************************************/
 
 void Do_Key_Event(int key, qboolean down);
@@ -87,7 +85,7 @@ void VID_Printf (int print_level, char *fmt, ...)
 	static qboolean	inupdate;
 	
 	va_start (argptr,fmt);
-	vsprintf (msg,fmt,argptr);
+	vsnprintf (msg,MAXPRINTMSG,fmt,argptr);
 	va_end (argptr);
 
 	if (print_level == PRINT_ALL)
@@ -103,7 +101,7 @@ void VID_Error (int err_level, char *fmt, ...)
 	static qboolean	inupdate;
 	
 	va_start (argptr,fmt);
-	vsprintf (msg,fmt,argptr);
+	vsnprintf (msg,MAXPRINTMSG,fmt,argptr);
 	va_end (argptr);
 
 	Com_Error (err_level,"%s", msg);
@@ -205,6 +203,7 @@ qboolean VID_LoadRefresh( char *name )
 	refimport_t	ri;
 	GetRefAPI_t	GetRefAPI;
 	char	fn[MAX_OSPATH];
+	char	*path;
 	struct stat st;
 	extern uid_t saved_euid;
 	FILE *fp;
@@ -226,6 +225,7 @@ qboolean VID_LoadRefresh( char *name )
 	//regain root
 	seteuid(saved_euid);
 
+#if 0
 	if ((fp = fopen(so_file, "r")) == NULL) {
 		Com_Printf( "LoadLibrary(\"%s\") failed: can't open %s (required for location of ref libraries)\n", name, so_file);
 		return false;
@@ -237,13 +237,22 @@ qboolean VID_LoadRefresh( char *name )
 
 	strcat(fn, "/");
 	strcat(fn, name);
+#endif
 
+	path = Cvar_Get ("basedir", ".", CVAR_NOSET)->string;
+
+	snprintf (fn, MAX_OSPATH, "%s/%s", path, name );
+	
+	if (stat(fn, &st) == -1) {
+		Com_Printf( "LoadLibrary(\"%s\") failed: %s\n", name, strerror(errno));
+		return false;
+	}
+	
 	// permission checking
-	if (strstr(fn, "softx") == NULL) { // softx doesn't require root
-		if (stat(fn, &st) == -1) {
-			Com_Printf( "LoadLibrary(\"%s\") failed: %s\n", name, strerror(errno));
-			return false;
-		}
+	if (strstr(fn, "softx") == NULL &&
+	    strstr(fn, "glx") == NULL &&
+	    strstr(fn, "softsdl") == NULL &&
+	    strstr(fn, "sdlgl") == NULL) { // softx doesn't require root	
 #if 0
 		if (st.st_uid != 0) {
 			Com_Printf( "LoadLibrary(\"%s\") failed: ref is not owned by root\n", name);
@@ -338,6 +347,8 @@ qboolean VID_LoadRefresh( char *name )
 #endif
 	KBD_Init_fp(Do_Key_Event);
 
+	Key_ClearStates();
+	
 	// give up root now
 	setreuid(getuid(), getuid());
 	setegid(getgid());
@@ -392,7 +403,11 @@ Com_Printf("Trying mode 0\n");
 					Com_Error (ERR_FATAL, "Couldn't fall back to software refresh!");
 			}
 
-			Cvar_Set( "vid_ref", "soft" );
+			/* prefer to fall back on X if active */
+			if (getenv("DISPLAY"))
+				Cvar_Set( "vid_ref", "softx" );
+			else
+				Cvar_Set( "vid_ref", "soft" );
 
 			/*
 			** drop the console if we fail to load a refresh

@@ -69,7 +69,7 @@ void Sys_Printf (char *fmt, ...)
 	unsigned char		*p;
 
 	va_start (argptr,fmt);
-	vsprintf (text,fmt,argptr);
+	vsnprintf (text,1024,fmt,argptr);
 	va_end (argptr);
 
 	if (strlen(text) > sizeof(text))
@@ -114,7 +114,7 @@ void Sys_Error (char *error, ...)
 	Qcommon_Shutdown ();
     
     va_start (argptr,error);
-    vsprintf (string,error,argptr);
+    vsnprintf (string,1024,error,argptr);
     va_end (argptr);
 	fprintf(stderr, "Error: %s\n", string);
 
@@ -128,7 +128,7 @@ void Sys_Warn (char *warning, ...)
     char        string[1024];
     
     va_start (argptr,warning);
-    vsprintf (string,warning,argptr);
+    vsnprintf (string,1024,warning,argptr);
     va_end (argptr);
 	fprintf(stderr, "Warning: %s", string);
 } 
@@ -217,12 +217,13 @@ void *Sys_GetGameAPI (void *parms)
 	void	*(*GetGameAPI) (void *);
 
 	char	name[MAX_OSPATH];
-	char	curpath[MAX_OSPATH];
 	char	*path;
-#ifdef __i386__
+#if defined __i386__
 	const char *gamename = "gamei386.so";
 #elif defined __alpha__
 	const char *gamename = "gameaxp.so";
+#elif defined __powerpc__
+	const char *gamename = "gameppc.so";
 #else
 #error Unknown arch
 #endif
@@ -233,8 +234,6 @@ void *Sys_GetGameAPI (void *parms)
 	if (game_library)
 		Com_Error (ERR_FATAL, "Sys_GetGameAPI without Sys_UnloadingGame");
 
-	getcwd(curpath, sizeof(curpath));
-
 	Com_Printf("------- Loading %s -------\n", gamename);
 
 	// now run through the search paths
@@ -244,16 +243,19 @@ void *Sys_GetGameAPI (void *parms)
 		path = FS_NextPath (path);
 		if (!path)
 			return NULL;		// couldn't find one anywhere
-		sprintf (name, "%s/%s/%s", curpath, path, gamename);
-		game_library = dlopen (name, RTLD_LAZY );
+		snprintf (name, MAX_OSPATH, "%s/%s", path, gamename);
+		game_library = dlopen (name, RTLD_NOW );
 		if (game_library)
 		{
-			Com_Printf ("LoadLibrary (%s)\n",name);
+			Com_DPrintf ("LoadLibrary (%s)\n",name);
 			break;
+		} else {
+			Com_DPrintf ("LoadLibrary (%s) failed\n", name, dlerror());
 		}
 	}
 
 	GetGameAPI = (void *)dlsym (game_library, "GetGameAPI");
+
 	if (!GetGameAPI)
 	{
 		Sys_UnloadGame ();		
@@ -319,6 +321,7 @@ int main (int argc, char **argv)
 
 }
 
+#if 0
 void Sys_CopyProtect(void)
 {
 	FILE *mnt;
@@ -369,6 +372,7 @@ void Sys_CopyProtect(void)
 	Com_Error (ERR_FATAL, "Unable to find a mounted iso9660 file system.\n"
 		"You must mount the Quake2 CD in a cdrom drive in order to play.");
 }
+#endif
 
 #if 0
 /*

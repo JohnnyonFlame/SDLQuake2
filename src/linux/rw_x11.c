@@ -320,7 +320,13 @@ void RW_IN_Init(in_state_t *in_state_p)
 
 void RW_IN_Shutdown(void)
 {
-	mouse_avail = false;
+	if (mouse_avail) {
+		mouse_avail = false;
+		
+		ri.Cmd_RemoveCommand ("+mlook");
+		ri.Cmd_RemoveCommand ("-mlook");
+		ri.Cmd_RemoveCommand ("force_centerview");
+	}
 }
 
 /*
@@ -974,6 +980,7 @@ static qboolean SWimp_InitGraphics( qboolean fullscreen )
 	{
 	   int attribmask = CWEventMask  | CWColormap | CWBorderPixel;
 	   XSetWindowAttributes attribs;
+	   XSizeHints *sizehints;
 	   Colormap tmpcmap;
 	   
 	   tmpcmap = XCreateColormap(dpy, root, x_vis, AllocNone);
@@ -986,6 +993,24 @@ static qboolean SWimp_InitGraphics( qboolean fullscreen )
 		win = XCreateWindow(dpy, root, (int)vid_xpos->value, (int)vid_ypos->value, 
 			vid.width, vid.height, 0, x_visinfo->depth, InputOutput, x_vis, 
 			attribmask, &attribs );
+		
+		sizehints = XAllocSizeHints();
+		if (sizehints) {
+			sizehints->min_width = vid.width;
+			sizehints->min_height = vid.height;
+			sizehints->max_width = vid.width;
+			sizehints->max_height = vid.height;
+			sizehints->base_width = vid.width;
+			sizehints->base_height = vid.height;
+			
+			sizehints->flags = PMinSize | PMaxSize | PBaseSize;
+		}
+		
+		XSetWMProperties(dpy, win, NULL, NULL, NULL, 0,
+			sizehints, None, None);
+		if (sizehints)
+			XFree(sizehints);
+		
 		XStoreName(dpy, win, "Quake II");
 
 		if (x_visinfo->class != TrueColor)
@@ -1033,11 +1058,16 @@ static qboolean SWimp_InitGraphics( qboolean fullscreen )
 		displayname = (char *) getenv("DISPLAY");
 		if (displayname)
 		{
-			char *d = displayname;
+			char *dptr = strdup(displayname);
+			char *d;
+			
+			d = dptr;
 			while (*d && (*d != ':')) d++;
 			if (*d) *d = 0;
 			if (!(!strcasecmp(displayname, "unix") || !*displayname))
 				doShm = false;
+			
+			free(dptr);
 		}
 	}
 

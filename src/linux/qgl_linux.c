@@ -36,8 +36,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <dlfcn.h>
 
-const char so_file[] = "/etc/quake2.conf";
-
 /*
 //FX Mesa Functions
 fxMesaContext (*qfxMesaCreateContext)(GLuint win, GrScreenResolution_t, GrScreenRefresh_t, const GLint attribList[]);
@@ -3033,12 +3031,13 @@ qboolean QGL_Init( const char *dllname )
 	if ( ( glw_state.OpenGLLib = dlopen( dllname, RTLD_LAZY | RTLD_GLOBAL ) ) == 0 )
 	{
 		char	fn[MAX_OSPATH];
+		char	*path;
 		FILE *fp;
 
 //		ri.Con_Printf(PRINT_ALL, "QGL_Init: Can't load %s from /etc/ld.so.conf: %s\n", 
 //				dllname, dlerror());
 
-		// try path in /etc/quake2.conf
+#if 0
 		if ((fp = fopen(so_file, "r")) == NULL) {
 			ri.Con_Printf(PRINT_ALL,  "QGL_Init(\"%s\") failed: can't open %s\n", dllname, so_file);
 			return false;
@@ -3047,9 +3046,11 @@ qboolean QGL_Init( const char *dllname )
 		fclose(fp);
 		while (*fn && isspace(fn[strlen(fn) - 1]))
 			fn[strlen(fn) - 1] = 0;
-
-		strcat(fn, "/");
-		strcat(fn, dllname);
+#endif
+		// try basedir next
+		path = ri.Cvar_Get ("basedir", ".", CVAR_NOSET)->string;
+		
+		snprintf (fn, MAX_OSPATH, "%s/%s", path, dllname );
 
 		if ( ( glw_state.OpenGLLib = dlopen( fn, RTLD_LAZY ) ) == 0 ) {
 			ri.Con_Printf( PRINT_ALL, "%s\n", dlerror() );
