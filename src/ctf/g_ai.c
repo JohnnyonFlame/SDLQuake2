@@ -730,7 +730,7 @@ void ai_run_missile(edict_t *self)
 		self->monsterinfo.attack (self);
 		self->monsterinfo.attack_state = AS_STRAIGHT;
 	}
-};
+}
 
 
 /*
@@ -784,10 +784,12 @@ qboolean ai_checkattack (edict_t *self, float dist)
 			if ((level.time - self->enemy->teleport_time) > 5.0)
 			{
 				if (self->goalentity == self->enemy)
+				{
 					if (self->movetarget)
 						self->goalentity = self->movetarget;
 					else
 						self->goalentity = NULL;
+				}						
 				self->monsterinfo.aiflags &= ~AI_SOUND_TARGET;
 				if (self->monsterinfo.aiflags & AI_TEMP_STAND_GROUND)
 					self->monsterinfo.aiflags &= ~(AI_STAND_GROUND | AI_TEMP_STAND_GROUND);

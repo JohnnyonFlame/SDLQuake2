@@ -76,16 +76,6 @@ void R_AliasLerpFrames( dmdl_t *paliashdr, float backlerp );
 R_AliasCheckBBox
 ================
 */
-typedef struct {
-	int	index0;
-	int	index1;
-} aedge_t;
-
-static aedge_t	aedges[12] = {
-{0, 1}, {1, 2}, {2, 3}, {3, 0},
-{4, 5}, {5, 6}, {6, 7}, {7, 4},
-{0, 5}, {1, 4}, {2, 7}, {3, 6}
-};
 
 #define BBOX_TRIVIAL_ACCEPT 0
 #define BBOX_MUST_CLIP_XY   1
@@ -105,7 +95,6 @@ unsigned long R_AliasCheckFrameBBox( daliasframe_t *frame, float worldxf[3][4] )
 	vec3_t        mins, maxs;
 	vec3_t        transformed_min, transformed_max;
 	qboolean      zclipped = false, zfullyclipped = true;
-	float         minz = 9999.0F;
 
 	/*
 	** get the exact frame bounding box

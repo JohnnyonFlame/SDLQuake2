@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "ref.h"
 
@@ -143,7 +144,7 @@ typedef struct
 	FILE		*cinematic_file;
 	int			cinematictime;		// cls.realtime for first cinematic frame
 	int			cinematicframe;
-	char		cinematicpalette[768];
+	unsigned char	cinematicpalette[768];
 	qboolean	cinematicpalette_active;
 
 	//

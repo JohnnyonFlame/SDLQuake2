@@ -59,9 +59,11 @@ void CDAudio_Play(int track, qboolean looping)
 
 	if(!cd_id || !enabled) return;
 	
+	cd_stat=SDL_CDStatus(cd_id);
+	
 	if(!cdValid)
 	{
-		if(!CD_INDRIVE(cd_stat=SDL_CDStatus(cd_id)) ||(!cd_id->numtracks)) return;
+		if(!CD_INDRIVE(cd_stat) ||(!cd_id->numtracks)) return;
 		cdValid = true;
 	}
 

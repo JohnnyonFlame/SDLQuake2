@@ -388,8 +388,8 @@ rest of the data stream.
 void CL_ParsePacketEntities (frame_t *oldframe, frame_t *newframe)
 {
 	int			newnum;
-	int			bits;
-	entity_state_t	*oldstate;
+	unsigned		bits;
+	entity_state_t	*oldstate = NULL;
 	int			oldindex, oldnum;
 
 	newframe->parse_entities = cl.parse_entities;
@@ -1103,12 +1103,13 @@ void CL_AddPacketEntities (frame_t *frame)
 						if (renderfx & RF_SHELL_RED)
 							renderfx |= RF_SHELL_BLUE;
 						// if we have a blue shell (and not a red shell), turn it to cyan by adding green
-						else if (renderfx & RF_SHELL_BLUE)
+						else if (renderfx & RF_SHELL_BLUE) {
 							// go to green if it's on already, otherwise do cyan (flash green)
 							if (renderfx & RF_SHELL_GREEN)
 								renderfx &= ~RF_SHELL_BLUE;
 							else
 								renderfx |= RF_SHELL_GREEN;
+						}
 					}
 				}
 //			}

@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 ** SWimp_SwitchFullscreen
 */
 
+#include <unistd.h>
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
@@ -40,8 +41,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <stdio.h>
 #include <signal.h>
 #include <sys/mman.h>
-
-#include <asm/io.h>
 
 #include "vga.h"
 #include "vgakeyboard.h"
@@ -55,7 +54,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 int		VGA_width, VGA_height, VGA_rowbytes, VGA_bufferrowbytes, VGA_planar;
 byte	*VGA_pagebase;
-char	*framebuffer_ptr;
+byte	*framebuffer_ptr;
 
 void VGA_UpdatePlanarScreen (void *srcbuffer);
 
@@ -117,7 +116,6 @@ int get_mode(int width, int height)
 {
 
 	int i;
-	int ok, match;
 
 	for (i=0 ; i<num_modes ; i++)
 		if (modes[i].width &&
@@ -141,8 +139,6 @@ int get_mode(int width, int height)
 */
 static qboolean SWimp_InitGraphics( qboolean fullscreen )
 {
-	int bsize, zsize, tsize;
-
 	SWimp_Shutdown();
 
 	current_mode = get_mode(vid.width, vid.height);
@@ -175,7 +171,7 @@ static qboolean SWimp_InitGraphics( qboolean fullscreen )
 
 	vga_setmode(current_mode);
 
-	VGA_pagebase = framebuffer_ptr = (char *) vga_getgraphmem();
+	VGA_pagebase = framebuffer_ptr = vga_getgraphmem();
 //		if (vga_setlinearaddressing()>0)
 //			framebuffer_ptr = (char *) vga_getgraphmem();
 	if (!framebuffer_ptr)

@@ -877,6 +877,7 @@ void	R_SetGL2D (void)
 	qglColor4f (1,1,1,1);
 }
 
+#if 0 // Not used.
 static void GL_DrawColoredStereoLinePair( float r, float g, float b, float y )
 {
 	qglColor3f( r, g, b );
@@ -917,7 +918,7 @@ static void GL_DrawStereoPattern( void )
 		GLimp_EndFrame();
 	}
 }
-
+#endif
 
 /*
 ====================
@@ -1130,7 +1131,7 @@ int R_Init( void *hinstance, void *hWnd )
 	if ( !QGL_Init( gl_driver->string ) )
 	{
 		QGL_Shutdown();
-        ri.Con_Printf (PRINT_ALL, "ref_gl::R_Init() - could not load \"%s\"\n", gl_driver->string );
+		ri.Con_Printf (PRINT_ALL, "ref_gl::R_Init() - could not load \"%s\"\n", gl_driver->string );
 		return -1;
 	}
 
@@ -1148,7 +1149,7 @@ int R_Init( void *hinstance, void *hWnd )
 	if ( !R_SetMode () )
 	{
 		QGL_Shutdown();
-        ri.Con_Printf (PRINT_ALL, "ref_gl::R_Init() - could not R_SetMode()\n" );
+		ri.Con_Printf (PRINT_ALL, "ref_gl::R_Init() - could not R_SetMode()\n" );
 		return -1;
 	}
 
@@ -1157,19 +1158,21 @@ int R_Init( void *hinstance, void *hWnd )
 	/*
 	** get our various GL strings
 	*/
-	gl_config.vendor_string = qglGetString (GL_VENDOR);
+	gl_config.vendor_string = (char *)qglGetString (GL_VENDOR);
 	ri.Con_Printf (PRINT_ALL, "GL_VENDOR: %s\n", gl_config.vendor_string );
-	gl_config.renderer_string = qglGetString (GL_RENDERER);
+	gl_config.renderer_string = (char *)qglGetString (GL_RENDERER);
 	ri.Con_Printf (PRINT_ALL, "GL_RENDERER: %s\n", gl_config.renderer_string );
-	gl_config.version_string = qglGetString (GL_VERSION);
+	gl_config.version_string = (char *)qglGetString (GL_VERSION);
 	ri.Con_Printf (PRINT_ALL, "GL_VERSION: %s\n", gl_config.version_string );
-	gl_config.extensions_string = qglGetString (GL_EXTENSIONS);
+	gl_config.extensions_string = (char *)qglGetString (GL_EXTENSIONS);
 	ri.Con_Printf (PRINT_ALL, "GL_EXTENSIONS: %s\n", gl_config.extensions_string );
 
-	strcpy( renderer_buffer, gl_config.renderer_string );
+	strncpy( renderer_buffer, gl_config.renderer_string, sizeof(renderer_buffer) );
+	renderer_buffer[sizeof(renderer_buffer)-1] = 0;
 	strlwr( renderer_buffer );
 
-	strcpy( vendor_buffer, gl_config.vendor_string );
+	strncpy( vendor_buffer, gl_config.vendor_string, sizeof(vendor_buffer) );
+	vendor_buffer[sizeof(vendor_buffer)-1] = 0;
 	strlwr( vendor_buffer );
 
 	if ( strstr( renderer_buffer, "voodoo" ) )
@@ -1224,7 +1227,7 @@ int R_Init( void *hinstance, void *hWnd )
 		ri.Cvar_Set( "scr_drawall", "0" );
 	}
 
-#ifdef __linux__
+#if 0 && defined(__linux__)
 	ri.Cvar_SetValue( "gl_finish", 1 );
 #endif
 
@@ -1324,7 +1327,7 @@ int R_Init( void *hinstance, void *hWnd )
 		if ( gl_ext_palettedtexture->value )
 		{
 			ri.Con_Printf( PRINT_ALL, "...using GL_EXT_shared_texture_palette\n" );
-			qglColorTableEXT = ( void ( APIENTRY * ) ( int, int, int, int, int, const void * ) ) qwglGetProcAddress( "glColorTableEXT" );
+			qglColorTableEXT = ( void ( APIENTRY * ) ( GLenum, GLenum, GLsizei, GLenum, GLenum, const GLvoid * ) ) qwglGetProcAddress( "glColorTableEXT" );
 		}
 		else
 		{
@@ -1398,6 +1401,8 @@ int R_Init( void *hinstance, void *hWnd )
 	err = qglGetError();
 	if ( err != GL_NO_ERROR )
 		ri.Con_Printf (PRINT_ALL, "glGetError() = 0x%x\n", err);
+	
+	return true;
 }
 
 /*

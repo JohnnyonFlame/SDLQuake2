@@ -495,7 +495,7 @@ void MakronSaveloc (edict_t *self)
 {
 	VectorCopy (self->enemy->s.origin, self->pos1);	//save for aiming the shot
 	self->pos1[2] += self->enemy->viewheight;
-};
+}
 
 // FIXME: He's not firing from the proper Z
 void MakronRailgun (edict_t *self)
@@ -584,24 +584,26 @@ void makron_pain (edict_t *self, edict_t *other, float kick, int damage)
 	else
 	{
 		if (damage <= 150)
+		{
 			if (random() <= 0.45)
 			{
 				gi.sound (self, CHAN_VOICE, sound_pain6, 1, ATTN_NONE,0);
 				self->monsterinfo.currentmove = &makron_move_pain6;
 			}
-		else
+			else
 			if (random() <= 0.35)
 			{
 				gi.sound (self, CHAN_VOICE, sound_pain6, 1, ATTN_NONE,0);
 				self->monsterinfo.currentmove = &makron_move_pain6;
 			}
+		}
 	}
-};
+}
 
 void makron_sight(edict_t *self, edict_t *other)
 {
 	self->monsterinfo.currentmove = &makron_move_sight;
-};
+}
 
 void makron_attack(edict_t *self)
 {

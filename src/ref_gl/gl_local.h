@@ -23,18 +23,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 #include <stdio.h>
+#include <ctype.h>
 
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include <math.h>
 
-/*
-#ifndef __linux__
-#ifndef GL_COLOR_INDEX8_EXT
-#define GL_COLOR_INDEX8_EXT GL_COLOR_INDEX
+#ifndef _WIN32
+char *strlwr (char *s);
 #endif
-#endif
-*/
 
 #include "../client/ref.h"
 
@@ -56,7 +53,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define __VIDDEF_T
 typedef struct
 {
-	unsigned		width, height;			// coordinates from main game
+	int	width, height;			// coordinates from main game
 } viddef_t;
 #endif
 

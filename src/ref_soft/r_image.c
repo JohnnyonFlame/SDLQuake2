@@ -309,17 +309,23 @@ void LoadTGA (char *name, byte **pic, int *width, int *height)
 				if (packetHeader & 0x80) {        // run-length packet
 					switch (targa_header.pixel_size) {
 						case 24:
-								blue = *buf_p++;
-								green = *buf_p++;
-								red = *buf_p++;
-								alphabyte = 255;
-								break;
+							blue = *buf_p++;
+							green = *buf_p++;
+							red = *buf_p++;
+							alphabyte = 255;
+							break;
 						case 32:
-								blue = *buf_p++;
-								green = *buf_p++;
-								red = *buf_p++;
-								alphabyte = *buf_p++;
-								break;
+							blue = *buf_p++;
+							green = *buf_p++;
+							red = *buf_p++;
+							alphabyte = *buf_p++;
+							break;
+						default:
+							blue = 0;
+							green = 0;
+							red = 0;
+							alphabyte = 0;
+							break;
 					}
 	
 					for(j=0;j<packetSize;j++) {

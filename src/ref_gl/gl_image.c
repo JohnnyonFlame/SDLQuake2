@@ -671,6 +671,12 @@ void LoadTGA (char *name, byte **pic, int *width, int *height)
 								red = *buf_p++;
 								alphabyte = *buf_p++;
 								break;
+						default:
+								blue = 0;
+								green = 0;
+								red = 0;
+								alphabyte = 0;
+								break;
 					}
 	
 					for(j=0;j<packetSize;j++) {
@@ -1200,6 +1206,8 @@ qboolean GL_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboole
 
 		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
 		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+		
+		return false; // SBF: FIXME - what is the correct return value?
 	}
 	else
 	{
@@ -1454,7 +1462,7 @@ void GL_FreeUnusedImages (void)
 		if (image->type == it_pic)
 			continue;		// don't free pics
 		// free it
-		qglDeleteTextures (1, &image->texnum);
+		qglDeleteTextures (1, (GLuint *)&image->texnum);
 		memset (image, 0, sizeof(*image));
 	}
 }
@@ -1522,7 +1530,7 @@ void	GL_InitImages (void)
 
 	if ( qglColorTableEXT )
 	{
-		ri.FS_LoadFile( "pics/16to8.dat", &gl_state.d_16to8table );
+		ri.FS_LoadFile( "pics/16to8.dat", (void **)&gl_state.d_16to8table );
 		if ( !gl_state.d_16to8table )
 			ri.Sys_Error( ERR_FATAL, "Couldn't load pics/16to8.pcx");
 	}
@@ -1575,7 +1583,7 @@ void	GL_ShutdownImages (void)
 		if (!image->registration_sequence)
 			continue;		// free image_t slot
 		// free it
-		qglDeleteTextures (1, &image->texnum);
+		qglDeleteTextures (1, (GLuint *)&image->texnum);
 		memset (image, 0, sizeof(*image));
 	}
 }

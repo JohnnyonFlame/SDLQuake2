@@ -1353,13 +1353,15 @@ void CL_AddPlayerBeams (void)
 	float		yaw, pitch;
 	float		forward;
 	float		len, steps;
-	int			framenum;
+	int		framenum;
 	float		model_length;
 	
 	float		hand_multiplier;
 	frame_t		*oldframe;
 	player_state_t	*ps, *ops;
 
+	framenum = 0;
+	
 //PMM
 	if (hand)
 	{
@@ -1669,6 +1671,8 @@ void CL_AddExplosions (void)
 			ent->skinnum = 0;
 			ent->flags |= RF_TRANSLUCENT;
 			break;
+		default:
+			break;
 		}
 
 		if (ex->type == ex_free)
@@ -1717,7 +1721,7 @@ void CL_ProcessSustain ()
 
 	for (i=0, s=cl_sustains; i< MAX_SUSTAINS; i++, s++)
 	{
-		if (s->id)
+		if (s->id) {
 			if ((s->endtime >= cl.time) && (cl.time >= s->nextthink))
 			{
 //				Com_Printf ("think %d %d %d\n", cl.time, s->nextthink, s->thinkinterval);
@@ -1725,6 +1729,7 @@ void CL_ProcessSustain ()
 			}
 			else if (s->endtime < cl.time)
 				s->id = 0;
+		}
 	}
 }
 

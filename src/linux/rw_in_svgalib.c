@@ -26,8 +26,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <signal.h>
 #include <sys/mman.h>
 
-#include <asm/io.h>
-
 #include "vga.h"
 #include "vgakeyboard.h"
 #include "vgamouse.h"
@@ -193,7 +191,7 @@ void KBD_Close(void)
 
 static qboolean	UseMouse = true;
 
-static int		mouserate = MOUSE_DEFAULTSAMPLERATE;
+//static int		mouserate = MOUSE_DEFAULTSAMPLERATE;
 
 static int     mouse_buttons;
 static int     mouse_buttonstate;
@@ -259,7 +257,6 @@ static void mousehandler(int buttonstate, int dx, int dy, int dz, int drx, int d
 void RW_IN_Init(in_state_t *in_state_p)
 {
 	int mtype;
-	int i;
 
 	in_state = in_state_p;
 

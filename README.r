@@ -117,6 +117,7 @@ What's the best way of handling international keyboards with SDL?
 TODO:
 -----
 Fix save games.
+Fully switch to glext.h
 Suggestions, anyone?
 
 v0.0.8: [XX/XX/XX] CVS

@@ -69,6 +69,8 @@ dirty_t		scr_dirty, scr_old_dirty[2];
 char		crosshair_pic[MAX_QPATH];
 int			crosshair_width, crosshair_height;
 
+extern cvar_t *cl_drawfps; // FPS hack
+
 void SCR_TimeRefresh_f (void);
 void SCR_Loading_f (void);
 
@@ -1382,6 +1384,14 @@ void SCR_UpdateScreen (void)
 			SCR_DrawNet ();
 			SCR_CheckDrawCenterString ();
 
+			// FPS counter hack 
+			// http://www.quakesrc.org/?Page=tutorials&What=./tutorials/Quake2/misc/fps.txt
+			if (cl_drawfps->value) {
+				char s[8];
+				sprintf(s,"%3.0ffps", 1/cls.frametime);
+				DrawString(viddef.width-64,0,s);
+			}
+			
 			if (scr_timegraph->value)
 				SCR_DebugGraph (cls.frametime*300, 0);
 

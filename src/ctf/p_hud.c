@@ -419,6 +419,8 @@ void G_SetStats (edict_t *ent)
 		ent->client->ps.stats[STAT_AMMO] = ent->client->pers.inventory[ent->client->ammo_index];
 	}
 	
+	cells = 0;
+	
 	//
 	// armor
 	//

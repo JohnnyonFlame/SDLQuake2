@@ -82,7 +82,6 @@ void VID_Printf (int print_level, char *fmt, ...)
 {
 	va_list		argptr;
 	char		msg[MAXPRINTMSG];
-	static qboolean	inupdate;
 	
 	va_start (argptr,fmt);
 	vsnprintf (msg,MAXPRINTMSG,fmt,argptr);
@@ -98,7 +97,6 @@ void VID_Error (int err_level, char *fmt, ...)
 {
 	va_list		argptr;
 	char		msg[MAXPRINTMSG];
-	static qboolean	inupdate;
 	
 	va_start (argptr,fmt);
 	vsnprintf (msg,MAXPRINTMSG,fmt,argptr);
@@ -206,7 +204,6 @@ qboolean VID_LoadRefresh( char *name )
 	char	*path;
 	struct stat st;
 	extern uid_t saved_euid;
-	FILE *fp;
 	
 	if ( reflib_active )
 	{
@@ -224,20 +221,6 @@ qboolean VID_LoadRefresh( char *name )
 
 	//regain root
 	seteuid(saved_euid);
-
-#if 0
-	if ((fp = fopen(so_file, "r")) == NULL) {
-		Com_Printf( "LoadLibrary(\"%s\") failed: can't open %s (required for location of ref libraries)\n", name, so_file);
-		return false;
-	}
-	fgets(fn, sizeof(fn), fp);
-	fclose(fp);
-	while (*fn && isspace(fn[strlen(fn) - 1]))
-		fn[strlen(fn) - 1] = 0;
-
-	strcat(fn, "/");
-	strcat(fn, name);
-#endif
 
 	path = Cvar_Get ("basedir", ".", CVAR_NOSET)->string;
 

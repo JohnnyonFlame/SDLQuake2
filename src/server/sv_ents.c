@@ -144,6 +144,8 @@ void SV_EmitPacketEntities (client_frame_t *from, client_frame_t *to, sizebuf_t 
 
 	newindex = 0;
 	oldindex = 0;
+	newent = NULL;
+	oldent = NULL;
 	while (newindex < to->num_entities || oldindex < from_num_entities)
 	{
 		if (newindex >= to->num_entities)

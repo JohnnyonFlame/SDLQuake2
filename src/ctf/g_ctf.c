@@ -497,12 +497,14 @@ edict_t *SelectCTFSpawnPoint (edict_t *ent)
 	float	range, range1, range2;
 	char	*cname;
 
-	if (ent->client->resp.ctf_state)
+	if (ent->client->resp.ctf_state) 
+	{
 		if ( (int)(dmflags->value) & DF_SPAWN_FARTHEST)
 			return SelectFarthestDeathmatchSpawnPoint ();
 		else
 			return SelectRandomDeathmatchSpawnPoint ();
-
+	}
+	
 	ent->client->resp.ctf_state++;
 
 	switch (ent->client->resp.ctf_team) {
@@ -658,6 +660,8 @@ void CTFFragBonuses(edict_t *targ, edict_t *inflictor, edict_t *attacker)
 	if (!flag)
 		return; // can't find attacker's flag
 
+	carrier = NULL;
+	
 	// find attacker's team's flag carrier
 	for (i = 1; i <= maxclients->value; i++) {
 		carrier = g_edicts + i;
@@ -923,13 +927,12 @@ void CTFDeadDropFlag(edict_t *self)
 	}
 }
 
-qboolean CTFDrop_Flag(edict_t *ent, gitem_t *item)
+void CTFDrop_Flag(edict_t *ent, gitem_t *item)
 {
 	if (rand() & 1) 
 		gi.cprintf(ent, PRINT_HIGH, "Only lusers drop flags.\n");
 	else
 		gi.cprintf(ent, PRINT_HIGH, "Winners don't drop flags.\n");
-	return false;
 }
 
 static void CTFFlagThink(edict_t *ent)
@@ -2735,7 +2738,6 @@ void CTFStartMatch(void)
 {
 	int i;
 	edict_t *ent;
-	int ghost = 0;
 
 	ctfgame.match = MATCH_GAME;
 	ctfgame.matchtime = level.time + matchtime->value * 60;
@@ -2838,6 +2840,8 @@ void CTFWinElection(void)
 			ctfgame.etarget->client->pers.netname, ctfgame.elevel);
 		strncpy(level.forcemap, ctfgame.elevel, sizeof(level.forcemap) - 1);
 		EndDMLevel();
+		break;
+	default:
 		break;
 	}
 	ctfgame.election = ELECT_NONE;
@@ -3261,6 +3265,8 @@ int CTFUpdateJoinMenu(edict_t *ent)
 	case MATCH_GAME :
 		joinmenu[jmenu_match].text = "*MATCH IN PROGRESS";
 		break;
+	default:
+		break;
 	}
 
 	if (joinmenu[jmenu_red].text)
@@ -3401,6 +3407,8 @@ qboolean CTFCheckRules(void)
 				CTFEndMatch();
 				gi.positioned_sound (world->s.origin, world, CHAN_AUTO | CHAN_RELIABLE, gi.soundindex("misc/bigtele.wav"), 1, ATTN_NONE, 0);
 				return false;
+			default:
+				break;
 			}
 		}
 
@@ -3449,6 +3457,8 @@ qboolean CTFCheckRules(void)
 				ctfgame.countdown = true;
 				gi.positioned_sound (world->s.origin, world, CHAN_AUTO | CHAN_RELIABLE, gi.soundindex("world/10_0.wav"), 1, ATTN_NONE, 0);
 			}
+			break;
+		default:
 			break;
 		}
 		return false;
@@ -3715,8 +3725,6 @@ void CTFAdmin_SettingsApply(edict_t *ent, pmenuhnd_t *p)
 
 void CTFAdmin_SettingsCancel(edict_t *ent, pmenuhnd_t *p)
 {
-	admin_settings_t *settings = p->arg;
-
 	PMenu_Close(ent);
 	CTFOpenAdminMenu(ent);
 }
