@@ -154,6 +154,23 @@ Dedicated Server:
 If there is a demand for it, I can add support for an explicit q2ded binary.
 Else, using +set dedicated 1 should be fine.
 
+CTF Server:
+-----------
+To run Capture The Flag, you need to do the following:
+1) download q2-3.20-x86-full-ctf.exe from 
+ftp://ftp.idsoftware.com/idstuff/quake2
+2) unzip that file (using unzip -L) in a temp directory
+3) copy ctf to <installdir>/ctf
+4) build the ctf shared library (BUILD_CTF=YES in the Makefile)
+5) cp releas<arch>/ctf/game<arch>.so to <installdir>/ctf/game<arch>.so
+6) quake2 +set game ctf +set dedicated 1
+7) on the console enter "map Q2CTF1" that will load up the first ctf
+map, then connect using a client with multi-player.  For the other maps use
+Q2CTF2, etc.
+
+*Note if you are using the demo version and not the full version, some
+textures are missing from the CTF levels*
+
 IPv6 Support:
 -------------
 Currently experimental, so it may or may not work.  Here is some information
