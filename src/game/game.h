@@ -233,3 +233,11 @@ typedef struct
 } game_export_t;
 
 game_export_t *GetGameApi (game_import_t *import);
+
+
+/*
+ * PATCH: eliasm
+ *
+ * Some functions can't be static when using the new save game technique
+ */
+/*#define FUNCSTATIC*/

@@ -29,7 +29,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 #include <GL/gl.h>
+#ifndef SOLARIS
 #include <GL/glext.h>
+#endif
 
 qboolean QGL_Init( const char *dllname );
 void     QGL_Shutdown( void );
@@ -446,7 +448,7 @@ void Fake_glColorTableEXT( GLenum target, GLenum internalformat,
 
 extern int QGL_TEXTURE0, QGL_TEXTURE1; /* ARB/SGIS texture defs */
 
-#if 0 /* these are in glext.h */
+#ifdef SOLARIS /* these are in glext.h, on platforms that have it */
 /*
 ** extension constants
 */
@@ -454,6 +456,7 @@ extern int QGL_TEXTURE0, QGL_TEXTURE1; /* ARB/SGIS texture defs */
 #define GL_POINT_SIZE_MAX_EXT				0x8127
 #define GL_POINT_FADE_THRESHOLD_SIZE_EXT	0x8128
 #define GL_DISTANCE_ATTENUATION_EXT			0x8129
+#endif
 
 #ifdef __sgi
 #define GL_SHARED_TEXTURE_PALETTE_EXT		GL_TEXTURE_COLOR_TABLE_SGI
@@ -461,8 +464,5 @@ extern int QGL_TEXTURE0, QGL_TEXTURE1; /* ARB/SGIS texture defs */
 #define GL_SHARED_TEXTURE_PALETTE_EXT		0x81FB
 #endif
 
-#define GL_TEXTURE0_ARB						0x84C0
-#define GL_TEXTURE1_ARB						0x84C1
 #endif
 
-#endif

@@ -35,7 +35,11 @@ OSTYPE := $(shell uname -s)
 
 ifneq ($(OSTYPE),Linux)
 ifneq ($(OSTYPE),FreeBSD)
+ifeq ($(OSTYPE),SunOS)
+$(error OS $(OSTYPE) detected, use "Makefile.Solaris" instead.)
+else
 $(error OS $(OSTYPE) is currently not supported)
+endif
 endif
 endif
 

@@ -385,6 +385,14 @@ void Mod_LoadVertexes (lump_t *l)
 		ri.Sys_Error (ERR_DROP,"MOD_LoadBmodel: funny lump size in %s",loadmodel->name);
 	count = l->filelen / sizeof(*in);
 	out = Hunk_Alloc ( (count+8)*sizeof(*out));		// extra for skybox
+        /*
+         * PATCH: eliasm
+         *
+         * This patch fixes the problem where the games dumped core
+         * when changing levels.
+         */
+        memset( out, 0, (count + 6) * sizeof( *out ) );
+        /* END OF PATCH */
 
 	loadmodel->vertexes = out;
 	loadmodel->numvertexes = count;
@@ -508,6 +516,16 @@ void Mod_LoadTexinfo (lump_t *l)
 		next = LittleLong (in->nexttexinfo);
 		if (next > 0)
 			out->next = loadmodel->texinfo + next;
+                /*
+                 * PATCH: eliasm
+                 *
+                 * This patch fixes the problem where the game
+                 * domed core when loading a new level.
+                 */
+                else {
+                  out->next = NULL;
+                }
+                /* END OF PATCH */
 
 		Com_sprintf (name, sizeof(name), "textures/%s.wal", in->texture);
 		out->image = R_FindImage (name, it_wall);

@@ -3497,6 +3497,19 @@ static qboolean PlayerConfig_ScanDirectories( void )
 	do 
 	{
 		path = FS_NextPath( path );
+
+                /*
+                 * PATCH: eliasm
+                 *
+                 * If FS_NextPath returns NULL we get a SEGV on the next line.
+                 * On other platforms this propably works (path becomes
+                 * the null string or something like that.
+                 */
+                if( path == NULL ) {
+                  break;
+                }
+                /* END OF PATCH */
+
 		Com_sprintf( findname, sizeof(findname), "%s/players/*.*", path );
 
 		if ( ( dirnames = FS_ListFiles( findname, &ndirs, SFF_SUBDIR, 0 ) ) != 0 )

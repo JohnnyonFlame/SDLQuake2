@@ -903,8 +903,26 @@ void S_AddLoopSounds (void)
 		ch->rightvol = right_total;
 		ch->autosound = true;	// remove next frame
 		ch->sfx = sfx;
+                /*
+                 * PATCH: eliasm
+                 *
+                 * Sometimes, the sc->length argument can become 0,
+                 * and in that case we get a SIGFPE in the next
+                 * modulo operation. The workaround checks for this
+                 * situation and in that case, sets the pos and end
+                 * parameters to 0.
+                 *
+                 *   ch->pos = paintedtime % sc->length;
+                 *   ch->end = paintedtime + sc->length - ch->pos;
+                 */
+                if( sc->length == 0 ) {
+                  ch->pos = 0;
+                  ch->end = 0;
+                }
+                else {
 		ch->pos = paintedtime % sc->length;
 		ch->end = paintedtime + sc->length - ch->pos;
+	}
 	}
 }
 

@@ -36,16 +36,43 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/mman.h>
 #include <errno.h>
 #include <sys/file.h>
-
 #include <dlfcn.h>
 
 #include "../qcommon/qcommon.h"
+#include "rw_solaris.h"
+
+#if defined(SOL8_XIL_WORKAROUND)
+#include <xil/xil.h>
+typedef struct
+{
+	qboolean	restart_sound;
+	int		s_rate;
+	int		s_width;
+	int		s_channels;
+
+	int		width;
+	int		height;
+	byte	*pic;
+	byte	*pic_pending;
+
+	// order 1 huffman stuff
+	int		*hnodes1;	// [256][256][2];
+	int		numhnodes1[256];
+
+	int		h_used[512];
+	int		h_count[512];
+} cinematics_t;
+#endif
 
 cvar_t *nostdout;
 
 unsigned	sys_frame_time;
 
+uid_t saved_euid;
 qboolean stdin_active = true;
+hrtime_t base_hrtime;
+char display_name[ 1024 ];
+
 
 // =======================================================================
 // General routines
@@ -66,7 +93,7 @@ void Sys_Printf (char *fmt, ...)
 	unsigned char		*p;
 
 	va_start (argptr,fmt);
-	vsprintf (text,fmt,argptr);
+	vsnprintf (text,1024,fmt,argptr);
 	va_end (argptr);
 
 	if (strlen(text) > sizeof(text))
@@ -89,6 +116,7 @@ void Sys_Quit (void)
 	CL_Shutdown ();
 	Qcommon_Shutdown ();
     fcntl (0, F_SETFL, fcntl (0, F_GETFL, 0) & ~FNDELAY);
+
 	_exit(0);
 }
 
@@ -101,19 +129,24 @@ void Sys_Init(void)
 
 void Sys_Error (char *error, ...)
 { 
+	/* DEBUG: matt */
+	/* exit(0); */
+	/* DEBUG */
+
     va_list     argptr;
     char        string[1024];
 
 // change stdin to non blocking
     fcntl (0, F_SETFL, fcntl (0, F_GETFL, 0) & ~FNDELAY);
     
+	CL_Shutdown ();
+	Qcommon_Shutdown ();
+
     va_start (argptr,error);
-    vsprintf (string,error,argptr);
+	vsnprintf (string,1024,error,argptr);
     va_end (argptr);
 	fprintf(stderr, "Error: %s\n", string);
 
-	CL_Shutdown ();
-	Qcommon_Shutdown ();
 	_exit (1);
 
 } 
@@ -124,7 +157,7 @@ void Sys_Warn (char *warning, ...)
     char        string[1024];
     
     va_start (argptr,warning);
-    vsprintf (string,warning,argptr);
+	vsnprintf (string,1024,warning,argptr);
     va_end (argptr);
 	fprintf(stderr, "Warning: %s", string);
 } 
@@ -177,6 +210,7 @@ char *Sys_ConsoleInput(void)
 		stdin_active = false;
 		return NULL;
 	}
+
 	if (len < 1)
 		return NULL;
 	text[len-1] = 0;    // rip off the /n and terminate
@@ -211,13 +245,14 @@ void *Sys_GetGameAPI (void *parms)
 {
 	void	*(*GetGameAPI) (void *);
 
+	FILE	*fp;
 	char	name[MAX_OSPATH];
 	char	curpath[MAX_OSPATH];
 	char	*path;
 	char	*str_p;
 #ifdef __i386__
 	const char *gamename = "gamei386.so";
-#elif defined __sun__
+#elif defined(__sun__) || defined(sun)
 	const char *gamename = "gamesparc.so";
 #else
 #error Unknown arch
@@ -228,7 +263,7 @@ void *Sys_GetGameAPI (void *parms)
 
 	getcwd(curpath, sizeof(curpath));
 
-	Com_Printf("------- Loading %s -------", gamename);
+	Com_Printf("------- Loading %s -------\n", gamename);
 
 	// now run through the search paths
 	path = NULL;
@@ -237,27 +272,39 @@ void *Sys_GetGameAPI (void *parms)
 		path = FS_NextPath (path);
 		if (!path)
 			return NULL;		// couldn't find one anywhere
-		sprintf (name, "%s/%s/%s", curpath, path, gamename);
-		game_library = dlopen (name, RTLD_NOW );
+		snprintf (name, MAX_OSPATH, "%s/%s", path, gamename);
+		
+		/* skip it if it just doesn't exist */
+		fp = fopen(name, "rb");
+		if (fp == NULL)
+			continue;
+		fclose(fp);
+		
+		game_library = dlopen (name, RTLD_NOW);
 		if (game_library)
 		{
 			Com_MDPrintf ("LoadLibrary (%s)\n",name);
 			break;
-		} else {
-			Com_MDPrintf("LoadLibrary (%s)\n", name);
-			
-			str_p = strchr(dlerror(), ':'); // skip the path (already shown)
-			if (str_p != NULL)
+		} 
+		else 
 			{
+			Com_Printf ("LoadLibrary (%s):", name);
+			
+			path = dlerror();
+			str_p = strchr(path, ':'); // skip the path (already shown)
+			if (str_p == NULL)
+				str_p = path;
+			else
 				str_p++;
 				
-				Com_MDPrintf (" **%s", str_p);
-				Com_MDPrintf("\n");
-			}
+			Com_Printf ("%s\n", str_p);
+			
+			return NULL; 
 		}
 	}
 
 	GetGameAPI = (void *)dlsym (game_library, "GetGameAPI");
+
 	if (!GetGameAPI)
 	{
 		Sys_UnloadGame ();		
@@ -275,22 +322,69 @@ void Sys_AppActivate (void)
 
 void Sys_SendKeyEvents (void)
 {
+#ifndef DEDICATED_ONLY
+        if (KBD_Update_fp)
+                KBD_Update_fp();
+#endif
+
 	// grab frame time 
 	sys_frame_time = Sys_Milliseconds();
 }
 
 /*****************************************************************************/
 
-char *Sys_GetClipboardData(void)
+char *Sys_GetClipboardData( void )
 {
 	return NULL;
 }
+#if defined(SOL8_XIL_WORKAROUND)
+XilSystemState xil_state;
+#endif
 
-int main (int argc, char **argv)
+int main( int argc, char **argv )
 {
 	int 	time, oldtime, newtime;
+	sigset_t sigs;
 
-#if 0
+#if defined(SOL8_XIL_WORKAROUND)
+	{
+	  extern cinematics_t cin;
+
+	  if( (xil_state = xil_open()) == NULL ) {
+	    fprintf( stderr, "can't open XIL\n" );
+	    exit( 1 );
+	  }
+	  memset( &cin, 0, sizeof( cin ) );
+	}
+#endif
+
+	/*
+	 * Save the contents of the DISPLAY environment variable.
+	 * if we don't, it gets overwritten after reloading the
+	 * renderer libraries.
+	 */
+	{
+	  char *tmp_name = getenv( "DISPLAY" );
+	  if( tmp_name == NULL ) {
+	    display_name[ 0 ] = 0;
+	  }
+	  else {
+	    strncpy( display_name, tmp_name, sizeof( display_name ) );
+	  }
+	}
+
+	/* block the SIGPOLL signal so that only the audio thread gets it */
+	sigemptyset( &sigs );
+	sigaddset( &sigs, SIGPOLL );
+	pthread_sigmask( SIG_BLOCK, &sigs, NULL );
+
+	// go back to real user for config loads
+	saved_euid = geteuid();
+	seteuid( getuid() );
+
+	base_hrtime = gethrtime();
+
+#ifdef DEDICATED_ONLY
 	int newargc;
 	char **newargv;
 	int i;
@@ -365,3 +459,46 @@ void Sys_MakeCodeWriteable (unsigned long startaddr, unsigned long length)
 }
 
 #endif
+
+
+size_t verify_fread( void *ptr, size_t size, size_t nitems, FILE *fp )
+{
+  size_t ret;
+  int err;
+
+  clearerr( fp );
+  ret = fread( ptr, size, nitems, fp );
+  err = errno;
+  if( ret != nitems ) {
+    printf( "verify_fread(...,%d,%d,...): return value: %d\n",
+	    size, nitems, ret );
+    if( ret == 0 && ferror( fp ) ) {
+      printf( "    error: %s\n", strerror( err ) );
+      printf( "    fileno=%d\n", fileno( fp ) );
+    }
+    /*    sleep( 5 );*/
+  }
+
+  return ret;
+}
+
+size_t verify_fwrite( void *ptr, size_t size, size_t nitems, FILE *fp )
+{
+  size_t ret;
+  int err;
+
+  clearerr( fp );
+  ret = fwrite( ptr, size, nitems, fp );
+  err = errno;
+  if( ret != nitems ) {
+    printf( "verify_fwrite(...,%d,%d,...): return value: %d\n",
+	    size, nitems, ret );
+    if( ret == 0 && ferror( fp ) ) {
+      printf( "    error: %s\n", strerror( err ) );
+      printf( "    fileno=%d\n", fileno( fp ) );
+    }
+    /*    sleep( 5 );*/
+  }
+
+  return ret;
+}

@@ -42,6 +42,9 @@ void *Hunk_Begin (int maxsize)
 	maxhunksize = maxsize;
 	curhunksize = 0;
 	membase = malloc(maxhunksize);
+	/* DEBUG: eliasm */
+	memset( membase, 0, maxhunksize );
+	/* DEBUG: eliasm */
 	if (membase == NULL)
 		Sys_Error(ERR_FATAL, "unable to allocate %d bytes", maxsize);
 
@@ -87,7 +90,7 @@ Sys_Milliseconds
 ================
 */
 int curtime;
-int Sys_Milliseconds (void)
+int xSys_Milliseconds (void)
 {
 	struct timeval tp;
 	struct timezone tzp;
@@ -105,6 +108,20 @@ int Sys_Milliseconds (void)
 	
 	return curtime;
 }
+
+extern hrtime_t base_hrtime;
+
+int Sys_Milliseconds( void )
+{
+  hrtime_t curr_hrtime;
+
+  curr_hrtime = gethrtime();
+
+  curtime = (curr_hrtime - base_hrtime) / 1000000LL;
+
+  return curtime;
+}
+
 
 void Sys_Mkdir (char *path)
 {
@@ -136,7 +153,8 @@ static qboolean CompareAttributes(char *path, char *name,
 	if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
 		return false;
 
-	sprintf(fn, "%s/%s", path, name);
+	return true;
+	//sprintf(fn, "%s/%s", path, name);
 	if (stat(fn, &st) == -1)
 		return false; // shouldn't happen
 
@@ -169,7 +187,8 @@ char *Sys_FindFirst (char *path, unsigned musthave, unsigned canhave)
 	if (strcmp(findpattern, "*.*") == 0)
 		strcpy(findpattern, "*");
 	
-	if ((fdir = opendir(path)) == NULL)
+	/*	if ((fdir = opendir(path)) == NULL)*/
+	if ((fdir = opendir(findbase)) == NULL)
 		return NULL;
 	while ((d = readdir(fdir)) != NULL) {
 		if (!*findpattern || glob_match(findpattern, d->d_name)) {

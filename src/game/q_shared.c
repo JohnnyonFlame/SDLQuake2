@@ -1176,6 +1176,18 @@ void Com_PageInMemory (byte *buffer, int size)
 ============================================================================
 */
 
+/* PATCH: matt */
+/* use our own strncasecmp instead of this implementation */
+#ifdef sun
+
+#define Q_strncasecmp(s1, s2, n) (strncasecmp(s1, s2, n))
+
+int Q_stricmp (char *s1, char *s2) {
+        return strcasecmp(s1, s2);
+}
+
+#else
+
 // FIXME: replace all Q_stricmp with Q_strcasecmp
 int Q_stricmp (char *s1, char *s2)
 {
@@ -1212,6 +1224,7 @@ int Q_strncasecmp (char *s1, char *s2, int n)
 	
 	return 0;		// strings are equal
 }
+#endif
 
 int Q_strcasecmp (char *s1, char *s2)
 {

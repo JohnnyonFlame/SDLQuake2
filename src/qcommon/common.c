@@ -1144,8 +1144,11 @@ void Z_Free (void *ptr)
 
 	z = ((zhead_t *)ptr) - 1;
 
-	if (z->magic != Z_MAGIC)
+	if (z->magic != Z_MAGIC) {
+	  printf( "free: %p failed\n", ptr );
+	  abort();
 		Com_Error (ERR_FATAL, "Z_Free: bad magic");
+	}
 
 	z->prev->next = z->next;
 	z->next->prev = z->prev;
@@ -1208,6 +1211,7 @@ void *Z_TagMalloc (int size, int tag)
 	z_chain.next->prev = z;
 	z_chain.next = z;
 
+	/*	printf( "returning pointer: %p\n", (z+1) );*/
 	return (void *)(z+1);
 }
 
