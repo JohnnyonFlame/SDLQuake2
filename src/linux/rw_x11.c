@@ -850,6 +850,10 @@ void HandleEvents(void)
 				b = 2;
 			else if (event.xbutton.button == 3)
 				b = 1;
+			else if (event.xbutton.button == 4)
+				in_state->Key_Event_fp (K_MWHEELUP, 1);
+			else if (event.xbutton.button == 5)
+				in_state->Key_Event_fp (K_MWHEELDOWN, 1);
 			if (b>=0)
 				mouse_buttonstate |= 1<<b;
 			break;
@@ -862,6 +866,10 @@ void HandleEvents(void)
 				b = 2;
 			else if (event.xbutton.button == 3)
 				b = 1;
+			else if (event.xbutton.button == 4)
+				in_state->Key_Event_fp (K_MWHEELUP, 0);
+			else if (event.xbutton.button == 5)
+				in_state->Key_Event_fp (K_MWHEELDOWN, 0);
 			if (b>=0)
 				mouse_buttonstate &= ~(1<<b);
 			break;
