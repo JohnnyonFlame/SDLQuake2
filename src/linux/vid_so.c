@@ -69,6 +69,10 @@ void (*RW_IN_Frame_fp)(void);
 
 void Real_IN_Init (void);
 
+/** CLIPBOARD *************************************************************/
+
+char *(*RW_Sys_GetClipboardData_fp)(void);
+
 /*
 ==========================================================================
 
@@ -185,7 +189,8 @@ void VID_FreeReflib (void)
 	RW_IN_Commands_fp = NULL;
 	RW_IN_Move_fp = NULL;
 	RW_IN_Frame_fp = NULL;
-
+	RW_Sys_GetClipboardData_fp = NULL;
+	
 	memset (&re, 0, sizeof(re));
 	reflib_library = NULL;
 	reflib_active  = false;
@@ -258,7 +263,7 @@ qboolean VID_LoadRefresh( char *name )
 		return false;
 	}
 
-  Com_Printf( "LoadLibrary(\"%s\")\n", fn );
+	Com_Printf( "LoadLibrary(\"%s\")\n", fn );
 
 	ri.Cmd_AddCommand = Cmd_AddCommand;
 	ri.Cmd_RemoveCommand = Cmd_RemoveCommand;
@@ -302,6 +307,9 @@ qboolean VID_LoadRefresh( char *name )
 		(RW_IN_Frame_fp = dlsym(reflib_library, "RW_IN_Frame")) == NULL)
 		Sys_Error("No RW_IN functions in REF.\n");
 
+	/* this one is optional */
+	RW_Sys_GetClipboardData_fp = dlsym(reflib_library, "RW_Sys_GetClipboardData");
+	
 	Real_IN_Init();
 
 	if ( re.Init( 0, 0 ) == -1 )
@@ -513,3 +521,10 @@ void Do_Key_Event(int key, qboolean down)
 	Key_Event(key, down, Sys_Milliseconds());
 }
 
+char *Sys_GetClipboardData(void)
+{
+	if (RW_Sys_GetClipboardData_fp)
+		return RW_Sys_GetClipboardData_fp();
+	else
+		return NULL;
+}

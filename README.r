@@ -119,6 +119,9 @@ gl_driver). e.g.
 If quake2 crashes when trying to load an OpenGL based driver (glx, sdlgl),
 make sure its not loading the wrong libGL.
 
+Have a NVIDIA card and it _still_ crashes? Try 
+export LD_PRELOAD=/usr/lib/libGL.so, and run quake2 again.
+
 Is lighting slow in OpenGL (while firing, explosions, etc.)? Disable
 multitexturing (gl_ext_multitexture 0; vid_restart).
 
@@ -152,6 +155,9 @@ Joystick support.
 Fullscreen/DGA support in X11 driver.
 Fully switch to glext.h.
 Suggestions, anyone?
+
+v0.0.9: [XX/XX/XX] CVS
+-------
 
 v0.0.8: [01/04/02]
 -------
