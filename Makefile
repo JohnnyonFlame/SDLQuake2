@@ -56,11 +56,13 @@ endif
 # this nice line comes from the linux kernel makefile
 ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc/ -e s/sparc64/sparc/ -e s/arm.*/arm/ -e s/sa110/arm/ -e s/alpha/axp/)
 
+ifneq ($(ARCH),x86_64)
 ifneq ($(ARCH),i386)
 ifneq ($(ARCH),axp)
 ifneq ($(ARCH),ppc)
 ifneq ($(ARCH),sparc)
 $(error arch $(ARCH) is currently not supported)
+endif
 endif
 endif
 endif
@@ -90,6 +92,11 @@ RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops -falign-loops=2 \
 #RELEASE_CFLAGS=$(BASE_CFLAGS) -O6 -m486 -ffast-math -funroll-loops \
 #	-fomit-frame-pointer -fexpensive-optimizations -malign-loops=2 \
 #	-malign-jumps=2 -malign-functions=2
+endif
+
+ifeq ($(ARCH),i386)
+RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops \
+	-fomit-frame-pointer -fexpensive-optimizations
 endif
 
 VERSION=3.21+rCVS
@@ -318,6 +325,32 @@ ifeq ($(ARCH),sparc)
   $(warning Warning: SDLGL support not supported for $(ARCH))
  endif
 endif # ARCH sparc
+
+ifeq ($(ARCH),i386)
+ ifeq ($(strip $(BUILD_SDLQUAKE2)),YES)
+  TARGETS += $(BUILDDIR)/sdlquake2
+ endif
+
+ ifeq ($(strip $(BUILD_SVGA)),YES)
+  $(warning Warning: SVGA not supported for $(ARCH))
+ endif
+
+ ifeq ($(strip $(BUILD_SOFTX)),YES)
+  $(warning Warning: Software X Renderer not supported for $(ARCH))
+ endif
+
+ ifeq ($(strip $(BUILD_GLX)),YES)
+  TARGETS += $(BUILDDIR)/ref_glx.$(SHLIBEXT)
+ endif
+
+ ifeq ($(strip $(BUILD_FXGL)),YES)
+  $(warning Warning: FXGL not currently supported for $(ARCH))
+ endif
+
+ ifeq ($(strip $(BUILD_SDLGL)),YES)
+  TARGETS += $(BUILDDIR)/ref_sdlgl.$(SHLIBEXT)
+ endif
+endif # ARCH x86_64
 
 ifeq ($(ARCH),i386)
  ifeq ($(strip $(BUILD_SDLQUAKE2)),YES)
