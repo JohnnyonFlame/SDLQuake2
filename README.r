@@ -37,6 +37,10 @@ BUILD_SDL               Build ref_softsdl.so, a quake2 video driver that
 BUILD_SDLGL             Build ref_sdlgl.so, a quake2 video driver that uses
                         OpenGL with SDL (default = YES).
 BUILD_CTFDLL            Build the Threewave CTF gamei386.so (default = NO).
+BUILD_XATRIX            Build the Xatrix gamei386.so for the "The Reckoning"
+                        Mission Pack (default = NO). [see notes below]
+BUILD_ROGUE             Build the Rogue gamei386.so for the "Ground Zero"
+                        Mission Pack (default = NO). [see notes below]
 
 
 To install the Quake2 gamedata:
@@ -44,9 +48,9 @@ To install the Quake2 gamedata:
 (installdir is wherever you want to install quake2, and cdromdir is wherever
 you mount the Quake 2 CD-ROM)
 1. copy <cdromdir>/Install/Data/baseq2/pak0.pak to <installdir>/baseq2/
-2. copy <cdromdir>/Install/Data/baseq2/videos/ to <installdir>/baseq2/
+2. copy <cdromdir>/Install/Data/baseq2/video/ to <installdir>/baseq2/
    (optional)
-3. Download q2-3.20-x86-full.exe from
+3. download q2-3.20-x86-full.exe from
    ftp://ftp.idsoftware.com/idstuff/quake2/ or a mirror site, and extract the 
    contents to a temporary directory (use unzip -L, as this is a standard zip
    file).
@@ -60,11 +64,45 @@ you mount the Quake 2 CD-ROM)
 To install this program:
 ------------------------
 (builddir is either debugi386 or releasei386)
+0. edit Makefile if needed, then 'make'
 1. copy <builddir>/gamei386.so to <installdir>/baseq2/
 2. copy <builddir>/ref_*.so to <installdir>
 3. copy <builddir>/quake2 to <installdir>
 4. copy <builddir>/sdlquake2 to <installdir> (optional)
+5. copy <builddir>/ctf/gamei386.so to <installdir>/ctf/ (optional)
 
+To install the "The Reckoning" Mission Pack (Xatrix):
+-----------------------------------------------------
+(cdromdir is wherever you mount The Reckoning CD-ROM)
+1. enable BUILD_XATRIX in Makefile
+2. download xatrixsrc320.shar.Z from
+   ftp://ftp.idsoftware.com/idstuff/quake2/source/ or a mirror site, extract
+   it (it's a compressed shell script) and place the contents in 
+   <quake2-rX.X.X>/src/xatrix/
+3. make
+4. copy <builddir>/xatrix/gamei386.so to <installdir>/xatrix/
+5. copy <cdromdir>/Data/all/pak0.pak to <installdir>/xatrix/
+6. copy <cdromdir>/Data/max/xatrix/video/ to <installdir>/xatrix/ (optional)
+7. when starting quake2, use "+set game xatrix" on the command line
+
+To install the "Ground Zero" Mission Pack (Rogue):
+--------------------------------------------------
+(cdromdir is wherever you mount the Ground Zero CD-ROM)
+1. enable BUILD_ROGUE in Makefile
+2. download roguesrc320.shar.Z from
+   ftp://ftp.idsoftware.com/idstuff/quake2/source or a mirror site, extract
+   it (it's a compressed shell script) and place the contents in
+   <quake2-rX.X.X>/src/rogue/
+3. make
+4. if the compilation fails, change line 31 of src/rogue/g_local.h from:
+#define _isnan(a) ((a)==NAN)
+   to:
+#define _isnan(a) isnan(a)
+   and try again.
+5. copy <builddir>/rogue/gamei386.so to <installdir>/rogue/
+6. copy <cdromdir>/Data/all/pak0.pak to <installdir>/rogue/
+7. copy <cdromdir>/Data/max/Rogue/video/ to <installdir>/rogue/ (optional)
+8. when starting quake2, use "+set game rogue" on the command line
 
 To run:
 -------
@@ -72,7 +110,9 @@ cd <installdir> && ./quake2
 Or:
 quake2 +set basedir <installdir>
 
-/etc/quake2.conf is no longer needed; instead, the ref_*.so files are loaded
+Add +set game <moddir> to load a mod (like the mission packs).
+
+/etc/quake2.conf is no longer used; instead, the ref_*.so files are loaded
 from basedir (basedir is "." by default, and can only be set at the command
 line).
 
@@ -84,6 +124,14 @@ so is at your own risk.
 
 NOTE: Save games will not work across different versions or builds, because
 of the way they are stored.
+
+
+Binary-Only Mods:
+-----------------
+Chances are that they will not work.  I suspect that it has something to do
+with the mods being built with older versions of gcc/glibc2.  EraserBot, for
+example, has source available except for one file, p_trail.o.  Trying to
+use an EraserBot gamei386.so results in a crash somewhere inside p_trail.o.
 
 Dedicated Server:
 -----------------
@@ -110,11 +158,14 @@ snd_restart             // restart sound driver
 basedir <dir>           // point quake2 to where the data is
 gl_driver <libGL.so>    // point quake2 to your libGL
 dedicated 1             // run quake2 as a dedicated server
+game <subdir>           // load the quake2 mod in that directory
 
 When using these commands on the quake2 command line, use +set to cause the
 variables be set before the config files are loaded (important for
 gl_driver). e.g.
 ./quake2 +set vid_ref glx +set gl_driver /usr/lib/libGL.so.1
+Note that variables like basedir and game _require_ using +set to ensure
+the desired functionality.
 
 If quake2 crashes when trying to load an OpenGL based driver (glx, sdlgl),
 make sure its not loading the wrong libGL.
@@ -125,6 +176,19 @@ export LD_PRELOAD=/usr/lib/libGL.so, and run quake2 again.
 Is lighting slow in OpenGL (while firing, explosions, etc.)? Disable
 multitexturing (gl_ext_multitexture 0; vid_restart).
 
+
+FAQ:
+----
+Q: Quake2 crashes when starting a new game.
+A: It's most likely that the gamei386.so was not installed correctly.
+   Do not use the version that comes with the 3.20 release!  See the
+   installation instructions above.
+
+Q: Quake2 doesn't want to load mods correctly with +game.
+A: Use +set game.
+
+Q: ErasorBot doesn't work.
+A: Not all the source was released for ErasorBot.  See explanation above.
 
 Website:
 --------
@@ -150,7 +214,7 @@ TODO:
 -----
 Try out RCG's key idea.
 Fix save games.
-Verify FXGL works.
+Verify that FXGL works.
 Joystick support.
 Fullscreen/DGA support in X11 driver.
 Fully switch to glext.h.

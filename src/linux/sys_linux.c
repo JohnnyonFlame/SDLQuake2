@@ -212,7 +212,8 @@ Loads the game dll
 void *Sys_GetGameAPI (void *parms)
 {
 	void	*(*GetGameAPI) (void *);
-
+	
+	FILE	*fp;
 	char	name[MAX_OSPATH];
 	char	*path;
 	char	*str_p;
@@ -244,22 +245,33 @@ void *Sys_GetGameAPI (void *parms)
 		if (!path)
 			return NULL;		// couldn't find one anywhere
 		snprintf (name, MAX_OSPATH, "%s/%s", path, gamename);
-		game_library = dlopen (name, RTLD_NOW );
+		
+		/* skip it if it just doesn't exist */
+		fp = fopen(name, "rb");
+		if (fp == NULL)
+			continue;
+		fclose(fp);
+		
+		game_library = dlopen (name, RTLD_NOW);
 		if (game_library)
 		{
 			Com_MDPrintf ("LoadLibrary (%s)\n",name);
 			break;
-		} else {
-			Com_MDPrintf ("LoadLibrary (%s)\n", name);
+		} 
+		else 
+		{
+			Com_Printf ("LoadLibrary (%s):", name);
 			
-			str_p = strchr(dlerror(), ':'); // skip the path (already shown)
-			if (str_p != NULL)
-			{
+			path = dlerror();
+			str_p = strchr(path, ':'); // skip the path (already shown)
+			if (str_p == NULL)
+				str_p = path;
+			else
 				str_p++;
 				
-				Com_MDPrintf (" **%s", str_p);
-				Com_MDPrintf("\n");
-			}
+			Com_Printf ("%s\n", str_p);
+			
+			return NULL; 
 		}
 	}
 
@@ -300,6 +312,8 @@ int main (int argc, char **argv)
 	// go back to real user for config loads
 	saved_euid = geteuid();
 	seteuid(getuid());
+	
+	printf ("Quake 2 -- Version %s\n", LINUX_VERSION);
 
 	Qcommon_Init(argc, argv);
 
@@ -307,8 +321,7 @@ int main (int argc, char **argv)
 
 	nostdout = Cvar_Get("nostdout", "0", 0);
 	if (!nostdout->value) {
-		fcntl(0, F_SETFL, fcntl (0, F_GETFL, 0) | FNDELAY);
-//		printf ("Linux Quake -- Version %0.3f\n", LINUX_VERSION);
+		fcntl(0, F_SETFL, fcntl (0, F_GETFL, 0) | FNDELAY);	
 	}
 
 	oldtime = Sys_Milliseconds ();

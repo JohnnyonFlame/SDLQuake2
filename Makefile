@@ -70,7 +70,7 @@ RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops -malign-loops=2 \
 endif
 
 # (hopefully) end of configurable options
-VERSION=3.21
+VERSION=3.21+rCVS
 
 MOUNT_DIR=src
 
@@ -276,7 +276,7 @@ build_debug:
 		$(BUILD_DEBUG_DIR)/ctf \
 		$(BUILD_DEBUG_DIR)/xatrix \
 		$(BUILD_DEBUG_DIR)/rogue
-	$(MAKE) targets BUILDDIR=$(BUILD_DEBUG_DIR) CFLAGS="$(DEBUG_CFLAGS)"
+	$(MAKE) targets BUILDDIR=$(BUILD_DEBUG_DIR) CFLAGS="$(DEBUG_CFLAGS) -DLINUX_VERSION='\"$(VERSION) Debug\"'"
 
 build_release:
 	@-mkdir -p $(BUILD_RELEASE_DIR) \
@@ -287,7 +287,7 @@ build_release:
 		$(BUILD_RELEASE_DIR)/ctf \
 		$(BUILD_RELEASE_DIR)/xatrix \
 		$(BUILD_RELEASE_DIR)/rogue
-	$(MAKE) targets BUILDDIR=$(BUILD_RELEASE_DIR) CFLAGS="$(RELEASE_CFLAGS)"
+	$(MAKE) targets BUILDDIR=$(BUILD_RELEASE_DIR) CFLAGS="$(RELEASE_CFLAGS) -DLINUX_VERSION='\"$(VERSION)\"'"
 
 targets: $(TARGETS)
 
