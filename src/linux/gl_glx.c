@@ -234,10 +234,14 @@ void getMouse(int *x, int *y, int *state) {
   *state = mouse_buttonstate;
 }
 
+void doneMouse() {
+  mx = my = 0;
+}
+
 void RW_IN_PlatformInit()
 {
   
-  in_dgamouse = ri.Cvar_Get ("in_dgamouse", "1", CVAR_ARCHIVE);
+  in_dgamouse = ri.Cvar_Get ("in_dgamouse", "0", CVAR_ARCHIVE);
 }
 
 void RW_IN_Activate(qboolean active)
@@ -422,6 +426,7 @@ static void HandleEvents(void)
     return;
   
   while (XPending(dpy)) {
+    //ri.Con_Printf(PRINT_ALL,"Bar");
     XNextEvent(dpy, &event);
     mx = my = 0;
     switch(event.type) {
@@ -439,12 +444,8 @@ static void HandleEvents(void)
     case MotionNotify:
       if (mouse_active) {
 	if (dgamouse) {
-	  if (abs(event.xmotion.x_root) > 1)
-	    mx += (event.xmotion.x_root )<<4;
-	  if (abs(event.xmotion.y_root) > 1)
-	    my += (event.xmotion.y_root )<<2;
-	  //mwx = event.xmotion.x;
-	  //mwy = event.xmotion.y;
+	  mx += (event.xmotion.x + win_x) * 2;
+	  my += (event.xmotion.y + win_y) * 2;
 	}
 	else 
 	  {

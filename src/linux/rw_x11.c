@@ -606,6 +606,10 @@ void getMouse(int *x, int *y, int *state) {
   *state = mouse_buttonstate;
 }
 
+void doneMouse() {
+  mx = my = 0;
+}
+
 void RW_IN_Activate(qboolean active)
 {
   if (active)
@@ -956,9 +960,8 @@ void HandleEvents(void)
   int mwy = vid.height/2;
   
   in_state_t *in_state = getState();
-
+  
   while (XPending(dpy)) {
-    
     XNextEvent(dpy, &event);
     
     switch(event.type) {
@@ -979,16 +982,15 @@ void HandleEvents(void)
 	ignorefirst = false;
 	break;
       }
-      
       if (mouse_active) {
 	if (dgamouse) {
-	  mx = (event.xmotion.x - win_x)*2;
-	  my = (event.xmotion.y - win_y)*2;
+	  mx += (event.xmotion.x + win_x)*2;
+	  my += (event.xmotion.y + win_y)*2;
 	} 
 	else 
 	  {
-	    mx += ((int)event.xmotion.x - mwx);
-	    my += ((int)event.xmotion.y - mwy);
+	    mx += ((int)event.xmotion.x - mwx)*2;
+	    my += ((int)event.xmotion.y - mwy)*2;
 	    mwx = event.xmotion.x;
 	    mwy = event.xmotion.y;
 	    
