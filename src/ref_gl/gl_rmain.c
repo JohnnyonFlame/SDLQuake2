@@ -1592,9 +1592,9 @@ void R_SetPalette ( const unsigned char *palette)
 	{
 		for ( i = 0; i < 256; i++ )
 		{
-			rp[i*4+0] = d_8to24table[i] & 0xff;
-			rp[i*4+1] = ( d_8to24table[i] >> 8 ) & 0xff;
-			rp[i*4+2] = ( d_8to24table[i] >> 16 ) & 0xff;
+			rp[i*4+0] = LittleLong(d_8to24table[i]) & 0xff;
+			rp[i*4+1] = ( LittleLong(d_8to24table[i]) >> 8 ) & 0xff;
+			rp[i*4+2] = ( LittleLong(d_8to24table[i]) >> 16 ) & 0xff;
 			rp[i*4+3] = 0xff;
 		}
 	}
@@ -1649,9 +1649,9 @@ void R_DrawBeam( entity_t *e )
 	qglEnable( GL_BLEND );
 	qglDepthMask( GL_FALSE );
 
-	r = ( d_8to24table[e->skinnum & 0xFF] ) & 0xFF;
-	g = ( d_8to24table[e->skinnum & 0xFF] >> 8 ) & 0xFF;
-	b = ( d_8to24table[e->skinnum & 0xFF] >> 16 ) & 0xFF;
+	r = ( LittleLong(d_8to24table[e->skinnum & 0xFF]) ) & 0xFF;
+	g = ( LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 8 ) & 0xFF;
+	b = ( LittleLong(d_8to24table[e->skinnum & 0xFF]) >> 16 ) & 0xFF;
 
 	r *= 1/255.0F;
 	g *= 1/255.0F;
