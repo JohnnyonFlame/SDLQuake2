@@ -57,6 +57,7 @@ cvar_t	*sv_rollangle;
 cvar_t	*gun_x;
 cvar_t	*gun_y;
 cvar_t	*gun_z;
+cvar_t  *oldsave;
 
 cvar_t	*run_pitch;
 cvar_t	*run_roll;

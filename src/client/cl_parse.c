@@ -396,6 +396,9 @@ void CL_LoadClientinfo (clientinfo_t *ci, char *s)
 
 	strncpy(ci->cinfo, s, sizeof(ci->cinfo));
 	ci->cinfo[sizeof(ci->cinfo)-1] = 0;
+	
+	// sku avoid buffer overflow
+	s = ci->cinfo;
 
 	// isolate the player's name
 	strncpy(ci->name, s, sizeof(ci->name));
@@ -528,6 +531,7 @@ void CL_ParseConfigString (void)
 	int		i;
 	char	*s;
 	char	olds[MAX_QPATH];
+	int     length;
 
 	i = MSG_ReadShort (&net_message);
 	if (i < 0 || i >= MAX_CONFIGSTRINGS)
@@ -536,6 +540,13 @@ void CL_ParseConfigString (void)
 
 	strncpy (olds, cl.configstrings[i], sizeof(olds));
 	olds[sizeof(olds) - 1] = 0;
+
+	// sku - avoid potentional buffer overflow vulnerability
+	length = strlen( s );
+	if(length>sizeof(cl.configstrings)-sizeof(cl.configstrings[0])*i-1) {
+	  Com_Error( ERR_DROP, "CL_ParseConfigString: oversize configstring" );
+	}
+
 
 	strcpy (cl.configstrings[i], s);
 

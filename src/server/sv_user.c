@@ -143,16 +143,31 @@ void SV_Configstrings_f (void)
 	
 	start = atoi(Cmd_Argv(2));
 
+	if (start < 0) {
+	  start = 0;
+	}
+
 	// write a packet full of data
 
 	while ( sv_client->netchan.message.cursize < MAX_MSGLEN/2 
 		&& start < MAX_CONFIGSTRINGS)
 	{
 		if (sv.configstrings[start][0])
-		{
-			MSG_WriteByte (&sv_client->netchan.message, svc_configstring);
-			MSG_WriteShort (&sv_client->netchan.message, start);
-			MSG_WriteString (&sv_client->netchan.message, sv.configstrings[start]);
+		  {
+		    int length;
+		    
+		    // sku - write configstrings that exceed MAX_QPATH 
+		    // in proper-sized chunks
+		    length = strlen( sv.configstrings[start] );
+		    if( length > MAX_QPATH ) {
+		      length = MAX_QPATH;
+		    }
+		    
+		    MSG_WriteByte (&sv_client->netchan.message, svc_configstring);
+		    MSG_WriteShort (&sv_client->netchan.message, start);
+		    MSG_WriteString (&sv_client->netchan.message, sv.configstrings[start]);
+		    SZ_Write (&sv_client->netchan.message, sv.configstrings[start], length);
+		    MSG_WriteByte (&sv_client->netchan.message, 0);
 		}
 		start++;
 	}
@@ -199,6 +214,9 @@ void SV_Baselines_f (void)
 	}
 	
 	start = atoi(Cmd_Argv(2));
+
+	if (start < 0)
+	  start = 0;
 
 	memset (&nullstate, 0, sizeof(nullstate));
 
