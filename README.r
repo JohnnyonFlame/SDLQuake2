@@ -96,7 +96,7 @@ make sure its not loading the wrong libGL.
 
 Website:
 --------
-I'll post any updates I make at http://www.icculus.org/quake/ 
+I'll post any updates I make at http://www.icculus.org/quake2/ 
 (which currently redirects to http://www.icculus.org/~relnev/)
 
 Mailing List:
