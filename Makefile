@@ -26,7 +26,7 @@ BUILD_JOYSTICK=YES	# build in joystick support
 BUILD_ARTS=NO		# build in support for libaRts sound.
 BUILD_DEDICATED=NO	# build a dedicated quake2 server
 BUILD_AA=YES		# build the ascii soft renderer.
-BUILD_QMAX=YES		# build the fancier GL graphics
+BUILD_QMAX=NO		# build the fancier GL graphics
 
 STATICSDL=NO
 SDLDIR=/usr/local/lib
