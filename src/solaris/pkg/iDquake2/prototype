@@ -9,6 +9,8 @@ i preremove
 d none quake2 0755
 d none quake2/baseq2 0755
 f none quake2/baseq2/gamesparc.so=/tmp/quake2-build/quake2-iDquake2-release/baseq2/gamesparc.so 0755
+f none quake2/README=/tmp/quake2-build/quake2-iDquake2-release/README 0644
+f none quake2/README.Solaris=/tmp/quake2-build/quake2-iDquake2-release/README.Solaris 0644
 d none quake2/ctf 0755
 f none quake2/ctf/gamesparc.so=/tmp/quake2-build/quake2-iDquake2-release/ctf/gamesparc.so 0755
 f none quake2/quake2=/tmp/quake2-build/quake2-iDquake2-release/quake2 0755

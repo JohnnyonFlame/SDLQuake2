@@ -930,7 +930,7 @@ void CL_ParseTEnt (void)
 		ex = CL_AllocExplosion ();
 		VectorCopy (pos, ex->ent.origin);
 		ex->type = ex_poly;
-		ex->ent.flags = RF_FULLBRIGHT;
+		ex->ent.flags = RF_FULLBRIGHT|RF_NOSHADOW;
 		ex->start = cl.frame.servertime - 100;
 		ex->light = 350;
 		ex->lightcolor[0] = 1.0;
@@ -958,7 +958,7 @@ void CL_ParseTEnt (void)
 		ex = CL_AllocExplosion ();
 		VectorCopy (pos, ex->ent.origin);
 		ex->type = ex_poly;
-		ex->ent.flags = RF_FULLBRIGHT;
+		ex->ent.flags = RF_FULLBRIGHT|RF_NOSHADOW;
 		ex->start = cl.frame.servertime - 100;
 		ex->light = 350;
 		ex->lightcolor[0] = 1.0; 
@@ -1015,7 +1015,7 @@ void CL_ParseTEnt (void)
 		ex = CL_AllocExplosion ();
 		VectorCopy (pos, ex->ent.origin);
 		ex->type = ex_poly;
-		ex->ent.flags = RF_FULLBRIGHT;
+		ex->ent.flags = RF_FULLBRIGHT|RF_NOSHADOW;
 		ex->start = cl.frame.servertime - 100;
 		ex->light = 350;
 		ex->lightcolor[0] = 1.0;
@@ -1043,7 +1043,7 @@ void CL_ParseTEnt (void)
 		ex = CL_AllocExplosion ();
 		VectorCopy (pos, ex->ent.origin);
 		ex->type = ex_poly;
-		ex->ent.flags = RF_FULLBRIGHT;
+		ex->ent.flags = RF_FULLBRIGHT|RF_NOSHADOW;
 		ex->start = cl.frame.servertime - 100;
 		ex->light = 350;
 		ex->lightcolor[0] = 0.0;
@@ -1197,7 +1197,7 @@ void CL_ParseTEnt (void)
 		ex = CL_AllocExplosion ();
 		VectorCopy (pos, ex->ent.origin);
 		ex->type = ex_poly;
-		ex->ent.flags = RF_FULLBRIGHT;
+		ex->ent.flags = RF_FULLBRIGHT|RF_NOSHADOW;
 		ex->start = cl.frame.servertime - 100;
 		ex->light = 350;
 		ex->lightcolor[0] = 1.0;

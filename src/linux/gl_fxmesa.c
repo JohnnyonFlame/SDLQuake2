@@ -54,6 +54,7 @@ glwstate_t glw_state;
 
 static qboolean GLimp_SwitchFullscreen( int width, int height );
 qboolean GLimp_InitGL (void);
+qboolean have_stencil = false;
 
 extern cvar_t *vid_fullscreen;
 extern cvar_t *vid_ref;
