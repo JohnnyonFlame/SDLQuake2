@@ -384,7 +384,7 @@ gotnewcl:
 	// get the game a chance to reject this connection or modify the userinfo
 	if (!(ge->ClientConnect (ent, userinfo)))
 	{
-		if (*Info_ValueForKey (userinfo, "rejmsg")) 
+	  	if (*Info_ValueForKey (userinfo, "rejmsg")) 
 			Netchan_OutOfBandPrint (NS_SERVER, adr, "print\n%s\nConnection refused.\n",  
 				Info_ValueForKey (userinfo, "rejmsg"));
 		else
