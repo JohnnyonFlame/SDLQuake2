@@ -91,6 +91,11 @@ What's still broken:
   It looks like a problem with multi-texturing but there
   is a WORKAROUND: add the following to your quake2 cmd
   line (without quotes): "+set gl_ext_multitexture 0"
+- If you're using OpenGL (GLX) on an hardware accelerated
+  SUN video card, you -MUST- use OpenGL-1.2.3 and patches
+  112628-11 and 112629-11 or later. Otherwise you'll get
+  a flipping ceiling and the background will appear in front
+  of some walls in the "space" level.
 
 Thank you!
 -----------------------------------------------------
