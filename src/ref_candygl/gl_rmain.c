@@ -625,7 +625,8 @@ void GL_DrawParticles( int num_particles, qboolean inWater )
 	qglShadeModel (GL_SMOOTH);
 
 
-	for ( i=0 ; i < num_particles ; i++)
+	
+	  for ( i=0 ; i < num_particles ; i++)
 	{
 		if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
 		{
@@ -822,10 +823,15 @@ void GL_DrawParticles( int num_particles, qboolean inWater )
 			factor = 1;
 			halflen = len/2.0;
 
+			
 			thisvec[0]= (thisvec[0]*2 + crandom()*5)/2;
 			thisvec[1]= (thisvec[1]*2 + crandom()*5)/2;
 			thisvec[2]= (thisvec[2]*2 + crandom()*5)/2;
-
+			/*
+			  thisvec[0]= (thisvec[0]*2 + 5)/2;
+			  thisvec[1]= (thisvec[1]*2 + 5)/2;
+			  thisvec[2]= (thisvec[2]*2 + 5)/2;
+			*/
 			while (len>dec)
 			{	i+=warpsize;
 
@@ -867,9 +873,17 @@ void GL_DrawParticles( int num_particles, qboolean inWater )
 				VectorCopy(thisvec, lastvec);
 				VectorAdd(tempvec, move, tempvec);
 				VectorAdd(lastvec, move, thisvec);
-				thisvec[0]= ((thisvec[0] + (crandom()*size)) + tempvec[0]*factor)/(factor+1);
-				thisvec[1]= ((thisvec[1] + (crandom()*size)) + tempvec[1]*factor)/(factor+1);
-				thisvec[2]= ((thisvec[2] + (crandom()*size)) + tempvec[2]*factor)/(factor+1);
+				
+				
+				/*
+				  thisvec[0]= ((thisvec[0] + (crandom()*size)) + tempvec[0]*factor)/(factor+1);
+				  thisvec[1]= ((thisvec[1] + (crandom()*size)) + tempvec[1]*factor)/(factor+1);
+				  thisvec[2]= ((thisvec[2] + (crandom()*size)) + tempvec[2]*factor)/(factor+1);
+				*/
+				thisvec[0]= ((thisvec[0] + (size)) + tempvec[0]*factor)/(factor+1);
+				thisvec[1]= ((thisvec[1] + (size)) + tempvec[1]*factor)/(factor+1);
+				thisvec[2]= ((thisvec[2] + (size)) + tempvec[2]*factor)/(factor+1);
+				
 			}
 
 			i+=warpsize;

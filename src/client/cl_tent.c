@@ -774,7 +774,7 @@ void CL_ParseTEnt (void)
 
 		if (type == TE_BULLET_SPARKS)
 		{
-			VectorScale(dir, 1.1, dir);
+		  VectorScale(dir, 1.1, dir);
 		}
 #else
 		if (type == TE_GUNSHOT)
