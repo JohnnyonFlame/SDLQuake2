@@ -22,9 +22,10 @@ BUILD_SDLGL=YES		# SDL OpenGL driver. Works fine for some people.
 BUILD_CTFDLL=YES	# game$(ARCH).so for ctf
 BUILD_XATRIX=NO		# game$(ARCH).so for xatrix (see README.r for details)
 BUILD_ROGUE=NO		# game$(ARCH).so for rogue (see README.r for details)
-BUILD_JOYSTICK=YES
-BUILD_ARTS=NO
-BUILD_DEDICATED=NO
+BUILD_JOYSTICK=YES	# build in joystick support
+BUILD_ARTS=NO		# build in support for libaRts sound.
+BUILD_DEDICATED=NO	# build a dedicated quake2 server
+BUILD_AA=YES		# build the ascii soft renderer.
 
 # Other compile-time options:
 # Compile with IPv6 (protocol independent API). Tested on FreeBSD
@@ -111,10 +112,10 @@ else
 NET_UDP=net_udp
 endif
 
-ifeq ($(BUILD_JOYSTICK),YES)
+ifeq ($(strip $(BUILD_JOYSTICK)),YES)
 BASE_CFLAGS+=-DJoystick
 endif
-ifeq ($(BUILD_ARTS),YES)
+ifeq ($(strip $(BUILD_ARTS)),YES)
 BASE_CFLAGS+=$(shell artsc-config --cflags)
 endif
 
@@ -139,6 +140,7 @@ SVGALDFLAGS=-lvga
 
 XCFLAGS=-I/usr/X11R6/include
 XLDFLAGS=-L/usr/X11R6/lib -lX11 -lXext -lXxf86dga -lXxf86vm
+AALDFLAGS=-lm -laa
 
 SDLCFLAGS=$(shell sdl-config --cflags)
 SDLLDFLAGS=$(shell sdl-config --libs)
@@ -310,6 +312,10 @@ ifeq ($(ARCH),i386)
   TARGETS += $(BUILDDIR)/ref_sdlgl.$(SHLIBEXT)
  endif
 endif # ARCH i386
+
+ifeq ($(strip $(BUILD_AA)),YES)
+	TARGETS += $(BUILDDIR)/ref_softaa.$(SHLIBEXT)
+endif
 
 all: build_debug build_release
 
@@ -1519,6 +1525,10 @@ REF_SOFT_X11_OBJS = \
 REF_SOFT_SDL_OBJS = \
 	$(BUILDDIR)/ref_soft/rw_sdl.o
 
+REF_SOFT_AA_OBJS = \
+	$(BUILDDIR)/ref_soft/rw_aa.o \
+	$(BUILDDIR)/ref_soft/rw_in_aa.o
+
 $(BUILDDIR)/ref_soft.$(SHLIBEXT) : $(REF_SOFT_OBJS) $(REF_SOFT_SVGA_OBJS)
 	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(REF_SOFT_OBJS) \
 		$(REF_SOFT_SVGA_OBJS) $(SVGALDFLAGS)
@@ -1530,6 +1540,10 @@ $(BUILDDIR)/ref_softx.$(SHLIBEXT) : $(REF_SOFT_OBJS) $(REF_SOFT_X11_OBJS)
 $(BUILDDIR)/ref_softsdl.$(SHLIBEXT) : $(REF_SOFT_OBJS) $(REF_SOFT_SDL_OBJS)
 	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(REF_SOFT_OBJS) \
 		$(REF_SOFT_SDL_OBJS) $(SDLLDFLAGS)
+
+$(BUILDDIR)/ref_softaa.$(SHLIBEXT) : $(REF_SOFT_OBJS) $(REF_SOFT_AA_OBJS)
+	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(REF_SOFT_OBJS) \
+		$(REF_SOFT_AA_OBJS) $(AALDFLAGS)
 
 $(BUILDDIR)/ref_soft/r_aclip.o :      $(REF_SOFT_DIR)/r_aclip.c
 	$(DO_SHLIB_CC)
@@ -1638,6 +1652,12 @@ $(BUILDDIR)/ref_soft/rw_x11.o :       $(LINUX_DIR)/rw_x11.c
 
 $(BUILDDIR)/ref_soft/rw_sdl.o :       $(LINUX_DIR)/rw_sdl.c
 	$(DO_SHLIB_CC) $(SDLCFLAGS)
+
+$(BUILDDIR)/ref_soft/rw_aa.o :       $(LINUX_DIR)/rw_aa.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/ref_soft/rw_in_aa.o : $(LINUX_DIR)/rw_in_aa.c
+	$(DO_SHLIB_CC)
 
 #############################################################################
 # REF_GL
