@@ -1,5 +1,5 @@
         Minor OS-oriented changes to id Software's Quake2 3.21: 
-                        "It works for me, v0.9"
+                        "It works for me and a few others, v0.10"
 
 (NOTE: throughout this document, references to i386 [debugi386, releasei386,
  gamei386.so] are used.  If your architecture is not i386, just substitute
@@ -295,8 +295,9 @@ Florent Parent
 Zachary 'zakk' Slater
 Matti Valtonen
 
-v 0.10: [??/??/??]
+v 0.10: [4/01/02] (no fooling...)
 -----
++ Extensive improvments to Solaris support (thanks to Vincent Cojot!)
 + Joystick support
 + Fixed R_CON_PASSWORD server security hole.
 
