@@ -395,21 +395,7 @@ void GetEvent(SDL_Event *event)
 			keyq[keyq_head].key = K_MWHEELDOWN;
 			keyq[keyq_head].down = false;
 			keyq_head = (keyq_head + 1) & 63;
-		} else if (event->button.button == 6) {
-			keyq[keyq_head].key = K_MOUSE4;
-			keyq[keyq_head].down = true;
-			keyq_head = (keyq_head + 1) & 63;
-			keyq[keyq_head].key = K_MOUSE4;
-			keyq[keyq_head].down = false;
-			keyq_head = (keyq_head + 1) & 63;
-		} else if (event->button.button == 7) {
-			keyq[keyq_head].key = K_MOUSE5;
-			keyq[keyq_head].down = true;
-			keyq_head = (keyq_head + 1) & 63;
-			keyq[keyq_head].key = K_MOUSE5;
-			keyq[keyq_head].down = false;
-			keyq_head = (keyq_head + 1) & 63;
-		}
+		} 
 		break;
 	case SDL_MOUSEBUTTONUP:
 		break;

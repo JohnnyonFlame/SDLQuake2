@@ -611,8 +611,13 @@ void NET_SendPacket (netsrc_t sock, int length, void *data, netadr_t to)
                                  * passed a multicast address of the
                                  * form
                                  * ff0x::xxx%multicast_interface */
+#ifdef HAVE_SIN6_LEN
                                 error = getnameinfo ((struct sockaddr *) s6, s6->sin6_len, tmp, sizeof (tmp),
                                                      NULL, 0, NI_NUMERICHOST);
+#else
+                                error = getnameinfo ((struct sockaddr *) s6, sizeof(struct sockaddr_in6), tmp, sizeof (tmp),
+                                                     NULL, 0, NI_NUMERICHOST);
+#endif                    
                                 if (error) {
                                         Com_Printf("NET_SendPacket: getnameinfo: %s", gai_strerror(error));
                                         return;
@@ -635,8 +640,9 @@ void NET_SendPacket (netsrc_t sock, int length, void *data, netadr_t to)
                                 memcpy(s6, res->ai_addr, res->ai_addrlen);
                                 
                         } else {
-                                Com_Printf("NET_SendPacket: IPv6 multicast destination but +set multicast not specified: %s",
+                                Com_Printf("NET_SendPacket: IPv6 multicast destination but +set multicast not specified: %s\n",
                                            inet_ntop(AF_INET6, &s6->sin6_addr, tmp, sizeof(tmp)));
+                                return;
                         }
                         
                 }
@@ -671,16 +677,14 @@ void NET_OpenIP (void)
 	port = Cvar_Get ("port", va("%i", PORT_SERVER), CVAR_NOSET);
 	ip = Cvar_Get ("ip", "localhost", CVAR_NOSET);
 
-        // FP: need to add support for -inet and -inet6 to specify
-        // IPv4 only or IPv6 only.
-	if (!ip_sockets[NS_SERVER])
-		ip_sockets[NS_SERVER] = NET_Socket (ip->string, port->value, NS_SERVER, AF_INET);
-	if (!ip_sockets[NS_CLIENT])
-		ip_sockets[NS_CLIENT] = NET_Socket (ip->string, PORT_ANY, NS_CLIENT, AF_INET);
 	if (!ip6_sockets[NS_SERVER])
 		ip6_sockets[NS_SERVER] = NET_Socket (ip->string, port->value, NS_SERVER, AF_INET6);
 	if (!ip6_sockets[NS_CLIENT])
 		ip6_sockets[NS_CLIENT] = NET_Socket (ip->string, PORT_ANY, NS_CLIENT, AF_INET6);
+	if (!ip_sockets[NS_SERVER])
+		ip_sockets[NS_SERVER] = NET_Socket (ip->string, port->value, NS_SERVER, AF_INET);
+	if (!ip_sockets[NS_CLIENT])
+		ip_sockets[NS_CLIENT] = NET_Socket (ip->string, PORT_ANY, NS_CLIENT, AF_INET);
 }
 
 /*

@@ -1,5 +1,5 @@
-id Software's Quake2 3.21+Changes by Steven Fuller <relnev@icculus.org>, 
-                                     et al.
+        Minor OS-oriented changes to id Software's Quake2 3.21: 
+                        "It works for me, v1.0"
 
 (NOTE: throughout this document, references to i386 [debugi386, releasei386,
  gamei386.so] are used.  If your architecture is not i386, just substitute
@@ -45,7 +45,7 @@ BUILD_XATRIX            Build the Xatrix gamei386.so for the "The Reckoning"
 BUILD_ROGUE             Build the Rogue gamei386.so for the "Ground Zero"
                         Mission Pack (default = NO). [see notes below]
 HAVE_IPV6		Build quake2 with IPv6 support (currently only
-                        tested on FreeBSD) (default = NO).
+                        tested on FreeBSD, see below for info) (default = NO).
 
 To install the Quake2 gamedata:
 -------------------------------
@@ -145,9 +145,38 @@ Dedicated Server:
 If there is a demand for it, I can add support for an explicit q2ded binary.
 Else, using +set dedicated 1 should be fine.
 
+IPv6 Support:
+-------------
+Currently experimental, so it may or may not work.  Here is some information
+about it from Florent Parent:
+
+quake2 +set dedicated 1
+        Runs server listening on both IPv4 and IPv6 sockets
+
+quake2 +set dedicated 1 +set multicast <interface>
+        IPv6 server joins quake2 multicast group ff12::666
+
+quake2 +set dedicated 1 +set ip <IPv6 address> +set multicast <interface>
+        IPv6 server only. Listens on <IPv6 address>
+        Examples of <IPv6 address>:
+        3ffe:b00:c18::666              (global IPv6 address)
+        fe80::202:b3ff:fe04:1234%fxp0  (link-local address. scope required)
+        ::                             (unspecified, binds on all IPv6 
+                                        addresses)
+quake2 +set dedicated 1 +set ip <IPv4 address>
+        IPv4 server only. Listens on <IPv4 address>
+        0.0.0.0 can be used to bind on all IPv4 addresses
+
 Joystick Support:
 -----------------
 None yet.
+
+Windows Support:
+----------------
+In order to compile the source:
+
+If you don't already have it, you'll need to download:
+http://oss.sgi.com/projects/ogl-sample/ABI/glext.h
 
 Commonly used commands:
 -----------------------
@@ -210,10 +239,9 @@ A: Not all the source was released for ErasorBot.  See explanation above.
 Website:
 --------
 I'll post any updates I make at http://www.icculus.org/quake2/ 
-(which currently redirects to http://www.icculus.org/~relnev/)
 
-Mailing List:
--------------
+Mailing List and Contact:
+-------------------------
 to subscribe: send a blank email to quake2-subscribe@icculus.org
 to post: send email to quake2@icculus.org
 
@@ -237,6 +265,25 @@ Have menu only list ref libs that are available.
 Have menu only list window sizes that are available.
 Make a list of tested mods.
 Make Q2 as Arch/OS independent as possible.
+
+Many Thanks to all these people:
+--------------------------------
+John Allensworth
+Stephen Anthony
+William Aoki
+Robert Bäuml
+Vincent Cojot
+Michel Dänzer
+Ryan C. Gordon
+Angelo Grossini
+Nicolai Haehnle
+Thijmen Klok
+Hampton Maxwell
+Ludwig Nussel
+Peter van Paassen
+Florent Parent
+Zachary 'zakk' Slater
+Matti Valtonen
 
 v0.0.9: [XX/XX/XX] CVS
 -------
@@ -292,21 +339,3 @@ v0.0.1: [12/22/01]
 + Updates to Linux Makefile (it was missing a few files).
 + Added ref_softsdl.so (Software SDL Renderer).
 - OpenGL not yet supported.
-
-Thanks:
--------
-John Allensworth
-Stephen Anthony
-William Aoki
-Robert Bäuml
-Vincent Cojot
-Michel Dänzer
-Ryan C. Gordon
-Angelo Grossini
-Nicolai Haehnle
-Hampton Maxwell
-Ludwig Nussel
-Peter van Paassen
-Florent Parent
-Zachary 'zakk' Slater
-Matti Valtonen
