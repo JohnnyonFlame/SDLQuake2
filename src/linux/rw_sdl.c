@@ -176,8 +176,10 @@ void RW_IN_Shutdown(void)
 		ri.Cmd_RemoveCommand ("force_centerview");
 	}	
 #ifdef Joystick
-	if (joy)
+	if (joy) {
 	  SDL_JoystickClose(joy);
+	  joy = NULL;
+	}
 #endif
 }
 
@@ -589,7 +591,7 @@ void InitJoystick() {
 	ri.Con_Printf(PRINT_ALL, "Trying joystick [%s]\n", 
 		      SDL_JoystickName(i));
 	if (!SDL_JoystickOpened(i)) {
-	  joy = SDL_JoystickOpen(0);
+	  joy = SDL_JoystickOpen(i);
 	  if (joy) {
 	    ri.Con_Printf(PRINT_ALL, "Joytick activated.\n");
 	    joystick_avail = true;
