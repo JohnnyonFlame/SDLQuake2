@@ -94,7 +94,7 @@ RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops -falign-loops=2 \
 #	-malign-jumps=2 -malign-functions=2
 endif
 
-ifeq ($(ARCH),i386)
+ifeq ($(ARCH),x86_64)
 RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
 endif
@@ -326,7 +326,7 @@ ifeq ($(ARCH),sparc)
  endif
 endif # ARCH sparc
 
-ifeq ($(ARCH),i386)
+ifeq ($(ARCH),x86_64)
  ifeq ($(strip $(BUILD_SDLQUAKE2)),YES)
   TARGETS += $(BUILDDIR)/sdlquake2
  endif

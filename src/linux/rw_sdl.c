@@ -160,6 +160,7 @@ static void IN_ActivateMouse( void )
 
 void RW_IN_Activate(qboolean active)
 {
+  mx = my = 0;
 #if 0
   if (active || vidmode_active)
     IN_ActivateMouse();
