@@ -8,5 +8,5 @@ VERSION=
 CATEGORY=application,graphics,opengl
 DESC=ID Software Quake2 3.21+rCVS for Solaris 8 (http://www.icculus.org/quake2)
 VENDOR=http://www.icculus.org/quake2
-EMAIL=coyote@cojot.name
+EMAIL=q2solaris@cojot.name
 PKGSAV=/var/sadm/pkg/iDquake2/save
