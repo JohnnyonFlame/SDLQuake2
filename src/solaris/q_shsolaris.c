@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <unistd.h>
 #include <sys/mman.h>
 #include <sys/time.h>
+#include <ctype.h>
 
 #include "../solaris/glob.h"
 
@@ -130,10 +131,12 @@ void Sys_Mkdir (char *path)
 
 char *strlwr (char *s)
 {
+	char *p = s;
 	while (*s) {
 		*s = tolower(*s);
 		s++;
 	}
+	return p;
 }
 
 //============================================

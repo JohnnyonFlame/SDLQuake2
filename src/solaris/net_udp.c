@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/ioctl.h>
 #include <sys/uio.h>
 #include <errno.h>
+#include <arpa/inet.h>
 #include <sys/filio.h>
 
 #ifdef NeXT
@@ -125,6 +126,7 @@ qboolean	NET_CompareBaseAdr (netadr_t a, netadr_t b)
 			return true;
 		return false;
 	}
+	return false;
 }
 
 char	*NET_AdrToString (netadr_t a)
