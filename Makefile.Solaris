@@ -70,7 +70,7 @@ RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops -malign-loops=2 \
 endif
 
 VERSION=3.21+rCVS
-PKG_VERSION=r0.15.2
+PKG_VERSION=r0.15.4
 
 MOUNT_DIR=src
 
