@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 #include <GL/gl.h>
+#include <GL/glext.h>
 
 #ifdef __linux__
 //#include <GL/fxmesa.h>
@@ -462,6 +463,13 @@ void Fake_glColorTableEXT( GLenum target, GLenum internalformat,
 
 #endif // linux
 
+/* deprecated */
+#define GL_TEXTURE0_SGIS					0x835E
+#define GL_TEXTURE1_SGIS					0x835F
+
+extern int QGL_TEXTURE0, QGL_TEXTURE1; /* ARB/SGIS texture defs */
+
+#if 0 /* these are in glext.h */
 /*
 ** extension constants
 */
@@ -476,11 +484,8 @@ void Fake_glColorTableEXT( GLenum target, GLenum internalformat,
 #define GL_SHARED_TEXTURE_PALETTE_EXT		0x81FB
 #endif
 
-#define GL_TEXTURE0_SGIS					0x835E
-#define GL_TEXTURE1_SGIS					0x835F
 #define GL_TEXTURE0_ARB						0x84C0
 #define GL_TEXTURE1_ARB						0x84C1
-
-extern int GL_TEXTURE0, GL_TEXTURE1;
+#endif
 
 #endif
