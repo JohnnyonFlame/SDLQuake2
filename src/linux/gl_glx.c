@@ -98,6 +98,7 @@ static cvar_t	*r_fakeFullscreen;
 static XF86VidModeModeInfo **vidmodes;
 static int num_vidmodes;
 static qboolean vidmode_active = false;
+static XF86VidModeGamma oldgamma;
 
 static qboolean	mlooking;
 
@@ -738,6 +739,8 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 		return rserr_invalid_mode;
 	}
 
+	gl_state.hwgamma = false;
+
 	if (vidmode_ext) {
 		int best_fit, best_dist, dist, x, y;
 		
@@ -769,6 +772,15 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 				// change to the mode
 				XF86VidModeSwitchToMode(dpy, scrnum, vidmodes[best_fit]);
 				vidmode_active = true;
+
+				if (XF86VidModeGetGamma(dpy, scrnum, &oldgamma)) {
+					gl_state.hwgamma = true;
+					/* We can not reliably detect hardware gamma
+					   changes across software gamma calls, which
+					   can reset the flag, so change it anyway */
+					vid_gamma->modified = true;
+					ri.Con_Printf( PRINT_ALL, "Using hardware gamma\n");
+				}
 
 				// Move the viewport to top left
 				XF86VidModeSetViewPort(dpy, scrnum, 0, 0);
@@ -887,6 +899,12 @@ void GLimp_Shutdown( void )
 			qglXDestroyContext(dpy, ctx);
 		if (win)
 			XDestroyWindow(dpy, win);
+		if (gl_state.hwgamma) {
+			XF86VidModeSetGamma(dpy, scrnum, &oldgamma);
+			/* The gamma has changed, but SetMode will change it
+			   anyway, so why bother?
+			vid_gamma->modified = true; */
+		}
 		if (vidmode_active)
 			XF86VidModeSwitchToMode(dpy, scrnum, vidmodes[0]);
 		XUngrabKeyboard(dpy, CurrentTime);
@@ -950,6 +968,28 @@ void GLimp_EndFrame (void)
 {
 	qglFlush();
 	qglXSwapBuffers(dpy, win);
+}
+
+/*
+** UpdateHardwareGamma
+**
+** We are using gamma relative to the desktop, so that we can share it
+** with software renderer and don't require to change desktop gamma
+** to match hardware gamma image brightness. It seems that Quake 3 is
+** using the opposite approach, but it has no software renderer after
+** all.
+*/
+void UpdateHardwareGamma()
+{
+	XF86VidModeGamma gamma;
+	float g;
+
+	g = (1.3 - vid_gamma->value + 1);
+	g = (g>1 ? g : 1);
+	gamma.red = oldgamma.red * g;
+	gamma.green = oldgamma.green * g;
+	gamma.blue = oldgamma.blue * g;
+	XF86VidModeSetGamma(dpy, scrnum, &gamma);
 }
 
 /*

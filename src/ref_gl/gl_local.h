@@ -426,6 +426,8 @@ typedef struct
 	float camera_separation;
 	qboolean stereo_enabled;
 
+	qboolean hwgamma;
+
 	unsigned char originalRedGammaTable[256];
 	unsigned char originalGreenGammaTable[256];
 	unsigned char originalBlueGammaTable[256];

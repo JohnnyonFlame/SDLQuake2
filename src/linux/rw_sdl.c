@@ -67,6 +67,9 @@ glwstate_t glw_state;
 /* MOUSE                                                                     */
 /*****************************************************************************/
 
+#define MOUSE_MAX 3000
+#define MOUSE_MIN 40
+
 // this is inside the renderer shared lib, so these are called from vid_so
 
 static qboolean        mouse_avail;
@@ -87,6 +90,7 @@ static qboolean	mlooking;
 static in_state_t	*in_state;
 
 static cvar_t *sensitivity;
+static cvar_t *exponential_speedup;
 static cvar_t *my_lookstrafe;
 static cvar_t *m_side;
 static cvar_t *m_yaw;
@@ -143,6 +147,8 @@ void RW_IN_Init(in_state_t *in_state_p)
 	my_lookstrafe = ri.Cvar_Get ("lookstrafe", "0", 0);
 	
 	sensitivity = ri.Cvar_Get ("sensitivity", "3", 0);
+	exponential_speedup = ri.Cvar_Get("exponential_speedup", "0", 
+					  CVAR_ARCHIVE);
 	m_pitch = ri.Cvar_Get ("m_pitch", "0.022", 0);
 	m_yaw = ri.Cvar_Get ("m_yaw", "0.022", 0);
 	m_forward = ri.Cvar_Get ("m_forward", "1", 0);
@@ -248,10 +254,27 @@ void RW_IN_Move (usercmd_t *cmd)
     old_mouse_x = mx;
     old_mouse_y = my;
     
-    if (mouse_x || mouse_y) {    
-      mouse_x *= sensitivity->value;
-      mouse_y *= sensitivity->value;
-      
+    if (mouse_x || mouse_y) {
+      if (!exponential_speedup->value) {
+	mouse_x *= sensitivity->value;
+	mouse_y *= sensitivity->value;
+      }
+      else {
+	if (mouse_x > MOUSE_MIN || mouse_y > MOUSE_MIN || 
+	    mouse_x < -MOUSE_MIN || mouse_y < -MOUSE_MIN) {
+	  mouse_x = (mouse_x*mouse_x*mouse_x)/4;
+	  mouse_y = (mouse_y*mouse_y*mouse_y)/4;
+	  if (mouse_x > MOUSE_MAX)
+	    mouse_x = MOUSE_MAX;
+	  else if (mouse_x < -MOUSE_MAX)
+	    mouse_x = -MOUSE_MAX;
+	  if (mouse_y > MOUSE_MAX)
+	    mouse_y = MOUSE_MAX;
+	  else if (mouse_y < -MOUSE_MAX)
+	    mouse_y = -MOUSE_MAX;
+	}
+      }
+            
       // add mouse X/Y movement to cmd
       if ( (*in_state->in_strafe_state & 1) || 
 	   (my_lookstrafe->value && mlooking ))

@@ -81,6 +81,9 @@ static Atom wmDeleteWindow;
 		    PointerMotionMask | ButtonMotionMask )
 #define X_MASK (KEY_MASK | MOUSE_MASK | VisibilityChangeMask | StructureNotifyMask | ExposureMask )
 
+#define MOUSE_MAX 3000
+#define MOUSE_MIN 40
+
 static int				x_shmeventtype;
 //static XShmSegmentInfo	x_shminfo;
 
@@ -270,8 +273,8 @@ static cvar_t	*m_filter;
 static cvar_t	*in_mouse;
 static cvar_t	*in_dgamouse;
 
-static cvar_t	*vid_xpos;			// X coordinate of window position
-static cvar_t	*vid_ypos;			// Y coordinate of window position
+static cvar_t	*vid_xpos;		     // X coordinate of window position
+static cvar_t	*vid_ypos;		     // Y coordinate of window position
 
 #ifdef Joystick
 static cvar_t   *in_joystick;
@@ -286,6 +289,7 @@ static qboolean	mlooking;
 static in_state_t	*in_state;
 
 static cvar_t *sensitivity;
+static cvar_t *exponential_speedup;
 static cvar_t *lookstrafe;
 static cvar_t *m_side;
 static cvar_t *m_yaw;
@@ -369,6 +373,9 @@ void RW_IN_Init(in_state_t *in_state_p)
 	freelook = ri.Cvar_Get( "freelook", "0", 0 );
 	lookstrafe = ri.Cvar_Get ("lookstrafe", "0", 0);
 	sensitivity = ri.Cvar_Get ("sensitivity", "3", 0);
+	exponential_speedup = ri.Cvar_Get("exponential_speedup", "0", 
+					  CVAR_ARCHIVE);
+
 	m_pitch = ri.Cvar_Get ("m_pitch", "0.022", 0);
 	m_yaw = ri.Cvar_Get ("m_yaw", "0.022", 0);
 	m_forward = ri.Cvar_Get ("m_forward", "1", 0);
@@ -458,9 +465,25 @@ void RW_IN_Move (usercmd_t *cmd)
     old_mouse_x = mx;
     old_mouse_y = my;
     
-    mx *= sensitivity->value;
-    my *= sensitivity->value;
-    
+    if (!exponential_speedup->value) {
+      mx *= sensitivity->value;
+      my *= sensitivity->value;
+    }
+    else {
+      if (mx > MOUSE_MIN || my > MOUSE_MIN || 
+	  mx < -MOUSE_MIN || my < -MOUSE_MIN) {
+	mx = (mx*mx*mx)/4;
+	my = (my*my*my)/4;
+	if (mx > MOUSE_MAX)
+	  mx = MOUSE_MAX;
+	else if (mx < -MOUSE_MAX)
+	  mx = -MOUSE_MAX;
+	if (my > MOUSE_MAX)
+	  my = MOUSE_MAX;
+	else if (my < -MOUSE_MAX)
+	  my = -MOUSE_MAX;
+      }
+    }
     // add mouse X/Y movement to cmd
     if ( (*in_state->in_strafe_state & 1) || 
 	 (lookstrafe->value && mlooking ))

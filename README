@@ -232,6 +232,7 @@ basedir <dir>           // point quake2 to where the data is
 gl_driver <libGL.so>    // point quake2 to your libGL
 dedicated 1             // run quake2 as a dedicated server
 game <subdir>           // load the quake2 mod in that directory
+sensitivity <int>       // Adjust the sensivity (accelleration) of the mouse.
 
 When using these commands on the quake2 command line, use +set to cause the
 variables be set before the config files are loaded (important for

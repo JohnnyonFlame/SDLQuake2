@@ -1542,7 +1542,7 @@ void	GL_InitImages (void)
 
 	for ( i = 0; i < 256; i++ )
 	{
-		if ( g == 1 )
+		if ( g == 1 || gl_state.hwgamma )
 		{
 			gammatable[i] = i;
 		}
