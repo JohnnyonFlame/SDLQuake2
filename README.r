@@ -296,7 +296,11 @@ Robert Bäuml
 Vincent Cojot
 Michel Dänzer
 Ryan C. Gordon
+Angelo Grossini
+Nicolai Haehnle
+Hampton Maxwell
 Ludwig Nussel
 Peter van Paassen
+Florent Parent
 Zachary 'zakk' Slater
 Matti Valtonen
