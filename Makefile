@@ -24,9 +24,10 @@ BUILD_XATRIX=NO		# game$(ARCH).so for xatrix (see README.r for details)
 BUILD_ROGUE=NO		# game$(ARCH).so for rogue (see README.r for details)
 BUILD_JOYSTICK=YES	# build in joystick support
 BUILD_ARTS=NO		# build in support for libaRts sound.
+BUILD_ALSA=NO		# build in support for ALSA (default sound on 2.6)
 BUILD_DEDICATED=NO	# build a dedicated quake2 server
 BUILD_AA=YES		# build the ascii soft renderer.
-BUILD_QMAX=NO		# build the fancier GL graphics
+BUILD_QMAX=YES		# build the fancier GL graphics
 BUILD_RETEXTURE=YES     # build a version supporting retextured graphics
 STATICSDL=NO
 SDLDIR=/usr/local/lib
@@ -144,9 +145,14 @@ ifeq ($(OSTYPE),Linux)
 LDFLAGS=-lm -ldl
 endif
 
-ifeq ($(BUILD_ARTS),YES)
+ifeq ($(strip (BUILD_ARTS)),YES)
 LDFLAGS+=$(shell artsc-config --libs)
 endif
+
+ifeq ($(strip $(BUILD_ALSA)),YES)
+LDFLAGS+=-lasound
+endif
+
 
 SVGALDFLAGS=-lvga
 
@@ -433,7 +439,11 @@ QUAKE2_LNX_OBJS = \
 ifeq ($(BUILD_ARTS),YES)
 QUAKE2_LNX_OBJS += $(BUILDDIR)/client/snd_arts.o
 else
+ifeq ($(BUILD_ALSA),YES)
+QUAKE2_LNX_OBJS += $(BUILDDIR)/client/snd_alsa.o
+else
 QUAKE2_LNX_OBJS += $(BUILDDIR)/client/snd_linux.o
+endif
 endif
 
 QUAKE2_SDL_OBJS = \
@@ -595,6 +605,9 @@ $(BUILDDIR)/client/cd_linux.o :   $(LINUX_DIR)/cd_linux.c
 	$(DO_CC)
 
 $(BUILDDIR)/client/snd_arts.o :  $(LINUX_DIR)/snd_arts.c
+	$(DO_CC)
+
+$(BUILDDIR)/client/snd_alsa.o :  $(LINUX_DIR)/snd_alsa.c
 	$(DO_CC)
 
 $(BUILDDIR)/client/snd_linux.o :  $(LINUX_DIR)/snd_linux.c
