@@ -27,6 +27,9 @@ BUILD_ARTS=NO		# build in support for libaRts sound.
 BUILD_DEDICATED=NO	# build a dedicated quake2 server
 BUILD_AA=YES		# build the ascii soft renderer.
 
+STATICSDL=NO
+SDLDIR=/usr/local/lib
+
 # Other compile-time options:
 # Compile with IPv6 (protocol independent API). Tested on FreeBSD
 HAVE_IPV6=NO
@@ -143,8 +146,16 @@ XLDFLAGS=-L/usr/X11R6/lib -lX11 -lXext -lXxf86dga -lXxf86vm
 AALDFLAGS=-lm -laa
 
 SDLCFLAGS=$(shell sdl-config --cflags)
-SDLLDFLAGS=$(shell sdl-config --libs)
-ifeq ($(BUILD_JOYSTICK),YES)
+ifeq ($(strip $(STATICSDL)),YES)
+	SDLLDFLAGS += -L/usr/X11R6/lib -Wl,-Bstatic $(SDLDIR)/libSDL.a
+	SDLLDFLAGS += $(SDLDIR)/libesd.a $(SDLDIR)/libartsc.a -Wl,-Bdynamic
+	SDLLDFLAGS += -lpthread -lX11 -lXext -lXxf86dga -lXxf86vm -lXv \
+		-lXinerama
+else
+	SDLLDFLAGS=$(shell sdl-config --libs)
+endif
+
+ifeq ($(strip $(BUILD_JOYSTICK)),YES)
 SDLCFLAGS+=-DJoystick
 endif
 
@@ -156,7 +167,7 @@ GLXCFLAGS=-I/usr/X11R6/include -DOPENGL
 GLXLDFLAGS=-L/usr/X11R6/lib -lX11 -lXext -lXxf86dga -lXxf86vm
 
 SDLGLCFLAGS=$(SDLCFLAGS) -DOPENGL
-SDLGLLDFLAGS=$(shell sdl-config --libs)
+SDLGLLDFLAGS=$(SDLLDFLAGS)
 
 SHLIBEXT=so
 
