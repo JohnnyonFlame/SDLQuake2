@@ -48,6 +48,9 @@ HAVE_IPV6		Build quake2 with IPv6 support (currently only
                         tested on FreeBSD, see below for info) (default = NO).
 BUILD_JOYSTICK		Build quake2 with support for SDL and Linux joysticks,
 			[default = YES].
+BUILD_ARTS		Build support for the aRts sound system 
+			(src/linux/snd_arts.c) [default = NO]
+
 To install the Quake2 demo data:
 (installdir is whereever you want to install quake2)
 1. download ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe
@@ -308,6 +311,7 @@ Many Thanks to all these people:
 John Allensworth
 Stephen Anthony
 William Aoki
+Michele Balistreri
 Robert Bäuml
 Vincent Cojot
 Michel Dänzer
@@ -319,12 +323,15 @@ Hampton Maxwell
 Ludwig Nussel
 Peter van Paassen
 Florent Parent
+Victor Shkamerda
 Zachary 'zakk' Slater
 Matti Valtonen
 
 v 0.11: [??/??/??]
 -----
 Fixed a bug in key repeat handling under X11.
+Added gamma adjustment on the fly [Victor Shkamerda]
+Added aRts sound support [Michele Balistreri]
 
 v 0.10: [4/01/02] (no fooling...)
 -----

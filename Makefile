@@ -23,7 +23,7 @@ BUILD_CTFDLL=YES	# game$(ARCH).so for ctf
 BUILD_XATRIX=NO		# game$(ARCH).so for xatrix (see README.r for details)
 BUILD_ROGUE=NO		# game$(ARCH).so for rogue (see README.r for details)
 BUILD_JOYSTICK=YES
-BUILD_ARTS=YES
+BUILD_ARTS=NO
 
 # Other compile-time options:
 # Compile with IPv6 (protocol independent API). Tested on FreeBSD
