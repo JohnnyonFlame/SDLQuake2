@@ -255,12 +255,19 @@ quake2 +set dedicated 1 +set ip <IPv4 address>
 
 Joystick Support:
 -----------------
+***Important note**** 
+5/12/04
+The joystick code has been modified to be more in line
+with the joystick functionality detailed in src/docs/joystick.txt
+*********************
+
 Joystick should function on all compatible SDL platforms using the sdlquake2
 binary as well as on linux using the linux kernel joystick API.  If you want
 to build with joystick support (the default) set BUILD_JOYSTICK to YES in
 the Makefile.  
 
-Have a look at src/docs/joystick.tx for the details
+Have a look at src/docs/joystick.txt for the details
+
 There is a single linux specific option: 
 	* joy_dev : this sets the device name of the joystick to use (/dev/js*)
 
@@ -389,6 +396,7 @@ Red/Blue 3D support <http://www.jfedor.org>
 Retexturing support (thanks to Karen Pouelle)
 Better FreeBSD support (thanks to /danfe)
 Added ALSA sound support
+Advanced Joystick Support
 Some miscelaneous fixes which I've forgotten about
 
 
