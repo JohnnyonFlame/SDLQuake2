@@ -1,5 +1,5 @@
         Minor OS-oriented changes to id Software's Quake2 3.21: 
-                        "It works for me, v1.0"
+                        "It works for me, v0.9"
 
 (NOTE: throughout this document, references to i386 [debugi386, releasei386,
  gamei386.so] are used.  If your architecture is not i386, just substitute
@@ -285,8 +285,17 @@ Florent Parent
 Zachary 'zakk' Slater
 Matti Valtonen
 
-v0.0.9: [XX/XX/XX] CVS
--------
+v0.9: [03/10/02]
+-----
++ X selection support (softx/glx only).
++ Mouse Wheel support (softx/glx).
++ CD Audio fixes. (W.P. van Paassen)
++ Swapped SDL buttons 2/3 to be correct.
++ Big Gun+save game crash fixed.
++ FreeBSD support (Hampton Maxwell).
++ Mouse buttons 4/5 supported (sdl only). (Angelo Grossini)
++ IPv6 support. (Florent Parent)
++ Documentation updates.
 
 v0.0.8: [01/04/02]
 -------
