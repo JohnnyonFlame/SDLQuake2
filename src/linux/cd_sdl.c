@@ -94,9 +94,14 @@ void CDAudio_RandomPlay(void)
   int track, i = 0, free_tracks = 0;
   float f;
   CDstatus cd_stat;
-  unsigned char track_bools[100];
+  byte* track_bools;
 
   if (!cd_id || !enabled)
+    return;
+
+  track_bools = (byte*)malloc(cd_id->numtracks* sizeof(byte));
+
+  if (track_bools == 0)
     return;
 
   //create array of available audio tracknumbers
@@ -110,7 +115,7 @@ void CDAudio_RandomPlay(void)
   if (!free_tracks)
     {
       Com_DPrintf("CDAudio_RandomPlay: Unable to find and play a random audio track, insert an audio cd please");
-      return;
+      goto free_end;
     }
 
   //choose random audio track
@@ -130,14 +135,18 @@ void CDAudio_RandomPlay(void)
       if(!cdValid)
 	{
 	  if(!CD_INDRIVE(cd_stat) ||(!cd_id->numtracks)) 
-	    return;
+	    {
+	      goto free_end;
+	    }
 	  cdValid = true;
 	}
       
       if(cd_stat == CD_PLAYING)
 	{
 	  if(cd_id->cur_track == track + 1) 
-	    return;
+	    {
+	      goto free_end;
+	    }
 	  CDAudio_Stop();
 	}
       
@@ -150,10 +159,13 @@ void CDAudio_RandomPlay(void)
       else
 	{
 	  playLooping = true;
-	  return;
+	  break;
 	}
     }
   while (free_tracks > 0);
+
+ free_end:
+  free((void*)track_bools);
 }
 
 void CDAudio_Stop()

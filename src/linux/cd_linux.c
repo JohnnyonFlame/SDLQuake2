@@ -249,7 +249,7 @@ void CDAudio_RandomPlay(void)
 {
   int track, i = 0, free_tracks = 0, remap_track;
   float f;
-  unsigned char track_bools[100];
+  byte* track_bools;
 #if defined(__FreeBSD__)
   struct ioc_read_toc_entry entry;
   struct cd_toc_entry toc_buffer;
@@ -261,6 +261,11 @@ void CDAudio_RandomPlay(void)
 #endif
 
   if (cdfile == -1 || !enabled)
+    return;
+
+  track_bools = (byte*)malloc(maxTrack * sizeof(byte));
+
+  if (track_bools == 0)
     return;
 
   //create array of available audio tracknumbers
@@ -299,7 +304,7 @@ void CDAudio_RandomPlay(void)
   if (!free_tracks)
     {
       Com_DPrintf("CDAudio_RandomPlay: Unable to find and play a random audio track, insert an audio cd please");
-      return;
+      goto free_end;
     }
 
   //choose random audio track
@@ -317,7 +322,9 @@ void CDAudio_RandomPlay(void)
       if (playing)
 	{
 	  if (playTrack == remap_track)
-	    return;
+	    {
+	      goto free_end;
+	    }
 	  CDAudio_Stop();
 	}
 
@@ -346,10 +353,13 @@ void CDAudio_RandomPlay(void)
 	  playLooping = true;
 	  playTrack = remap_track;
 	  playing = true;
-	  return;
+	  break;
 	}
     }
   while (free_tracks > 0);
+
+ free_end:
+    free((void*)track_bools);
 }
 
 void CDAudio_Stop(void)
