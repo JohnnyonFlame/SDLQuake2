@@ -120,7 +120,7 @@ ifeq ($(strip $(BUILD_QMAX)),YES)
 	BASE_CFLAGS+=-DQMAX
 endif
 
-ifeq ($(string $(BUILD_RETEXTURE)),YES)
+ifeq ($(strip $(BUILD_RETEXTURE)),YES)
 	BASE_CFLAGS+=-DRETEX
 endif
 
