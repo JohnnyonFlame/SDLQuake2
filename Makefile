@@ -27,7 +27,7 @@ BUILD_ARTS=NO		# build in support for libaRts sound.
 BUILD_DEDICATED=NO	# build a dedicated quake2 server
 BUILD_AA=YES		# build the ascii soft renderer.
 BUILD_QMAX=NO		# build the fancier GL graphics
-
+BUILD_RETEXTURE=YES     # build a version supporting retextured graphics
 STATICSDL=NO
 SDLDIR=/usr/local/lib
 
@@ -118,6 +118,10 @@ endif
 
 ifeq ($(strip $(BUILD_QMAX)),YES)
 	BASE_CFLAGS+=-DQMAX
+endif
+
+ifeq ($(string $(BUILD_RETEXTURE)),YES)
+	BASE_CFLAGS+=-DRETEX
 endif
 
 ifeq ($(strip $(BUILD_JOYSTICK)),YES)

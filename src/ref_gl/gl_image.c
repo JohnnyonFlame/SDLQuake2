@@ -1253,6 +1253,11 @@ image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 {
 	image_t		*image;
 	int			i;
+#ifdef RETEX
+  miptex_t 	*mt;
+  int 		len;
+  char 		s[128];
+#endif
 
 	// find a free image_t
 	for (i=0, image=gltextures ; i<numgltextures ; i++,image++)
@@ -1276,6 +1281,23 @@ image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 	image->width = width;
 	image->height = height;
 	image->type = type;
+
+#ifdef RETEX
+  len = strlen(name);
+  strcpy(s,name);
+  
+  if (!strcmp(s+len-4, ".tga") || !strcmp(s+len-4, ".jpg") || !strcmp(s+len-4, ".png"))
+    {
+      s[len-3] = 'w';	s[len-2] = 'a';	s[len-1] = 'l';
+      ri.FS_LoadFile (s, (void **)&mt);	//load .wal file
+      
+      if (mt) {
+	image->width = LittleLong (mt->width);
+	image->height = LittleLong (mt->height);
+	ri.FS_FreeFile ((void *)mt);
+      }
+    }
+#endif
 
 	if (type == it_skin && bits == 8)
 		R_FloodFillSkin(pic, width, height);

@@ -64,6 +64,8 @@ BUILD_ARTS		Build support for the aRts sound system
 BUILD_DEDICATED		Build the quake 2 dedicated server q2ded.
 BUILD_QMAX		Build the eye-candy oriented Quame2 Max (see below)
 BUILD_AA		Build the aalib text mode renderer.
+BUILD_RETEXTURE		Build support for retextured textures, see:
+http://http://3d.kicks-ass.net/texturepaks/
 
 To install the Quake2 demo data:
 --------------------------------
@@ -165,6 +167,16 @@ AALib Video Driver
 The AALib video driver is written by jfedor@jfedor.org it provides text 
 rendering for Quake2.  It requires the aalib package to build, which is
 available at http://aa-project.sourceforge.net.
+
+Retexturing Support
+------------------
+There has been an effort to retexture Quake2 with 24-bit textures to replace
+8-bit ones.  The resulting textures look *good* but take up more space and
+makes quake2 run slower.  
+
+If you wish to run retextured quake2 you need to download pak1x (currently 0-6) from  http://3d.kicks-ass.net/texturepaks/
+
+Thanks to Karen Pouelle for the code to support this.
 
 To run:
 -------
@@ -372,6 +384,12 @@ Victor Shkamerda
 Zachary 'zakk' Slater
 Matti Valtonen
 Rusty Mellinger
+Karen Pouelle
+
+v 0.16 [??/??/??]
+Retexturing support (thanks to Karen Pouelle)
+Better FreeBSD support (thanks to /danfe)
+Some miscelaneous fixes which I've forgotten about
 
 v 0.15 [10/08/02]
 Solaris updates from Vincent

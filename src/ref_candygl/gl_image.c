@@ -1508,31 +1508,55 @@ This is also used as an entry point for the generated r_notexture
 */
 image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits)
 {
-	image_t		*image;
-	int			i;
+  image_t		*image;
+  int		i;
+#ifdef RETEX
+  miptex_t 	*mt;
+  int 		len;
+  char 		s[128];
+#endif
 
-	// find a free image_t
-	for (i=0, image=gltextures ; i<numgltextures ; i++,image++)
-	{
-		if (!image->texnum)
-			break;
-	}
-	if (i == numgltextures)
-	{
-		if (numgltextures == MAX_GLTEXTURES)
-			ri.Sys_Error (ERR_DROP, "MAX_GLTEXTURES");
-		numgltextures++;
-	}
-	image = &gltextures[i];
+  // find a free image_t
+  for (i=0, image=gltextures ; i<numgltextures ; i++,image++)
+    {
+      if (!image->texnum)
+	break;
+    }
+  if (i == numgltextures)
+    {
+      if (numgltextures == MAX_GLTEXTURES)
+	ri.Sys_Error (ERR_DROP, "MAX_GLTEXTURES");
+      numgltextures++;
+    }
+  image = &gltextures[i];
 
-	if (strlen(name) >= sizeof(image->name))
-		ri.Sys_Error (ERR_DROP, "Draw_LoadPic: \"%s\" is too long", name);
-	strcpy (image->name, name);
-	image->registration_sequence = registration_sequence;
+  if (strlen(name) >= sizeof(image->name))
+    ri.Sys_Error (ERR_DROP, "Draw_LoadPic: \"%s\" is too long", name);
+  strcpy (image->name, name);
+  image->registration_sequence = registration_sequence;
+  
+  image->width = width;
+  image->height = height;
+  image->type = type;
+  
+#ifdef RETEX
+  len = strlen(name);
+  strcpy(s,name);
+  
+  if (!strcmp(s+len-4, ".tga") || !strcmp(s+len-4, ".jpg") || !strcmp(s+len-4, ".png"))
+    {
+      s[len-3] = 'w';	s[len-2] = 'a';	s[len-1] = 'l';
+      ri.FS_LoadFile (s, (void **)&mt);	//load .wal file
+      
+      if (mt) {
+	image->width = LittleLong (mt->width);
+	image->height = LittleLong (mt->height);
+	ri.FS_FreeFile ((void *)mt);
+      }
+    }
+#endif
 
-	image->width = width;
-	image->height = height;
-	image->type = type;
+
 
 	if (type == it_skin && bits == 8)
 		R_FloodFillSkin(pic, width, height);
