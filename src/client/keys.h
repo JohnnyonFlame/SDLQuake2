@@ -80,7 +80,8 @@ enum QKEYS {
 	K_MOUSE2		= 201,
 	K_MOUSE3		= 202,
 	K_MOUSE4		= 241,
-
+	K_MOUSE5		= 242,
+	
 //
 // joystick buttons
 //

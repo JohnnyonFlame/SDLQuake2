@@ -173,6 +173,12 @@ void RW_IN_Commands (void)
 	if ( !(mouse_buttonstate & (1<<3)) && (mouse_oldbuttonstate & (1<<3)) )
 		in_state->Key_Event_fp (K_MOUSE4, false);
 
+	if ( (mouse_buttonstate & (1<<4)) && !(mouse_oldbuttonstate & (1<<4)) )
+		in_state->Key_Event_fp (K_MOUSE5, true);
+
+	if ( !(mouse_buttonstate & (1<<4)) && (mouse_oldbuttonstate & (1<<4)) )
+		in_state->Key_Event_fp (K_MOUSE5, false);
+
 	mouse_oldbuttonstate = mouse_buttonstate;
 }
 
@@ -394,6 +400,13 @@ void GetEvent(SDL_Event *event)
 			keyq[keyq_head].down = true;
 			keyq_head = (keyq_head + 1) & 63;
 			keyq[keyq_head].key = K_MOUSE4;
+			keyq[keyq_head].down = false;
+			keyq_head = (keyq_head + 1) & 63;
+		} else if (event->button.button == 7) {
+			keyq[keyq_head].key = K_MOUSE5;
+			keyq[keyq_head].down = true;
+			keyq_head = (keyq_head + 1) & 63;
+			keyq[keyq_head].key = K_MOUSE5;
 			keyq[keyq_head].down = false;
 			keyq_head = (keyq_head + 1) & 63;
 		}
@@ -877,6 +890,8 @@ void KBD_Update(void)
 		mouse_buttonstate |= (1 << 2);
 	if (SDL_BUTTON(6) & bstate)
 		mouse_buttonstate |= (1 << 3);
+	if (SDL_BUTTON(7) & bstate)
+		mouse_buttonstate |= (1 << 4);
 
 	
 	if (old_windowed_mouse != _windowed_mouse->value) {
