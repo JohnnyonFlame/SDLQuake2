@@ -254,6 +254,12 @@ void VID_MenuInit( void )
 		"[1024 480 ]", /* sony vaio pocketbook */
 		"[1152 768 ]", /* Apple TiBook */
 		"[1280 854 ]", /* apple TiBook */
+		"[640 400  ]", /* generic 16:10 widescreen resolutions */
+ 		"[800 500  ]", /* as found on many modern notebooks    */
+ 		"[1024 640 ]",
+ 		"[1280 800 ]",
+ 		"[1680 1050]",
+ 		"[1920 1200]",
 		0
 	};
 	static const char *yesno_names[] =
