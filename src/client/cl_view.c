@@ -31,6 +31,7 @@ struct model_s	*gun_model;
 //=============
 
 cvar_t		*crosshair;
+cvar_t		*crosshair_scale;
 cvar_t		*cl_testparticles;
 cvar_t		*cl_testentities;
 cvar_t		*cl_testlights;
@@ -469,6 +470,7 @@ SCR_DrawCrosshair
 */
 void SCR_DrawCrosshair (void)
 {
+  float scale;
 	if (!crosshair->value)
 		return;
 
@@ -478,11 +480,30 @@ void SCR_DrawCrosshair (void)
 		SCR_TouchPics ();
 	}
 
+	if (crosshair_scale->modified)
+	{
+		crosshair_scale->modified=false;
+		if (crosshair_scale->value>5)
+			Cvar_SetValue("crosshair_scale", 5);
+		else if (crosshair_scale->value<0.25)
+			Cvar_SetValue("crosshair_scale", 0.25);
+	}
+
 	if (!crosshair_pic[0])
 		return;
 
+#ifdef QMAX
+	scale = crosshair_scale->value * (viddef.width/640);
+	  
+	re.DrawScaledPic (scr_vrect.x + ((scr_vrect.width - crosshair_width)>>1) //width
+			  , scr_vrect.y + ((scr_vrect.height - crosshair_height)>>1)	//height
+			  , scale	//scale
+			  , 0.75 + 0.25*sin(anglemod(cl.time*0.005))	//alpha
+			  , crosshair_pic); //pic
+#else
 	re.DrawPic (scr_vrect.x + ((scr_vrect.width - crosshair_width)>>1)
-	, scr_vrect.y + ((scr_vrect.height - crosshair_height)>>1), crosshair_pic);
+		    , scr_vrect.y + ((scr_vrect.height - crosshair_height)>>1), crosshair_pic);
+#endif
 }
 
 /*
@@ -626,7 +647,7 @@ void V_Init (void)
 	Cmd_AddCommand ("viewpos", V_Viewpos_f);
 
 	crosshair = Cvar_Get ("crosshair", "0", CVAR_ARCHIVE);
-
+	crosshair_scale = Cvar_Get ("crosshair_scale", "1", CVAR_ARCHIVE);
 	cl_testblend = Cvar_Get ("cl_testblend", "0", 0);
 	cl_testparticles = Cvar_Get ("cl_testparticles", "0", 0);
 	cl_testentities = Cvar_Get ("cl_testentities", "0", 0);
