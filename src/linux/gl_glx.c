@@ -36,9 +36,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/stat.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <signal.h>
 #include <dlfcn.h>
-
+#ifdef Joystick
+#include <sys/stat.h>
+#include <fcntl.h>
+#endif
 #include "../ref_gl/gl_local.h"
 
 #include "../client/keys.h"
@@ -53,7 +57,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <X11/extensions/xf86dga.h>
 #include <X11/extensions/xf86vmode.h>
-
+#ifdef Joystick
+#include <linux/joystick.h>
+#include <glob.h>
+#endif
 #include <GL/glx.h>
 
 glwstate_t glw_state;
@@ -77,6 +84,57 @@ static Bool (*qglXMakeCurrent)( Display *dpy, GLXDrawable drawable, GLXContext c
 static void (*qglXCopyContext)( Display *dpy, GLXContext src, GLXContext dst, GLuint mask );
 static void (*qglXSwapBuffers)( Display *dpy, GLXDrawable drawable );
 
+#ifdef Joystick
+static cvar_t   *in_joystick;
+static qboolean joystick_avail = false;
+static int joy_fd, jx, jy, jt;
+static cvar_t   *j_invert_y;
+#endif
+
+#ifdef Joystick
+void InitJoystick() {
+  int i, err;
+  glob_t pglob;
+  struct js_event e;
+
+  joystick_avail = false;
+  err = glob("/dev/js*", 0, NULL, &pglob);
+  
+  if (err) {
+    switch (err) {
+    case GLOB_NOSPACE:
+      ri.Con_Printf(PRINT_ALL, "Error, out of memory while looking for joysticks\n");
+      break;
+    case GLOB_NOMATCH:
+      ri.Con_Printf(PRINT_ALL, "No joysticks found\n");
+      break;
+    default:
+      ri.Con_Printf(PRINT_ALL, "Error #%d while looking for joysticks\n",err);
+    }
+    return;
+  }  
+  
+  for (i=0;i<pglob.gl_pathc;i++) {
+    ri.Con_Printf(PRINT_ALL, "Trying joystick dev %s\n", pglob.gl_pathv[i]);
+    joy_fd = open (pglob.gl_pathv[i], O_RDONLY | O_NONBLOCK);
+    if (joy_fd == -1) {
+      ri.Con_Printf(PRINT_ALL, "Error opening joystick dev %s\n", 
+		    pglob.gl_pathv[i]);
+    }
+    else {
+      while (read(joy_fd, &e, sizeof(struct js_event))!=-1 &&
+	     (e.type & JS_EVENT_INIT))
+	ri.Con_Printf(PRINT_ALL, "Read init event\n");
+      ri.Con_Printf(PRINT_ALL, "Using joystick dev %s\n", pglob.gl_pathv[i]);
+      joystick_avail = true;
+      return;
+    }
+  }
+  globfree(&pglob);
+}
+#endif
+
+
 /*****************************************************************************/
 /* MOUSE                                                                     */
 /*****************************************************************************/
@@ -84,6 +142,8 @@ static void (*qglXSwapBuffers)( Display *dpy, GLXDrawable drawable );
 // this is inside the renderer shared lib, so these are called from vid_so
 
 static qboolean        mouse_avail;
+static int		mouse_buttonstate;
+static int		mouse_oldbuttonstate;
 static int   mx, my;
 static int	old_mouse_x, old_mouse_y;
 
@@ -222,10 +282,15 @@ void RW_IN_Init(in_state_t *in_state_p)
 {
 	in_state = in_state_p;
 
+#ifdef Joystick
+	in_joystick = ri.Cvar_Get ("in_joystick", "1", CVAR_ARCHIVE);
+	j_invert_y = ri.Cvar_Get ("j_invert_y", "1", CVAR_ARCHIVE);
+#endif
+
 	// mouse variables
 	m_filter = ri.Cvar_Get ("m_filter", "0", 0);
-    in_mouse = ri.Cvar_Get ("in_mouse", "1", CVAR_ARCHIVE);
-    in_dgamouse = ri.Cvar_Get ("in_dgamouse", "1", CVAR_ARCHIVE);
+	in_mouse = ri.Cvar_Get ("in_mouse", "1", CVAR_ARCHIVE);
+	in_dgamouse = ri.Cvar_Get ("in_dgamouse", "1", CVAR_ARCHIVE);
 	freelook = ri.Cvar_Get( "freelook", "0", 0 );
 	lookstrafe = ri.Cvar_Get ("lookstrafe", "0", 0);
 	sensitivity = ri.Cvar_Get ("sensitivity", "3", 0);
@@ -241,6 +306,11 @@ void RW_IN_Init(in_state_t *in_state_p)
 
 	mx = my = 0.0;
 	mouse_avail = true;
+	
+#ifdef Joystick
+	if (in_joystick)
+	  InitJoystick();
+#endif
 }
 
 void RW_IN_Shutdown(void)
@@ -252,6 +322,12 @@ void RW_IN_Shutdown(void)
 		ri.Cmd_RemoveCommand ("-mlook");
 		ri.Cmd_RemoveCommand ("force_centerview");
 	}
+
+#ifdef Joystick
+	if (joystick_avail)
+	  if (close(joy_fd))
+	    ri.Con_Printf(PRINT_ALL, "Error, Problem closing joystick.");
+#endif
 }
 
 /*
@@ -261,6 +337,50 @@ IN_Commands
 */
 void RW_IN_Commands (void)
 {
+	int i;
+#ifdef Joystick
+	struct js_event e;
+	int key_index;
+#endif
+	if (mouse_avail) { 
+	  for (i=0 ; i<3 ; i++) {
+	    if ( (mouse_buttonstate & (1<<i)) && !(mouse_oldbuttonstate & (1<<i)) )
+	      in_state->Key_Event_fp (K_MOUSE1 + i, true);
+	    
+	    if ( !(mouse_buttonstate & (1<<i)) && (mouse_oldbuttonstate & (1<<i)) )
+	      in_state->Key_Event_fp (K_MOUSE1 + i, false);
+	  }
+	  mouse_oldbuttonstate = mouse_buttonstate;
+	}
+#ifdef Joystick
+	if (joystick_avail) {
+	  while (read(joy_fd, &e, sizeof(struct js_event))!=-1) {
+	    if (JS_EVENT_BUTTON & e.type) {
+	      key_index = (e.number < 4) ? K_JOY1 : K_AUX1;
+	      if (e.value) {
+		in_state->Key_Event_fp (key_index + e.number, true);
+	      }
+	      else {
+		in_state->Key_Event_fp (key_index + e.number, false);
+	      }
+	      //joy_oldbuttonstate = e.number;
+	    }
+	    else if (JS_EVENT_AXIS & e.type) {
+	      switch (e.number) {
+	      case 0:
+		jx = e.value;
+		break;
+	      case 1:
+		jy = e.value;
+		break;
+	      case 3:
+		jt = e.value;
+		break;
+	      }
+	    }
+	  }
+	}
+#endif
 }
 
 /*
@@ -270,39 +390,64 @@ IN_Move
 */
 void RW_IN_Move (usercmd_t *cmd)
 {
-	if (!mouse_avail)
-		return;
-   
-	if (m_filter->value)
-	{
-		mx = (mx + old_mouse_x) * 0.5;
-		my = (my + old_mouse_y) * 0.5;
-	}
-
-	old_mouse_x = mx;
-	old_mouse_y = my;
-
-	mx *= sensitivity->value;
-	my *= sensitivity->value;
-
-// add mouse X/Y movement to cmd
-	if ( (*in_state->in_strafe_state & 1) || 
-		(lookstrafe->value && mlooking ))
-		cmd->sidemove += m_side->value * mx;
+  if (!mouse_avail)
+    return;
+  
+  if (m_filter->value)
+    {
+      mx = (mx + old_mouse_x) * 0.5;
+      my = (my + old_mouse_y) * 0.5;
+    }
+  
+  old_mouse_x = mx;
+  old_mouse_y = my;
+  
+  mx *= sensitivity->value;
+  my *= sensitivity->value;
+  
+  // add mouse X/Y movement to cmd
+  if ( (*in_state->in_strafe_state & 1) || 
+       (lookstrafe->value && mlooking ))
+    cmd->sidemove += m_side->value * mx;
+  else
+    in_state->viewangles[YAW] -= m_yaw->value * mx;
+  
+  if ( (mlooking || freelook->value) && 
+       !(*in_state->in_strafe_state & 1))
+    {
+      in_state->viewangles[PITCH] += m_pitch->value * my;
+    }
+  else
+    {
+      cmd->forwardmove -= m_forward->value * my;
+    }
+  
+  mx = my = 0;
+  
+#ifdef Joystick
+  if (joystick_avail) {
+    // add joy X/Y movement to cmd
+    if ( (*in_state->in_strafe_state & 1) || 
+	 (lookstrafe->value && mlooking ))
+      cmd->sidemove += m_side->value * (jx/100);
+    else
+      in_state->viewangles[YAW] -= m_yaw->value * (jx/100);
+    
+    if ( (mlooking || freelook->value) && 
+	 !(*in_state->in_strafe_state & 1))
+      {
+	if (j_invert_y)
+	  in_state->viewangles[PITCH] -= m_pitch->value * (jy/100);
 	else
-		in_state->viewangles[YAW] -= m_yaw->value * mx;
-
-	if ( (mlooking || freelook->value) && 
-		!(*in_state->in_strafe_state & 1))
-	{
-		in_state->viewangles[PITCH] += m_pitch->value * my;
-	}
-	else
-	{
-		cmd->forwardmove -= m_forward->value * my;
-	}
-
-	mx = my = 0;
+	  in_state->viewangles[PITCH] += m_pitch->value * (jy/100);
+	cmd->forwardmove -= m_forward->value * (jt/100);
+      }
+    else
+      {
+	cmd->forwardmove -= m_forward->value * (jy/100);
+      }
+  }
+#endif
 }
 
 static void IN_DeactivateMouse( void ) 

@@ -150,7 +150,7 @@ FXGLCFLAGS=-I/usr/X11R6/include
 FXGLLDFLAGS=-L/usr/local/glide/lib -L/usr/X11/lib -L/usr/local/lib \
 	-L/usr/X11R6/lib -lX11 -lXext -lGL -lvga
 
-GLXCFLAGS=-I/usr/X11R6/include
+GLXCFLAGS=-I/usr/X11R6/include -DOPENGL
 GLXLDFLAGS=-L/usr/X11R6/lib -lX11 -lXext -lXxf86dga -lXxf86vm
 
 SDLGLCFLAGS=$(SDLCFLAGS) -DOPENGL
@@ -1661,6 +1661,7 @@ REF_GL_OBJS = \
 
 REF_GLX_OBJS = \
 	$(BUILDDIR)/ref_gl/gl_glx.o
+#	$(BUILDDIR)/ref_gl/rw_x11.o
 
 REF_FXGL_OBJS = \
 	$(BUILDDIR)/ref_gl/rw_in_svgalib.o \
@@ -1718,6 +1719,9 @@ $(BUILDDIR)/ref_gl/glob.o :           $(LINUX_DIR)/glob.c
 	$(DO_GL_SHLIB_CC)
 
 $(BUILDDIR)/ref_gl/gl_glx.o :         $(LINUX_DIR)/gl_glx.c
+	$(DO_GL_SHLIB_CC) $(GLXCFLAGS)
+
+$(BUILDDIR)/ref_gl/rw_x11.o :         $(LINUX_DIR)/rw_x11.c
 	$(DO_GL_SHLIB_CC) $(GLXCFLAGS)
 
 $(BUILDDIR)/ref_gl/gl_fxmesa.o :      $(LINUX_DIR)/gl_fxmesa.c

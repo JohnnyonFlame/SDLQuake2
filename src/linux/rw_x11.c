@@ -54,23 +54,57 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <X11/keysym.h>
 #include <X11/extensions/XShm.h>
 #include <X11/extensions/xf86dga.h>
-
+#ifdef OPENGL
+#include <X11/extensions/xf86vmode.h>
+#endif
 #ifdef Joystick
 #include <linux/joystick.h>
 #include <glob.h>
 #endif
 
+#ifdef OPENGL
+#include "../ref_gl/gl_local.h"
+#include <dlfcn.h>
+#else
 #include "../ref_soft/r_local.h"
+#endif
 #include "../client/keys.h"
 #include "../linux/rw_linux.h"
+
+#ifdef OPENGL
+#include <GL/glx.h>
+#include "../linux/glw_linux.h"
+
+glwstate_t glw_state;
+static int scrnum;
+static GLXContext ctx = NULL;
+static cvar_t	*r_fakeFullscreen;
+static qboolean vidmode_ext = false;
+
+static XF86VidModeModeInfo **vidmodes;
+static int num_vidmodes;
+static qboolean vidmode_active = false;
+static XF86VidModeGamma oldgamma;
+
+//GLX Functions
+static XVisualInfo * (*qglXChooseVisual)( Display *dpy, int screen, int *attribList );
+static GLXContext (*qglXCreateContext)( Display *dpy, XVisualInfo *vis, GLXContext shareList, Bool direct );
+static void (*qglXDestroyContext)( Display *dpy, GLXContext ctx );
+static Bool (*qglXMakeCurrent)( Display *dpy, GLXDrawable drawable, GLXContext ctx);
+static void (*qglXCopyContext)( Display *dpy, GLXContext src, GLXContext dst, GLuint mask );
+static void (*qglXSwapBuffers)( Display *dpy, GLXDrawable drawable );
+#endif
 
 /*****************************************************************************/
 
 static qboolean			doShm;
 static Display			*dpy;
+#ifndef OPENGL
 static Colormap			x_cmap;
+static GC			x_gc;
+#endif
+
 static Window			win;
-static GC				x_gc;
 static Visual			*x_vis;
 static XVisualInfo		*x_visinfo;
 static int win_x, win_y;
@@ -90,7 +124,9 @@ static int				x_shmeventtype;
 static qboolean			oktodraw = false;
 static qboolean			ignorefirst = false;
 static qboolean			exposureflag = false;
+#ifndef OPENGL
 static qboolean			X11_active = false;
+#endif
 
 int XShmQueryExtension(Display *);
 int XShmGetEventBase(Display *);
@@ -660,6 +696,12 @@ void RW_IN_Shutdown(void)
 		ri.Cmd_RemoveCommand ("-mlook");
 		ri.Cmd_RemoveCommand ("force_centerview");
 	}
+#ifdef Joystick
+	if (joystick_avail)
+	  if (close(joy_fd))
+	    ri.Con_Printf(PRINT_ALL, "Error, Problem closing joystick.");
+#endif
+    
 }
 
 /*****************************************************************************/
@@ -707,7 +749,7 @@ char *RW_Sys_GetClipboardData()
 }
 
 /*****************************************************************************/
-
+#ifndef OPENGL
 void ResetFrameBuffer(void)
 {
 	int mem;
@@ -739,6 +781,7 @@ void ResetFrameBuffer(void)
 
 	vid.buffer = (byte*) (x_framebuffer[0]);
 }
+#endif
 
 void ResetSharedFrameBuffers(void)
 {
@@ -1092,6 +1135,7 @@ void HandleEvents(void)
 
 /*****************************************************************************/
 
+#ifndef OPENGL
 /*
 ** SWimp_Init
 **
@@ -1127,7 +1171,9 @@ int SWimp_Init( void *hInstance, void *wndProc )
 
 	return true;
 }
+#endif
 
+#ifndef OPENGL
 /*
 ** SWimp_InitGraphics
 **
@@ -1351,7 +1397,9 @@ static qboolean SWimp_InitGraphics( qboolean fullscreen )
 
 	return true;
 }
+#endif
 
+#ifndef OPENGL
 /*
 ** SWimp_EndFrame
 **
@@ -1408,7 +1456,9 @@ void SWimp_EndFrame (void)
 		XSync(dpy, False);
 	}
 }
+#endif
 
+#ifndef OPENGL
 /*
 ** SWimp_SetMode
 */
@@ -1435,7 +1485,9 @@ rserr_t SWimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 
 	return retval;
 }
+#endif
 
+#ifndef OPENGL
 /*
 ** SWimp_SetPalette
 **
@@ -1472,7 +1524,9 @@ void SWimp_SetPalette( const unsigned char *palette )
 		XStoreColors(dpy, x_cmap, colors, 256);
 	}
 }
+#endif
 
+#ifndef OPENGL
 /*
 ** SWimp_Shutdown
 **
@@ -1509,14 +1563,16 @@ void SWimp_Shutdown( void )
 
 	X11_active = false;
 }
+#endif
 
+#ifndef OPENGL
 /*
 ** SWimp_AppActivate
 */
 void SWimp_AppActivate( qboolean active )
 {
 }
-
+#endif
 //===============================================================================
 
 /*
@@ -1564,3 +1620,360 @@ void KBD_Close(void)
 {
 }
 
+#ifdef OPENGL
+
+qboolean GLimp_InitGL (void);
+
+static void signal_handler(int sig)
+{
+	printf("Received signal %d, exiting...\n", sig);
+	GLimp_Shutdown();
+	_exit(0);
+}
+
+static void InitSig(void)
+{
+	signal(SIGHUP, signal_handler);
+	signal(SIGQUIT, signal_handler);
+	signal(SIGILL, signal_handler);
+	signal(SIGTRAP, signal_handler);
+	signal(SIGIOT, signal_handler);
+	signal(SIGBUS, signal_handler);
+	signal(SIGFPE, signal_handler);
+	signal(SIGSEGV, signal_handler);
+	signal(SIGTERM, signal_handler);
+}
+
+/*
+** GLimp_AppActivate
+*/
+void GLimp_AppActivate( qboolean active )
+{
+}
+
+/*
+** GLimp_BeginFrame
+*/
+void GLimp_BeginFrame( float camera_seperation )
+{
+}
+
+
+/*
+** GLimp_EndFrame
+** 
+** Responsible for doing a swapbuffers and possibly for other stuff
+** as yet to be determined.  Probably better not to make this a GLimp
+** function and instead do a call to GLimp_SwapBuffers.
+*/
+void GLimp_EndFrame (void)
+{
+	qglFlush();
+	qglXSwapBuffers(dpy, win);
+}
+
+/*
+** GLimp_Init
+**
+** This routine is responsible for initializing the OS specific portions
+** of OpenGL.  
+*/
+int GLimp_Init( void *hinstance, void *wndproc )
+{
+	InitSig();
+
+	if ( glw_state.OpenGLLib) {
+		#define GPA( a ) dlsym( glw_state.OpenGLLib, a )
+
+		qglXChooseVisual             =  GPA("glXChooseVisual");
+		qglXCreateContext            =  GPA("glXCreateContext");
+		qglXDestroyContext           =  GPA("glXDestroyContext");
+		qglXMakeCurrent              =  GPA("glXMakeCurrent");
+		qglXCopyContext              =  GPA("glXCopyContext");
+		qglXSwapBuffers              =  GPA("glXSwapBuffers");
+		
+		return true;
+	}
+	
+	return false;
+}
+
+/*
+** GLimp_SetMode
+*/
+int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
+{
+	int width, height;
+	int attrib[] = {
+		GLX_RGBA,
+		GLX_RED_SIZE, 1,
+		GLX_GREEN_SIZE, 1,
+		GLX_BLUE_SIZE, 1,
+		GLX_DOUBLEBUFFER,
+		GLX_DEPTH_SIZE, 1,
+		None
+	};
+	Window root;
+	XVisualInfo *visinfo;
+	XSetWindowAttributes attr;
+	XSizeHints *sizehints;
+	XWMHints *wmhints;
+	unsigned long mask;
+	int MajorVersion, MinorVersion;
+	int actualWidth, actualHeight;
+	int i;
+
+	r_fakeFullscreen = ri.Cvar_Get( "r_fakeFullscreen", "0", CVAR_ARCHIVE);
+
+	ri.Con_Printf( PRINT_ALL, "Initializing OpenGL display\n");
+
+	if (fullscreen)
+		ri.Con_Printf (PRINT_ALL, "...setting fullscreen mode %d:", mode );
+	else
+		ri.Con_Printf (PRINT_ALL, "...setting mode %d:", mode );
+
+	if ( !ri.Vid_GetModeInfo( &width, &height, mode ) )
+	{
+		ri.Con_Printf( PRINT_ALL, " invalid mode\n" );
+		return rserr_invalid_mode;
+	}
+
+	ri.Con_Printf( PRINT_ALL, " %d %d\n", width, height );
+
+	// destroy the existing window
+	GLimp_Shutdown ();
+
+#if 0 // this breaks getenv()? - sbf
+	// Mesa VooDoo hacks
+	if (fullscreen)
+		putenv("MESA_GLX_FX=fullscreen");
+	else
+		putenv("MESA_GLX_FX=window");
+#endif
+
+	if (!(dpy = XOpenDisplay(NULL))) {
+		fprintf(stderr, "Error couldn't open the X display\n");
+		return rserr_invalid_mode;
+	}
+
+	scrnum = DefaultScreen(dpy);
+	root = RootWindow(dpy, scrnum);
+
+	// Get video mode list
+	MajorVersion = MinorVersion = 0;
+	if (!XF86VidModeQueryVersion(dpy, &MajorVersion, &MinorVersion)) { 
+		vidmode_ext = false;
+	} else {
+		ri.Con_Printf(PRINT_ALL, "Using XFree86-VidModeExtension Version %d.%d\n",
+			MajorVersion, MinorVersion);
+		vidmode_ext = true;
+	}
+
+	visinfo = qglXChooseVisual(dpy, scrnum, attrib);
+	if (!visinfo) {
+		fprintf(stderr, "Error couldn't get an RGB, Double-buffered, Depth visual\n");
+		return rserr_invalid_mode;
+	}
+
+	gl_state.hwgamma = false;
+
+	if (vidmode_ext) {
+		int best_fit, best_dist, dist, x, y;
+		
+		XF86VidModeGetAllModeLines(dpy, scrnum, &num_vidmodes, &vidmodes);
+
+		// Are we going fullscreen?  If so, let's change video mode
+		if (fullscreen && !r_fakeFullscreen->value) {
+			best_dist = 9999999;
+			best_fit = -1;
+
+			for (i = 0; i < num_vidmodes; i++) {
+				if (width > vidmodes[i]->hdisplay ||
+					height > vidmodes[i]->vdisplay)
+					continue;
+
+				x = width - vidmodes[i]->hdisplay;
+				y = height - vidmodes[i]->vdisplay;
+				dist = (x * x) + (y * y);
+				if (dist < best_dist) {
+					best_dist = dist;
+					best_fit = i;
+				}
+			}
+
+			if (best_fit != -1) {
+				actualWidth = vidmodes[best_fit]->hdisplay;
+				actualHeight = vidmodes[best_fit]->vdisplay;
+
+				// change to the mode
+				XF86VidModeSwitchToMode(dpy, scrnum, vidmodes[best_fit]);
+				vidmode_active = true;
+
+				if (XF86VidModeGetGamma(dpy, scrnum, &oldgamma)) {
+					gl_state.hwgamma = true;
+					/* We can not reliably detect hardware gamma
+					   changes across software gamma calls, which
+					   can reset the flag, so change it anyway */
+					vid_gamma->modified = true;
+					ri.Con_Printf( PRINT_ALL, "Using hardware gamma\n");
+				}
+
+				// Move the viewport to top left
+				XF86VidModeSetViewPort(dpy, scrnum, 0, 0);
+			} else
+				fullscreen = 0;
+		}
+	}
+
+	/* window attributes */
+	attr.background_pixel = 0;
+	attr.border_pixel = 0;
+	attr.colormap = XCreateColormap(dpy, root, visinfo->visual, AllocNone);
+	attr.event_mask = X_MASK;
+	if (vidmode_active) {
+		mask = CWBackPixel | CWColormap | CWSaveUnder | CWBackingStore | 
+			CWEventMask | CWOverrideRedirect;
+		attr.override_redirect = True;
+		attr.backing_store = NotUseful;
+		attr.save_under = False;
+	} else
+		mask = CWBackPixel | CWBorderPixel | CWColormap | CWEventMask;
+
+	win = XCreateWindow(dpy, root, 0, 0, width, height,
+						0, visinfo->depth, InputOutput,
+						visinfo->visual, mask, &attr);
+	
+	sizehints = XAllocSizeHints();
+	if (sizehints) {
+		sizehints->min_width = width;
+		sizehints->min_height = height;
+		sizehints->max_width = width;
+		sizehints->max_height = height;
+		sizehints->base_width = width;
+		sizehints->base_height = vid.height;
+		
+		sizehints->flags = PMinSize | PMaxSize | PBaseSize;
+	}
+	
+	wmhints = XAllocWMHints();
+	if (wmhints) {
+		#include "q2icon.xbm"
+
+		Pixmap icon_pixmap, icon_mask;
+		unsigned long fg, bg;
+		int i;
+		
+		fg = BlackPixel(dpy, visinfo->screen);
+		bg = WhitePixel(dpy, visinfo->screen);
+		icon_pixmap = XCreatePixmapFromBitmapData(dpy, win, (char *)q2icon_bits, q2icon_width, q2icon_height, fg, bg, visinfo->depth);
+		for (i = 0; i < sizeof(q2icon_bits); i++)
+			q2icon_bits[i] = ~q2icon_bits[i];
+		icon_mask = XCreatePixmapFromBitmapData(dpy, win, (char *)q2icon_bits, q2icon_width, q2icon_height, bg, fg, visinfo->depth); 
+	
+		wmhints->flags = IconPixmapHint|IconMaskHint;
+		wmhints->icon_pixmap = icon_pixmap;
+		wmhints->icon_mask = icon_mask;
+	}
+
+	XSetWMProperties(dpy, win, NULL, NULL, NULL, 0,
+			sizehints, wmhints, None);
+	if (sizehints)
+		XFree(sizehints);
+	if (wmhints)
+		XFree(wmhints);
+	
+	XStoreName(dpy, win, "Quake II");
+	
+	wmDeleteWindow = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
+	XSetWMProtocols(dpy, win, &wmDeleteWindow, 1);
+	
+	XMapWindow(dpy, win);
+
+	if (vidmode_active) {
+		XMoveWindow(dpy, win, 0, 0);
+		XRaiseWindow(dpy, win);
+		XWarpPointer(dpy, None, win, 0, 0, 0, 0, 0, 0);
+		XFlush(dpy);
+		// Move the viewport to top left
+		XF86VidModeSetViewPort(dpy, scrnum, 0, 0);
+	}
+
+	XFlush(dpy);
+
+	ctx = qglXCreateContext(dpy, visinfo, NULL, True);
+
+	qglXMakeCurrent(dpy, win, ctx);
+
+	*pwidth = width;
+	*pheight = height;
+
+	// let the sound and input subsystems know about the new window
+	ri.Vid_NewWindow (width, height);
+
+	qglXMakeCurrent(dpy, win, ctx);
+
+	return rserr_ok;
+}
+
+void Fake_glColorTableEXT( GLenum target, GLenum internalformat,
+                             GLsizei width, GLenum format, GLenum type,
+                             const GLvoid *table )
+{
+	byte temptable[256][4];
+	byte *intbl;
+	int i;
+
+	for (intbl = (byte *)table, i = 0; i < 256; i++) {
+		temptable[i][2] = *intbl++;
+		temptable[i][1] = *intbl++;
+		temptable[i][0] = *intbl++;
+		temptable[i][3] = 255;
+	}
+	qgl3DfxSetPaletteEXT((GLuint *)temptable);
+}
+
+/*
+** GLimp_Shutdown
+**
+** This routine does all OS specific shutdown procedures for the OpenGL
+** subsystem.  Under OpenGL this means NULLing out the current DC and
+** HGLRC, deleting the rendering context, and releasing the DC acquired
+** for the window.  The state structure is also nulled out.
+**
+*/
+void GLimp_Shutdown( void )
+{
+	uninstall_grabs();
+	mouse_active = false;
+	dgamouse = false;
+
+	if (dpy) {
+		if (ctx)
+			qglXDestroyContext(dpy, ctx);
+		if (win)
+			XDestroyWindow(dpy, win);
+		if (gl_state.hwgamma) {
+			XF86VidModeSetGamma(dpy, scrnum, &oldgamma);
+			/* The gamma has changed, but SetMode will change it
+			   anyway, so why bother?
+			vid_gamma->modified = true; */
+		}
+		if (vidmode_active)
+			XF86VidModeSwitchToMode(dpy, scrnum, vidmodes[0]);
+		XUngrabKeyboard(dpy, CurrentTime);
+		XCloseDisplay(dpy);
+	}
+	ctx = NULL;
+	dpy = NULL;
+	win = 0;
+	ctx = NULL;
+/*	
+	qglXChooseVisual             = NULL;
+	qglXCreateContext            = NULL;
+	qglXDestroyContext           = NULL;
+	qglXMakeCurrent              = NULL;
+	qglXCopyContext              = NULL;
+	qglXSwapBuffers              = NULL;
+*/	
+}
+#endif

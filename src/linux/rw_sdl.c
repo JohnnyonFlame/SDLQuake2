@@ -173,6 +173,10 @@ void RW_IN_Shutdown(void)
 
 		ri.Cmd_RemoveCommand ("force_centerview");
 	}	
+#ifdef Joystick
+	if (joy)
+	  SDL_JoystickClose(joy);
+#endif
 }
 
 /*
@@ -570,6 +574,7 @@ void GetEvent(SDL_Event *event)
 void InitJoystick() {
 #ifdef Joystick
   int num_joysticks, i;
+  joy = NULL;
 
   if (!(SDL_INIT_JOYSTICK&SDL_WasInit(SDL_INIT_JOYSTICK))) {
     ri.Con_Printf(PRINT_ALL, "SDL Joystick not initialized, trying to init...\n");
