@@ -22,6 +22,7 @@ BUILD_SDLGL=YES		# SDL OpenGL driver. Works fine for some people.
 BUILD_CTFDLL=NO		# game$(ARCH).so for ctf
 BUILD_XATRIX=NO		# game$(ARCH).so for xatrix (see README.r for details)
 BUILD_ROGUE=NO		# game$(ARCH).so for rogue (see README.r for details)
+BUILD_JOYSTICK=NO
 
 # Other compile-time options:
 # Compile with IPv6 (protocol independent API). Tested on FreeBSD
@@ -37,6 +38,7 @@ ifneq ($(OSTYPE),FreeBSD)
 $(error OS $(OSTYPE) is currently not supported)
 endif
 endif
+
 
 # this nice line comes from the linux kernel makefile
 ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc/ -e s/sparc64/sparc/ -e s/arm.*/arm/ -e s/sa110/arm/ -e s/alpha/axp/)
@@ -100,6 +102,10 @@ BASE_CFLAGS+= -DHAVE_IPV6 -DHAVE_SIN6_LEN
 NET_UDP=net_udp6
 else
 NET_UDP=net_udp
+endif
+
+ifeq ($(BUILD_JOYSTICK),YES)
+BASE_CFLAGS+=-DJoystick
 endif
 
 ifneq ($(ARCH),i386)
@@ -253,7 +259,7 @@ ifeq ($(ARCH),sparc)
   $(warning Warning: SDLGL support not supported for $(ARCH))
  endif
 endif # ARCH sparc
-	
+
 ifeq ($(ARCH),i386)
  ifeq ($(strip $(BUILD_SDLQUAKE2)),YES)
   TARGETS += $(BUILDDIR)/sdlquake2
