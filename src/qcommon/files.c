@@ -583,13 +583,8 @@ FS_ExecAutoexec
 */
 void FS_ExecAutoexec (void)
 {
-	char *dir;
 	char name [MAX_QPATH];
-	char command [MAX_QPATH];
-	char newpath [MAX_QPATH];
 	searchpath_t *s;
-
-	dir = Cvar_VariableString("gamedir");
 
 	// search through all the paths for an autoexec.cfg file
 	for (s = fs_searchpaths ; s ; s = s->next)
@@ -597,28 +592,11 @@ void FS_ExecAutoexec (void)
 		if (s->pack)
 			continue;
 
-		strcpy (newpath, s->filename);
-
-		// eat the last '/'
-		if (newpath[strlen(newpath) - 1] == '/')
-			newpath[strlen(newpath) - 1] = '\0';   
-
-		if (*dir)
-		{
-			// skip when current search path and gamedir are equal
-			if(!strncmp(dir, newpath + 2, strlen(dir)))
-				Com_sprintf(name, sizeof(name), "%s/autoexec.cfg", newpath);
-			else
-				Com_sprintf(name, sizeof(name), "%s/%s/autoexec.cfg", newpath, dir);
-		}
-		else
-			Com_sprintf(name, sizeof(name), "%s/autoexec.cfg", newpath); 
+		Com_sprintf(name, sizeof(name), "%s/autoexec.cfg", s->filename); 
 
 		if (Sys_FindFirst(name, 0, SFF_SUBDIR | SFF_HIDDEN | SFF_SYSTEM))
 		{
-			strcpy (command, "exec ");
-			strcat (command, name);
-			Cbuf_AddText (command);
+			Cbuf_AddText ("exec autoexec.cfg");
 			Sys_FindClose();
 			break;
 		}
