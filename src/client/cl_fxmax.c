@@ -3357,10 +3357,10 @@ void CL_TrapParticles (entity_t *ent)
 {
 	int colors[][3] =
 	{
-		255, 200, 150,
-		255, 200, 100,
-		255, 200, 50,
-		0
+		{255, 200, 150},
+		{255, 200, 100},
+		{255, 200, 50},
+		{0, 0, 0}
 	};
 	vec3_t		move;
 	vec3_t		vec;
@@ -3425,7 +3425,7 @@ void CL_TrapParticles (entity_t *ent)
 					dir[2] = k * 8;
 		
 					VectorNormalize (dir);						
-					vel = 50 + rand()&63;
+					vel = 50 + (rand()&63);
 
 					index = rand()&3;
 
