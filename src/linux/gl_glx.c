@@ -40,7 +40,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <signal.h>
 #include <dlfcn.h>
 #ifdef Joystick
-#include <sys/stat.h>
 #include <fcntl.h>
 #endif
 #include "../ref_gl/gl_local.h"
@@ -58,7 +57,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <X11/extensions/xf86dga.h>
 #include <X11/extensions/xf86vmode.h>
 #ifdef Joystick
+# if defined (__linux__)
 #include <linux/joystick.h>
+# elif defined (__FreeBSD__)
+#include <sys/joystick.h>
+# endif
 #include <glob.h>
 #endif
 #include <GL/glx.h>

@@ -1507,7 +1507,7 @@ CL_FlagTrail
 */
 #ifdef QMAX
 void CL_FlagTrail (vec3_t start, vec3_t end, boolean isred)
-#else)
+#else
 void CL_FlagTrail (vec3_t start, vec3_t end, float color)
 #endif
 {

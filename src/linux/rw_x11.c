@@ -36,7 +36,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/time.h>
 #include <sys/types.h>
 #ifdef Joystick
-#include <sys/stat.h>
 #include <fcntl.h>
 #endif
 #include <unistd.h>
@@ -58,7 +57,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <X11/extensions/xf86vmode.h>
 #endif
 #ifdef Joystick
+# if defined (__linux__)
 #include <linux/joystick.h>
+# elif defined (__FreeBSD__)
+#include <sys/joystick.h>
+# endif
 #include <glob.h>
 #endif
 

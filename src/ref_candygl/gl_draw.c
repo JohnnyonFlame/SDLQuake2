@@ -24,8 +24,28 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 image_t		*draw_chars;
 
+// vertex arrays
+float	tex_array[MAX_ARRAY][2];
+float	vert_array[MAX_ARRAY][3];
+float	col_array[MAX_ARRAY][4];
+
 extern	qboolean	scrap_dirty;
 void Scrap_Upload (void);
+
+void RefreshFont (void)
+{
+
+	draw_chars = GL_FindImage (va("fonts/%s.pcx", con_font->string), it_pic);
+	if (!draw_chars)
+	{
+		draw_chars = GL_FindImage ("fonts/default.pcx", it_pic);
+		ri.Cvar_Set( "con_font", "default" );
+	}
+
+	GL_Bind( draw_chars->texnum );
+	
+	con_font->modified = false;
+}
 
 
 /*
@@ -44,6 +64,8 @@ void Draw_InitLocal (void)
 
 	qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	//RefreshFont();
 }
 
 

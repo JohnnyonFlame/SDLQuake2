@@ -470,7 +470,9 @@ SCR_DrawCrosshair
 */
 void SCR_DrawCrosshair (void)
 {
+#ifdef QMAX
   float scale;
+#endif
 	if (!crosshair->value)
 		return;
 

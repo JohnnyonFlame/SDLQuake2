@@ -103,6 +103,9 @@ cvar_t	*gl_vertex_arrays;
 cvar_t	*r_cellshading;
 cvar_t	*r_cellshading_width;
 
+cvar_t	*con_font;
+cvar_t	*con_font_size;
+
 cvar_t	*cl_3dcam;
 cvar_t	*cl_3dcam_angle;
 cvar_t	*cl_3dcam_chase;
@@ -1668,6 +1671,9 @@ void R_RenderFrame (refdef_t *fd)
 void R_Register( void )
 {
 	r_stainmap = ri.Cvar_Get ("r_stainmap", "1", CVAR_ARCHIVE);
+
+	con_font = ri.Cvar_Get ("con_font", "default", CVAR_ARCHIVE);
+	con_font_size = ri.Cvar_Get ("con_font_size", "8", CVAR_ARCHIVE);
 
 	skydistance = ri.Cvar_Get("r_skydistance", "10000", CVAR_ARCHIVE); // DMP - skybox size change
 	gl_shellstencil = ri.Cvar_Get ("gl_shellstencil", "1", CVAR_ARCHIVE );

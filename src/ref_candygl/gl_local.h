@@ -92,6 +92,7 @@ typedef enum
 typedef struct image_s
 {
 	char	name[MAX_QPATH];			// game path, including extension
+        char	bare_name[MAX_QPATH];		// filename only, as called when searching
 	imagetype_t	type;
 	int		width, height;				// source image
 	int		upload_width, upload_height;	// after power of two and picmip
@@ -103,6 +104,10 @@ typedef struct image_s
 	qboolean	has_alpha;
 
 	qboolean paletted;
+  
+  void *script;
+
+  qboolean is_cin;
 } image_t;
 
 #define	TEXNUM_LIGHTMAPS	1024
@@ -151,12 +156,15 @@ typedef struct
 extern	image_t		gltextures[MAX_GLTEXTURES];
 extern	int			numgltextures;
 
-#define PARTICLE_TYPES 256
+//#define PARTICLE_TYPES 256
+#define PARTICLE_TYPES 1024
 
 extern	image_t		*r_particletextures[PARTICLE_TYPES];
 extern	image_t		*r_particlebeam;
 
+extern  image_t         *r_celtexture;
 extern	image_t		*r_notexture;
+extern  image_t         *r_dynamicimage;
 extern	entity_t	*currententity;
 extern	model_t		*currentmodel;
 extern	int			r_visframecount;
@@ -198,7 +206,23 @@ extern	cvar_t	*r_lerpmodels;
 extern	cvar_t	*gl_partscale;
 extern	cvar_t	*r_stainmap;
 
+extern	cvar_t	*r_shaders;
+
+extern	cvar_t	*r_model_lightlerp;
+extern	cvar_t	*r_model_dlights;
+
 extern	cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
+
+// Vic - begin
+extern cvar_t	*r_overbrightbits;
+extern cvar_t	*gl_ext_mtexcombine;
+// Vic - end
+extern cvar_t	*gl_ext_texture_compression; // Heffo - ARB Texture Compression
+
+extern	cvar_t	*con_font;
+extern	cvar_t	*con_font_size;
+
+
 
 extern cvar_t	*gl_vertex_arrays;
 extern cvar_t	*r_cellshading;
@@ -218,6 +242,11 @@ extern cvar_t	*gl_ext_multitexture;
 extern cvar_t	*gl_ext_pointparameters;
 extern cvar_t	*gl_ext_compiled_vertex_array;
 
+extern	cvar_t	*gl_stencil;
+
+extern	cvar_t	*gl_screenshot_quality;
+
+extern	cvar_t	*gl_surftrans_light;
 extern	cvar_t	*gl_nosubimage;
 extern	cvar_t	*gl_bitdepth;
 extern	cvar_t	*gl_mode;
@@ -275,12 +304,18 @@ void GL_MBind( GLenum target, int texnum );
 void GL_TexEnv( GLenum value );
 void GL_EnableMultitexture( qboolean enable );
 void GL_SelectTexture( GLenum );
-
+void GL_BlendFunction (GLenum sfactor, GLenum dfactor);
+void GL_ShadeModel (GLenum mode);
+ 
 void GL_Stencil (qboolean enable);
+qboolean GL_HasStencil (void);
+void GL_Overbright (qboolean enable);
 
 void R_LightPoint (vec3_t p, vec3_t color, qboolean isEnt);
 void R_PushDlights (void);
-
+void R_MaxColorVec (vec3_t color);
+//void R_LightPoint (vec3_t p, vec3_t color);
+ 
 //====================================================================
 
 extern	model_t	*r_worldmodel;
@@ -296,24 +331,29 @@ int 	R_Init( void *hinstance, void *hWnd );
 void	R_Shutdown( void );
 
 void R_RenderView (refdef_t *fd);
+void R_RenderMirrorView (refdef_t *fd);
 void GL_ScreenShot_f (void);
 void R_DrawAliasModel (entity_t *e);
+void R_DrawAliasShadow (entity_t *e);
 void R_DrawBrushModel (entity_t *e);
 void R_DrawSpriteModel (entity_t *e);
 void R_DrawBeam( entity_t *e );
 void R_DrawWorld (void);
 void R_RenderDlights (void);
 void R_DrawAlphaSurfaces (void);
+//void R_DrawAlphaSurfaces (qboolean elements);
 void R_RenderBrushPoly (msurface_t *fa);
 void R_InitParticleTexture (void);
 void Draw_InitLocal (void);
 void GL_SubdivideSurface (msurface_t *fa);
+void GL_SubdivideLightmappedSurface (msurface_t *fa, float subdivide_size); //Heffo surface subdivision
 qboolean R_CullBox (vec3_t mins, vec3_t maxs);
 void R_RotateForEntity (entity_t *e, qboolean full);
 void R_MarkLeaves (void);
 
 glpoly_t *WaterWarpPolyVerts (glpoly_t *p);
 void EmitWaterPolys (msurface_t *fa);
+//void EmitWaterPolys (msurface_t *fa, qboolean light, float alpha);
 void R_AddSkySurface (msurface_t *fa);
 void R_ClearSkyBox (void);
 void R_DrawSkyBox (void);
@@ -335,10 +375,14 @@ void COM_StripExtension (char *in, char *out);
 void	Draw_GetPicSize (int *w, int *h, char *name);
 void	Draw_Pic (int x, int y, char *name);
 void	Draw_StretchPic (int x, int y, int w, int h, char *name, float alpha);
+//void	Draw_StretchPic (int x, int y, int w, int h, char *name,  
+//	 int red, int green, int blue, int alpha, qboolean italic);
 void	Draw_Char (int x, int y, int c, int alpha);
+void	Draw_ScaledChar (int x, int y, int c, float scale, int alpha);
 void	Draw_TileClear (int x, int y, int w, int h, char *name);
 void	Draw_Fill (int x, int y, int w, int h, int c);
 void	Draw_FadeScreen (void);
+void	Draw_FadeBox (int x, int y, int w, int h, float alpha);
 void	Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data);
 
 float	CharMapScale (void);
@@ -354,6 +398,8 @@ void GL_ResampleTexture (unsigned *in, int inwidth, int inheight, unsigned *out,
 struct image_s *R_RegisterSkin (char *name);
 
 void LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height);
+//void LoadPNG ( char *name, byte **pic, int *width, int *height );
+//void LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height);
 
 image_t *GL_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits);
 image_t	*GL_FindImage (char *name, imagetype_t type);
@@ -427,7 +473,21 @@ typedef struct
 	const char *extensions_string;
 
 	qboolean	allow_cds;
+
+	// Vic - begin
+	qboolean 	mtexcombine;
+	// Vic - end
 } glconfig_t;
+
+#define GLSTATE_DISABLE_ALPHATEST	if (gl_state.alpha_test) { qglDisable(GL_ALPHA_TEST); gl_state.alpha_test=false; }
+#define GLSTATE_ENABLE_ALPHATEST	if (!gl_state.alpha_test) { qglEnable(GL_ALPHA_TEST); gl_state.alpha_test=true; }
+
+#define GLSTATE_DISABLE_BLEND		if (gl_state.blend) { qglDisable(GL_BLEND); gl_state.blend=false; }
+#define GLSTATE_ENABLE_BLEND		if (!gl_state.blend) { qglEnable(GL_BLEND); gl_state.blend=true; }
+
+#define GLSTATE_DISABLE_TEXGEN		if (gl_state.texgen) { qglDisable(GL_TEXTURE_GEN_S); qglDisable(GL_TEXTURE_GEN_T); qglDisable(GL_TEXTURE_GEN_R); gl_state.texgen=false; }
+#define GLSTATE_ENABLE_TEXGEN		if (!gl_state.texgen) { qglEnable(GL_TEXTURE_GEN_S); qglEnable(GL_TEXTURE_GEN_T); qglEnable(GL_TEXTURE_GEN_R); gl_state.texgen=true; }
+
 
 typedef struct
 {
@@ -446,6 +506,26 @@ typedef struct
 	float camera_separation;
 	qboolean stereo_enabled;
 
+	// advanced state manager - MrG
+
+	qboolean	alpha_test;
+	qboolean	blend;
+	qboolean	texgen;
+
+	qboolean		reg_combiners;
+	qboolean		texshaders;
+	qboolean		sgis_mipmap;
+	unsigned int	dst_texture;
+	qboolean		gammaramp;
+
+	qboolean		tex_rectangle;
+
+	// End - MrG
+
+	qboolean	texture_compression; // Heffo - ARB Texture Compression
+
+
+
 	unsigned char originalRedGammaTable[256];
 	unsigned char originalGreenGammaTable[256];
 	unsigned char originalBlueGammaTable[256];
@@ -455,6 +535,21 @@ typedef struct
 
 extern glconfig_t  gl_config;
 extern glstate_t   gl_state;
+
+// vertex arrays
+
+#define MAX_ARRAY MAX_PARTICLES*4
+
+#define VA_SetElem2(v,a,b)		((v)[0]=(a),(v)[1]=(b))
+#define VA_SetElem3(v,a,b,c)	((v)[0]=(a),(v)[1]=(b),(v)[2]=(c))
+#define VA_SetElem4(v,a,b,c,d)	((v)[0]=(a),(v)[1]=(b),(v)[2]=(c),(v)[3]=(d))
+
+extern float	tex_array[MAX_ARRAY][2];
+extern float	vert_array[MAX_ARRAY][3];
+extern float	col_array[MAX_ARRAY][4];
+
+//#include "gl_script.h"
+
 
 /*
 ====================================================================

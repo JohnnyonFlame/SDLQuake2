@@ -61,6 +61,7 @@ int config_notify_height;
 
 #ifdef OPENGL
 glwstate_t glw_state;
+static cvar_t *use_stencil;
 #endif
 						      
 // Console variables that we need to access from this module
@@ -138,6 +139,9 @@ void RW_IN_Init(in_state_t *in_state_p)
 	_windowed_mouse = ri.Cvar_Get ("_windowed_mouse", "0", CVAR_ARCHIVE);
 	m_filter = ri.Cvar_Get ("m_filter", "0", 0);
 	in_mouse = ri.Cvar_Get ("in_mouse", "1", CVAR_ARCHIVE);
+#ifdef OPENGL
+	use_stencil = ri.Cvar_Get("use_stencil", "1", CVAR_ARCHIVE);
+#endif
 #ifdef Joystick
 	in_joystick = ri.Cvar_Get ("in_joystick", "0", CVAR_ARCHIVE);
 	j_invert_y = ri.Cvar_Get("j_invert_y", "1", 0);
@@ -190,8 +194,10 @@ IN_Commands
 */
 void RW_IN_Commands (void)
 {
-	int i, key_index;
-   
+	int i;
+#ifdef Joystick
+	int key_index;
+#endif
 	if (mouse_avail) {
 	  for (i=0 ; i<3 ; i++) {
 	    if ( (mouse_buttonstate & (1<<i)) && !(mouse_oldbuttonstate & (1<<i)) )
@@ -804,8 +810,10 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1);
-
+	
+	if (use_stencil) 
+	  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1);
+	
 	flags = SDL_OPENGL;
 	if (fullscreen)
 		flags |= SDL_FULLSCREEN;
@@ -818,17 +826,18 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	}
 
 	// stencilbuffer shadows
- 	{
- 		int stencil_bits;
- 
- 		have_stencil = false;
- 
- 		if (!SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits)) {
- 			ri.Con_Printf(PRINT_ALL, "I: got %d bits of stencil\n", stencil_bits);
- 			if (stencil_bits >= 1) {
- 				have_stencil = true;
- 			}
- 		}
+ 	if (use_stencil) {
+	  int stencil_bits;
+	  
+	  have_stencil = false;
+	  
+	  if (!SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits)) {
+	    ri.Con_Printf(PRINT_ALL, "I: got %d bits of stencil\n", 
+			  stencil_bits);
+	    if (stencil_bits >= 1) {
+	      have_stencil = true;
+	    }
+	  }
 	}
 
 	SDL_WM_SetCaption("Quake II", "Quake II");

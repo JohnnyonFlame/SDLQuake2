@@ -100,9 +100,6 @@ void R_InitParticleTexture (void)
 	int		x,y;
 	byte	data[8][8][4];
 
-	byte	*pic, *palette;
-	int		width, height;
-	
 	partscale = (float)((int)gl_partscale->value)*0.01;
 	if (partscale>1)
 		partscale=1;

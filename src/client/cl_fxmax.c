@@ -1733,68 +1733,67 @@ void pDisruptExplosionThink (cparticle_t *p, vec3_t org, vec3_t angle, float *al
 
 void CL_Disruptor_Explosion_Particle (vec3_t org, float size)
 {
-	int i;
-	float	alphastart = 1,
-			alphadecel = -5;
-	cparticle_t *p;
-
-	re.AddStain(org, size, -EXPLODESTAININTESITY,-EXPLODESTAININTESITY,-EXPLODESTAININTESITY);
-
-	//now add main sprite
-	{
-		p = setupParticle (
-					0,		0,		0,
-					org[0],	org[1],	org[2],
-					0,		0,		0,
-					0,		0,		0,
-					255,	255,	255,
-					0,		0,		0,
-					alphastart,		alphadecel,
-					size,	0,			
-					particle_dexplosion1,
-					PART_DEPTHHACK_SHORT,
-					pDisruptExplosionThink, true);
-
-		if (p)
-		{
-		  //float lightsize = size/150.0;
-
-		  addParticleLight (p,
-				    size*1.0f, 0,
-				    1, 1, 1);
-		  addParticleLight (p,
-				    size*1.25f, 0,
-				    0.75, 0, 1);
-		  addParticleLight (p,
-				    size*1.65f, 0,
-				    0.25, 0, 1);
-		  addParticleLight (p,
-				    size*1.9f, 0,
-				    0, 0, 1);
-		}
-	}
-/*
-	alphastart /= 10.0;
-	alphadecel /= 10.0;
-
-	//now make volumizers...
-	for (i=0;i<256;i++)
-	{
-		int	size2 = size*2;	
-
-		setupParticle (
-					0,		0,		0,
-					org[0]+ ((rand()%size2)-size)*0.1,	org[1]+ ((rand()%size2)-size)*0.1,	org[2]+ ((rand()%size2)-size)*0.1,
-					((rand()%size2)-size)*2.0,	((rand()%size2)-size)*2.0,	((rand()%size2)-size)*2.0,
-					0,		0,		0,
-					100,	100,	200,
-					0,		0,		0,
-					alphastart,		alphadecel,
-					size/3.0,	-10,			
-					particle_smoke,
-					PART_DIRECTION,
-					pSplashThink,true);
-	}*/
+  float	alphastart = 1, 
+    alphadecel = -5;
+  cparticle_t *p;
+  
+  re.AddStain(org, size, -EXPLODESTAININTESITY,-EXPLODESTAININTESITY,-EXPLODESTAININTESITY);
+  
+  //now add main sprite
+  {
+    p = setupParticle (
+		       0,		0,		0,
+		       org[0],	org[1],	org[2],
+		       0,		0,		0,
+		       0,		0,		0,
+		       255,	255,	255,
+		       0,		0,		0,
+		       alphastart,		alphadecel,
+		       size,	0,			
+		       particle_dexplosion1,
+		       PART_DEPTHHACK_SHORT,
+		       pDisruptExplosionThink, true);
+    
+    if (p)
+      {
+	//float lightsize = size/150.0;
+	
+	addParticleLight (p,
+			  size*1.0f, 0,
+			  1, 1, 1);
+	addParticleLight (p,
+			  size*1.25f, 0,
+			  0.75, 0, 1);
+	addParticleLight (p,
+			  size*1.65f, 0,
+			  0.25, 0, 1);
+	addParticleLight (p,
+			  size*1.9f, 0,
+			  0, 0, 1);
+      }
+  }
+  /*
+    alphastart /= 10.0;
+    alphadecel /= 10.0;
+    
+    //now make volumizers...
+    for (i=0;i<256;i++)
+    {
+    int	size2 = size*2;	
+    
+    setupParticle (
+    0,		0,		0,
+    org[0]+ ((rand()%size2)-size)*0.1,	org[1]+ ((rand()%size2)-size)*0.1,	org[2]+ ((rand()%size2)-size)*0.1,
+    ((rand()%size2)-size)*2.0,	((rand()%size2)-size)*2.0,	((rand()%size2)-size)*2.0,
+    0,		0,		0,
+    100,	100,	200,
+    0,		0,		0,
+    alphastart,		alphadecel,
+    size/3.0,	-10,			
+    particle_smoke,
+    PART_DIRECTION,
+    pSplashThink,true);
+    }*/
 }
 
 /*
@@ -1815,11 +1814,11 @@ void pRainSplashThink (cparticle_t *p, vec3_t org, vec3_t angle, float *alpha, f
 
 void pWeatherFXThink (cparticle_t *p, vec3_t org, vec3_t angle, float *alpha, float *size, int *image, float *time)
 {
-	float length;
-	int i;
-	vec3_t len, ang;
-
-	VectorSubtract(p->angle, org, len);
+  float length;
+  int i;
+  vec3_t len;
+  
+  VectorSubtract(p->angle, org, len);
 	{
 		float time1, time2;
 
@@ -2194,8 +2193,7 @@ CL_ParticleEffectSparks
 
 void pSparksThink (cparticle_t *p, vec3_t org, vec3_t angle, float *alpha, float *size, int *image, float *time)
 {
-	vec3_t dir;
-	int i;
+  int i;
 
 	//setting up angle for sparks
 	{
@@ -2523,7 +2521,6 @@ Wall impact puffs
 #define pBlasterMaxSize 5
 void pBlasterThink (cparticle_t *p, vec3_t org, vec3_t angle, float *alpha, float *size, int *image, float *time)
 {
-	int i;
 	vec3_t len;
 	VectorSubtract(p->angle, org, len);
 	
@@ -3038,7 +3035,6 @@ void CL_RailTrail (vec3_t start, vec3_t end)
 	vec3_t		vec, point;
 	int			i;
 	float		len;
-	float		dec;
 	vec3_t		right, up;
 	qboolean	colored = (cl_railtype->value!=1);
 

@@ -53,16 +53,18 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include <termios.h>
+#include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
-#include <sys/vt.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <signal.h>
 #include <sys/mman.h>
 #include <dlfcn.h>
+#if defined (__linux__)
+#include <sys/vt.h>
 #include <asm/io.h>
-
+#endif
 #include <aalib.h>
 
 #include "../ref_soft/r_local.h"
@@ -240,7 +242,6 @@ rserr_t SWimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 */
 void SWimp_SetPalette( const unsigned char *palette )
 {
-	static int tmppal[256*3];
 	const unsigned char *pal;
 	int i;
 
