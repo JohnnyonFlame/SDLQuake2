@@ -17,7 +17,7 @@ Machine 2:
 - X11R6.4 (comes with Solaris 8).
 - XIL-1.4 (comes with Solaris 8).
 - OpenGL-1.2.3.
-(BIG PROBLEM: SEE BELOW)
+(BIG PROBLEM with Multi-Texturing: SEE BELOW)
 
 Installation instructions:
 -----------------------------------------------------
@@ -47,8 +47,10 @@ This should result in something like this:
 To build the the data "iDquake2d" package, edit the line in the Makefile
 that says "PKG_DATA_BUILD_DIR=/usr/local/src/quake2-data/quake2" and point
 it to the correct location for your data files.
+Set BUILD_DATA_PKG=YES in Makefile.Solaris.
 (WARNING: -everything- under ../baseq2 gets taken.
-Next, run "gmake -f Makefile.Solaris build_extra".
+
+Next, run "gmake -f Makefile.Solaris".
 This should result in something like this:
 -rw-r--r--   1 root     other    52185600 Aug  2 11:27 releasesparc/pkg/iDquake2d-release-r0.13.1-sparc.pkg
 
@@ -84,6 +86,11 @@ What's still broken:
   Note: the Utah-GLX project has a quake2 solaris source
   port that does -not- exhibit this problem (seems to be in
   ref_gl).
+  Update: Sept 4th 2002: Sun has acknowledged the problem.
+  Patches 112565-05 (5.9) and 112564-05 (5.8) don't help.
+  It looks like a problem with multi-texturing but there
+  is a WORKAROUND: add the following to your quake2 cmd
+  line (without quotes): "+set gl_ext_multitexture 0"
 
 Thank you!
 -----------------------------------------------------

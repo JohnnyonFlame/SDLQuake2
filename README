@@ -1,5 +1,16 @@
         Minor OS-oriented changes to id Software's Quake2 3.21: 
-                        "It works for me and a few others, v0.12"
+                        "It works for me and a few others, v0.14"
+
+***************************************************************************
+Important Note:  If you received an installer which installed the Quake II
+demo levels, you may not distribute that installer or the demo levels in
+anyway except electronically.  The Quake II demo levels are still Copyright
+Id Software and are not covered by the Gnu Public License which governs the
+source code.  Id has been kind enough to allow us to distribute these
+levels with an installer to show users just how cool Quake II is in the
+jopes that it will lead them to buy full versions.  Please do not harm
+our relationship with Id by distributing the demo installer electronically.
+***************************************************************************
 
 (NOTE: throughout this document, references to i386 [debugi386, releasei386,
  gamei386.so] are used.  If your architecture is not i386, just substitute
@@ -364,6 +375,10 @@ Florent Parent
 Victor Shkamerda
 Zachary 'zakk' Slater
 Matti Valtonen
+
+v 0.14 [9/5/02]
+Massive Solaris updates including packaging code [Vincent Cojot]
+Explosions are back after Brendan accidentally removed them in 0.13
 
 v 0.13: [7/10/02]
 -----

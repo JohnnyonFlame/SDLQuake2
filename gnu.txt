@@ -1,3 +1,6 @@
+Please note that this applies only to Quake II Source code, not any levels
+which may have been distributed with a binary release.
+
 GNU GENERAL PUBLIC LICENSE
 Version 2, June 1991 
 
