@@ -21,10 +21,10 @@ BUILD_SDL=YES		# SDL software driver. Works fine for some people.
 BUILD_SDLGL=YES		# SDL OpenGL driver. Works fine for some people.
 BUILD_CTFDLL=YES	# game$(ARCH).so for ctf
 BUILD_XATRIX=NO		# game$(ARCH).so for xatrix (see README.r for details)
-BUILD_ROGUE=YES		# game$(ARCH).so for rogue (see README.r for details)
+BUILD_ROGUE=NO		# game$(ARCH).so for rogue (see README.r for details)
 BUILD_JOYSTICK=YES
 BUILD_ARTS=NO
-BUILD_DEDICATED=YES
+BUILD_DEDICATED=NO
 
 # Other compile-time options:
 # Compile with IPv6 (protocol independent API). Tested on FreeBSD

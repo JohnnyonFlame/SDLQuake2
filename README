@@ -118,6 +118,8 @@ To install the "Ground Zero" Mission Pack (Rogue):
    to:
 #define _isnan(a) isnan(a)
    and try again.
+4.5 if the compilation fails on the include, change #include <nan.h> to 
+#include <bits/nan.h>
 5. copy <builddir>/rogue/gamei386.so to <installdir>/rogue/
 6. copy <cdromdir>/Data/all/pak0.pak to <installdir>/rogue/
 7. copy <cdromdir>/Data/max/Rogue/video/ to <installdir>/rogue/ (optional)
@@ -154,8 +156,9 @@ use an EraserBot gamei386.so results in a crash somewhere inside p_trail.o.
 
 Dedicated Server:
 -----------------
-If there is a demand for it, I can add support for an explicit q2ded binary.
-Else, using +set dedicated 1 should be fine.
+Dedicated Server support has been added (thanks to Wesley Bear) just modify 
+the Makefile so that BUILD_DEDICATED=YES (default NO) that should build a 
+q2ded binary in the release directory.
 
 CTF Server:
 -----------
@@ -312,6 +315,7 @@ John Allensworth
 Stephen Anthony
 William Aoki
 Michele Balistreri
+Wesley Bear
 Robert Bäuml
 Vincent Cojot
 Michel Dänzer
@@ -327,8 +331,9 @@ Victor Shkamerda
 Zachary 'zakk' Slater
 Matti Valtonen
 
-v 0.11: [??/??/??]
+v 0.11: [5/10/02]
 -----
+Added dedicated server support [Wesley Bear]
 Fixed a bug in key repeat handling under X11.
 Added gamma adjustment on the fly [Victor Shkamerda]
 Added aRts sound support [Michele Balistreri]
