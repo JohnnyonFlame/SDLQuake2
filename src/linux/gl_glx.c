@@ -38,6 +38,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <stdarg.h>
 #include <stdio.h>
 #include <signal.h>
+#include <dlfcn.h>
 
 #include "../ref_gl/gl_local.h"
 
@@ -46,13 +47,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "../linux/rw_linux.h"
 #include "../linux/glw_linux.h"
 
-#include <GL/glx.h>
+#include <X11/Xlib.h>
 
 #include <X11/keysym.h>
 #include <X11/cursorfont.h>
 
 #include <X11/extensions/xf86dga.h>
 #include <X11/extensions/xf86vmode.h>
+
+#include <GL/glx.h>
 
 glwstate_t glw_state;
 
@@ -66,6 +69,14 @@ static Atom wmDeleteWindow;
 #define MOUSE_MASK (ButtonPressMask | ButtonReleaseMask | \
 		    PointerMotionMask | ButtonMotionMask )
 #define X_MASK (KEY_MASK | MOUSE_MASK | VisibilityChangeMask | StructureNotifyMask )
+
+//GLX Functions
+static XVisualInfo * (*qglXChooseVisual)( Display *dpy, int screen, int *attribList );
+static GLXContext (*qglXCreateContext)( Display *dpy, XVisualInfo *vis, GLXContext shareList, Bool direct );
+static void (*qglXDestroyContext)( Display *dpy, GLXContext ctx );
+static Bool (*qglXMakeCurrent)( Display *dpy, GLXDrawable drawable, GLXContext ctx);
+static void (*qglXCopyContext)( Display *dpy, GLXContext src, GLXContext dst, GLuint mask );
+static void (*qglXSwapBuffers)( Display *dpy, GLXDrawable drawable );
 
 /*****************************************************************************/
 /* MOUSE                                                                     */
@@ -834,6 +845,14 @@ void GLimp_Shutdown( void )
 	dpy = NULL;
 	win = 0;
 	ctx = NULL;
+/*	
+	qglXChooseVisual             = NULL;
+	qglXCreateContext            = NULL;
+	qglXDestroyContext           = NULL;
+	qglXMakeCurrent              = NULL;
+	qglXCopyContext              = NULL;
+	qglXSwapBuffers              = NULL;
+*/	
 }
 
 /*
@@ -846,7 +865,20 @@ int GLimp_Init( void *hinstance, void *wndproc )
 {
 	InitSig();
 
-	return true;
+	if ( glw_state.OpenGLLib) {
+		#define GPA( a ) dlsym( glw_state.OpenGLLib, a )
+
+		qglXChooseVisual             =  GPA("glXChooseVisual");
+		qglXCreateContext            =  GPA("glXCreateContext");
+		qglXDestroyContext           =  GPA("glXDestroyContext");
+		qglXMakeCurrent              =  GPA("glXMakeCurrent");
+		qglXCopyContext              =  GPA("glXCopyContext");
+		qglXSwapBuffers              =  GPA("glXSwapBuffers");
+		
+		return true;
+	}
+	
+	return false;
 }
 
 /*

@@ -38,6 +38,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <stdarg.h>
 #include <stdio.h>
 #include <signal.h>
+#include <dlfcn.h>
 
 #include "../ref_gl/gl_local.h"
 #include "../client/keys.h"
@@ -58,6 +59,15 @@ extern cvar_t *vid_fullscreen;
 extern cvar_t *vid_ref;
 
 static fxMesaContext fc = NULL;
+
+//FX Mesa Functions
+fxMesaContext (*qfxMesaCreateContext)(GLuint win, GrScreenResolution_t, GrScreenRefresh_t, const GLint attribList[]);
+fxMesaContext (*qfxMesaCreateBestContext)(GLuint win, GLint width, GLint height, const GLint attribList[]);
+void (*qfxMesaDestroyContext)(fxMesaContext ctx);
+void (*qfxMesaMakeCurrent)(fxMesaContext ctx);
+fxMesaContext (*qfxMesaGetCurrentContext)(void);
+void (*qfxMesaSwapBuffers)(void);
+
 
 #define NUM_RESOLUTIONS 16
 
@@ -178,6 +188,14 @@ void GLimp_Shutdown( void )
 		qfxMesaDestroyContext(fc);
 		fc = NULL;
 	}
+/*
+	qfxMesaCreateContext         = NULL;
+	qfxMesaCreateBestContext     = NULL;
+	qfxMesaDestroyContext        = NULL;
+	qfxMesaMakeCurrent           = NULL;
+	qfxMesaGetCurrentContext     = NULL;
+	qfxMesaSwapBuffers           = NULL;
+*/		
 }
 
 /*
@@ -190,7 +208,20 @@ int GLimp_Init( void *hinstance, void *wndproc )
 {
 	InitSig();
 
-	return true;
+	if ( glw_state.OpenGLLib ) {
+		#define GPA( a ) dlsym( glw_state.OpenGLLib, a )
+		
+		qfxMesaCreateContext         =  GPA("fxMesaCreateContext");
+		qfxMesaCreateBestContext     =  GPA("fxMesaCreateBestContext");
+		qfxMesaDestroyContext        =  GPA("fxMesaDestroyContext");
+		qfxMesaMakeCurrent           =  GPA("fxMesaMakeCurrent");
+		qfxMesaGetCurrentContext     =  GPA("fxMesaGetCurrentContext");
+		qfxMesaSwapBuffers           =  GPA("fxMesaSwapBuffers");
+		
+		return true;
+	}
+	
+	return false;
 }
 
 /*
