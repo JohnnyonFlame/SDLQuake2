@@ -1136,7 +1136,7 @@ by Heffo/changes by Nexus
 int		upload_width, upload_height;
 qboolean uploaded_paletted;
 
-
+/*
 qboolean GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 {
 	int			samples;
@@ -1223,8 +1223,8 @@ qboolean GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 
 	return (samples == gl_alpha_format);
 }
+*/
 
-/*
 qboolean GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 {
 	int			samples;
@@ -1409,7 +1409,7 @@ done: ;
 
 	return (samples == gl_alpha_format);
 }
-*/
+
 /*
 ===============
 end of 
