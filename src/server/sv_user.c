@@ -154,7 +154,13 @@ void SV_Configstrings_f (void)
 	{
 		if (sv.configstrings[start][0])
 		  {
-		    int length;
+		    
+                       MSG_WriteByte (&sv_client->netchan.message, svc_configstring);
+                       MSG_WriteShort (&sv_client->netchan.message, start);
+                       MSG_WriteString (&sv_client->netchan.message, sv.configstrings[start]);
+
+/*
+  int length;
 		    
 		    // sku - write configstrings that exceed MAX_QPATH 
 		    // in proper-sized chunks
@@ -168,7 +174,8 @@ void SV_Configstrings_f (void)
 		    MSG_WriteString (&sv_client->netchan.message, sv.configstrings[start]);
 		    SZ_Write (&sv_client->netchan.message, sv.configstrings[start], length);
 		    MSG_WriteByte (&sv_client->netchan.message, 0);
-		}
+*/
+	}
 		start++;
 	}
 
