@@ -79,8 +79,8 @@ qboolean SNDDMA_Init(void)
 		}
 	}
 
-    rc = ioctl(audio_fd, SNDCTL_DSP_RESET, 0);
-    if (rc < 0)
+	rc = ioctl(audio_fd, SNDCTL_DSP_RESET, 0);
+	if (rc < 0)
 	{
 		perror(snddevice->string);
 		Com_Printf("Could not reset %s\n", snddevice->string);
@@ -91,7 +91,7 @@ qboolean SNDDMA_Init(void)
 	if (ioctl(audio_fd, SNDCTL_DSP_GETCAPS, &caps)==-1)
 	{
 		perror(snddevice->string);
-        Com_Printf("Sound driver too old\n");
+		Com_Printf("Sound driver too old\n");
 		close(audio_fd);
 		return 0;
 	}
@@ -140,7 +140,7 @@ qboolean SNDDMA_Init(void)
 	if (!dma.buffer)
 		dma.buffer = (unsigned char *) mmap(NULL, info.fragstotal
 			* info.fragsize, PROT_WRITE, MAP_FILE|MAP_SHARED, audio_fd, 0);
-	if (!dma.buffer)
+	if (!dma.buffer || dma.buffer == MAP_FAILED)
 	{
 		perror(snddevice->string);
 		Com_Printf("Could not mmap %s\n", snddevice->string);
@@ -151,14 +151,14 @@ qboolean SNDDMA_Init(void)
 	tmp = 0;
 	if (dma.channels == 2)
 		tmp = 1;
-    rc = ioctl(audio_fd, SNDCTL_DSP_STEREO, &tmp);
-    if (rc < 0)
-    {
+	rc = ioctl(audio_fd, SNDCTL_DSP_STEREO, &tmp);
+	if (rc < 0)
+	{
 		perror(snddevice->string);
-        Com_Printf("Could not set %s to stereo=%d", snddevice->string, dma.channels);
+		Com_Printf("Could not set %s to stereo=%d", snddevice->string, dma.channels);
 		close(audio_fd);
-        return 0;
-    }
+		return 0;
+	}
 	if (tmp)
 		dma.channels = 2;
 	else
