@@ -52,6 +52,7 @@ BUILD_ARTS		Build support for the aRts sound system
 			(src/linux/snd_arts.c) [default = NO]
 BUILD_DEDICATED		Build the quake 2 dedicated server q2ded.
 BUILD_QMAX		Build the eye-candy oriented Quame2 Max (see below)
+BUILD_AA		Build the aalib text mode renderer.
 
 To install the Quake2 demo data:
 --------------------------------
@@ -355,7 +356,7 @@ Victor Shkamerda
 Zachary 'zakk' Slater
 Matti Valtonen
 
-v 0.13: [?/??/??]
+v 0.13: [7/10/02]
 -----
 Added Quake2-Max GL extensions <http://modscape.telefragged.com/q2max/>
 Added aalib video renderer <http://www.jfedor.org/>

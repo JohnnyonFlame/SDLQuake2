@@ -2222,7 +2222,9 @@ void CL_ParticleEffectSparks (vec3_t org, vec3_t dir, vec3_t color, int count)
 		setupParticle (
 			0,	0,	0,
 			org[0]+((rand()&3)-2),	org[1]+((rand()&3)-2),	org[2]+((rand()&3)-2),
-			crand()*20 + dir[0]*75,			crand()*20 + dir[1]*75,			crand()*20 + dir[2]*75,
+			//crandom()*20 + dir[0]*75,crand()*20 + dir[1]*75,
+			//crand()*20 + dir[2]*75,
+			20+dir[0]*75,20+dir[1]*75,20+dir[2]*75,
 			0,		0,		0,
 			color[0],		color[1],		color[2],
 			0,	0,	0,
