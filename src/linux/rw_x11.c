@@ -107,6 +107,10 @@ static Colormap			x_cmap;
 static GC			x_gc;
 #endif
 
+#ifdef REDBLUE
+static GC				x_gc;
+#endif
+
 static Window			win;
 static Visual			*x_vis;
 static XVisualInfo		*x_visinfo;
@@ -146,8 +150,13 @@ int config_notify_height;
 						      
 typedef unsigned short PIXEL16;
 typedef unsigned long PIXEL24;
+#ifdef REDBLUE
+static PIXEL16 st2d_8to16table_s[2][256];
+static PIXEL24 st2d_8to24table_s[2][256];
+#endif
 static PIXEL16 st2d_8to16table[256];
 static PIXEL24 st2d_8to24table[256];
+
 static int shiftmask_fl=0;
 static long r_shift,g_shift,b_shift;
 static unsigned long r_mask,g_mask,b_mask;
@@ -221,7 +230,7 @@ PIXEL24 xlib_rgb24(int r,int g,int b)
 
 void st2_fixup( XImage *framebuf, int x, int y, int width, int height)
 {
-	int yi;
+  int yi;
 	byte *src;
 	PIXEL16 *dest;
 	register int count, n;
@@ -254,6 +263,65 @@ void st2_fixup( XImage *framebuf, int x, int y, int width, int height)
 //		}
 	}
 }
+
+#ifdef REDBLUE
+void st2_fixup_stereo( XImage *framebuf1, XImage *framebuf2, 
+		       int x, int y, int width, int height)
+{
+  int yi;
+  unsigned char *src;
+  PIXEL16 *dest;
+  register int count, n;
+ 
+  if( (x<0)||(y<0) )return;
+  
+  for (yi = y; yi < (y+height); yi++) {
+    src = &framebuf1->data [yi * framebuf1->bytes_per_line];
+    
+    // Duff's Device
+    count = width;
+    n = (count + 7) / 8;
+    dest = ((PIXEL16 *)src) + x+width - 1;
+    src += x+width - 1;
+    
+    switch (count % 8) {
+    case 0:	do {	*dest-- = st2d_8to16table_s[0][*src--];
+    case 7:			*dest-- = st2d_8to16table_s[0][*src--];
+    case 6:			*dest-- = st2d_8to16table_s[0][*src--];
+    case 5:			*dest-- = st2d_8to16table_s[0][*src--];
+    case 4:			*dest-- = st2d_8to16table_s[0][*src--];
+    case 3:			*dest-- = st2d_8to16table_s[0][*src--];
+    case 2:			*dest-- = st2d_8to16table_s[0][*src--];
+    case 1:			*dest-- = st2d_8to16table_s[0][*src--];
+    } while (--n > 0);
+    }
+  }
+  
+  for (yi = y; yi < (y+height); yi++) {
+    src = &framebuf1->data [yi * framebuf1->bytes_per_line];
+    
+    // Duff's Device
+    count = width;
+    n = (count + 7) / 8;
+    dest = ((PIXEL16 *)src) + x+width - 1;
+    src = &framebuf2->data [yi * framebuf2->bytes_per_line];
+    src += x+width - 1;
+    
+    switch (count % 8) {
+    case 0:	do {	*dest-- += st2d_8to16table_s[1][*src--];
+    case 7:			*dest-- += st2d_8to16table_s[1][*src--];
+    case 6:			*dest-- += st2d_8to16table_s[1][*src--];
+    case 5:			*dest-- += st2d_8to16table_s[1][*src--];
+    case 4:			*dest-- += st2d_8to16table_s[1][*src--];
+    case 3:			*dest-- += st2d_8to16table_s[1][*src--];
+    case 2:			*dest-- += st2d_8to16table_s[1][*src--];
+    case 1:			*dest-- += st2d_8to16table_s[1][*src--];
+    } while (--n > 0);
+    }
+    
+  }
+}
+#endif
 
 void st3_fixup( XImage *framebuf, int x, int y, int width, int height)
 {
@@ -291,6 +359,64 @@ void st3_fixup( XImage *framebuf, int x, int y, int width, int height)
 	}
 }
 
+#ifdef REDBLUE
+void st3_fixup_stereo( XImage *framebuf1, XImage *framebuf2, 
+		       int x, int y, int width, int height)
+{
+  int yi;
+  unsigned char *src;
+  PIXEL24 *dest;
+  register int count, n;
+
+  
+  if( (x<0)||(y<0) )return;
+  
+  for (yi = y; yi < (y+height); yi++) {
+    src = &framebuf1->data [yi * framebuf1->bytes_per_line];
+    
+    // Duff's Device
+    count = width;
+    n = (count + 7) / 8;
+    dest = ((PIXEL24 *)src) + x+width - 1;
+    src += x+width - 1;
+    
+    switch (count % 8) {
+    case 0:	do {	*dest-- = st2d_8to24table_s[0][*src--];
+    case 7:			*dest-- = st2d_8to24table_s[0][*src--];
+    case 6:			*dest-- = st2d_8to24table_s[0][*src--];
+    case 5:			*dest-- = st2d_8to24table_s[0][*src--];
+    case 4:			*dest-- = st2d_8to24table_s[0][*src--];
+    case 3:			*dest-- = st2d_8to24table_s[0][*src--];
+    case 2:			*dest-- = st2d_8to24table_s[0][*src--];
+    case 1:			*dest-- = st2d_8to24table_s[0][*src--];
+    } while (--n > 0);
+    }
+  }
+  
+  for (yi = y; yi < (y+height); yi++) {
+    src = &framebuf1->data [yi * framebuf1->bytes_per_line];
+    
+    // Duff's Device
+    count = width;
+    n = (count + 7) / 8;
+    dest = ((PIXEL24 *)src) + x+width - 1;
+    src = &framebuf2->data [yi * framebuf2->bytes_per_line];
+    src += x+width - 1;
+    
+    switch (count % 8) {
+    case 0:	do {	*dest-- += st2d_8to24table_s[1][*src--];
+    case 7:			*dest-- += st2d_8to24table_s[1][*src--];
+    case 6:			*dest-- += st2d_8to24table_s[1][*src--];
+    case 5:			*dest-- += st2d_8to24table_s[1][*src--];
+    case 4:			*dest-- += st2d_8to24table_s[1][*src--];
+    case 3:			*dest-- += st2d_8to24table_s[1][*src--];
+    case 2:			*dest-- += st2d_8to24table_s[1][*src--];
+    case 1:			*dest-- += st2d_8to24table_s[1][*src--];
+    } while (--n > 0);
+    }
+  }
+}
+#endif
 
 
 // Console variables that we need to access from this module
@@ -765,6 +891,14 @@ void ResetFrameBuffer(void)
 		free(x_framebuffer[0]->data);
 		free(x_framebuffer[0]);
 	}
+	
+#ifdef REDBLUE
+	if (x_framebuffer[1])
+	{
+		free(x_framebuffer[1]->data);
+		free(x_framebuffer[1]);
+	}
+#endif
 
 // alloc an extra line in case we want to wrap, and allocate the z-buffer
 	pwidth = x_visinfo->depth / 8;
@@ -784,7 +918,22 @@ void ResetFrameBuffer(void)
 	if (!x_framebuffer[0])
 		Sys_Error("VID: XCreateImage failed\n");
 
-	vid.buffer = (byte*) (x_framebuffer[0]);
+#ifdef REDBLUE
+	x_framebuffer[1] = XCreateImage(dpy,
+		x_vis,
+		x_visinfo->depth,
+		ZPixmap,
+		0,
+		malloc(mem),
+		vid.width, vid.height,
+		32,
+		0);
+
+	if (!x_framebuffer[1])
+		Sys_Error("VID: XCreateImage failed\n");
+#endif
+
+	vid.buffer = (byte*) (x_framebuffer[0]->data);
 }
 #endif
 
@@ -1362,8 +1511,13 @@ static qboolean SWimp_InitGraphics( qboolean fullscreen )
 		} while (!exposureflag);
 	}
 // now safe to draw
-
+#ifdef REDBLUE
+	doShm = false;
+#endif
 // even if MITSHM is available, make sure it's a local connection
+#ifdef REDBLUE
+	/*
+#endif
 	if (XShmQueryExtension(dpy))
 	{
 		char *displayname;
@@ -1383,7 +1537,9 @@ static qboolean SWimp_InitGraphics( qboolean fullscreen )
 			free(dptr);
 		}
 	}
-
+#ifdef REDBLUE
+	*/
+#endif
 	if (doShm)
 	{
 		x_shmeventtype = XShmGetEventBase(dpy) + ShmCompletion;
@@ -1437,10 +1593,10 @@ void SWimp_EndFrame (void)
 
 	if (doShm)
 	{
-		if (x_visinfo->depth == 16)
-			st2_fixup( x_framebuffer[current_framebuffer], 0, 0, vid.width, vid.height);
-		else if (x_visinfo->depth == 24)
-			st3_fixup( x_framebuffer[current_framebuffer], 0, 0, vid.width, vid.height);
+	  if (x_visinfo->depth == 16)
+	    st2_fixup( x_framebuffer[current_framebuffer], 0, 0, vid.width, vid.height);
+	  else if (x_visinfo->depth == 24)
+	    st3_fixup( x_framebuffer[current_framebuffer], 0, 0, vid.width, vid.height);
 		if (!XShmPutImage(dpy, win, x_gc,
 			x_framebuffer[current_framebuffer], 0, 0, 0, 0, vid.width, vid.height, True))
 			Sys_Error("VID_Update: XShmPutImage failed\n");
@@ -1453,12 +1609,25 @@ void SWimp_EndFrame (void)
 	}
 	else
 	{
-		if (x_visinfo->depth == 16)
-			st2_fixup( x_framebuffer[current_framebuffer], 0, 0, vid.width, vid.height);
-		else if (x_visinfo->depth == 24)
-			st3_fixup( x_framebuffer[current_framebuffer], 0, 0, vid.width, vid.height);
-		XPutImage(dpy, win, x_gc, x_framebuffer[0], 0, 0, 0, 0, vid.width, vid.height);
-		XSync(dpy, False);
+
+#ifdef REDBLUE
+	  if (x_visinfo->depth == 16)
+	    st2_fixup_stereo( x_framebuffer[0], x_framebuffer[1], 
+			      0, 0, vid.width, vid.height);
+	  else if (x_visinfo->depth == 24)
+	    st3_fixup_stereo( x_framebuffer[0], x_framebuffer[1], 
+			      0, 0, vid.width, vid.height);
+#else	
+	  if (x_visinfo->depth == 16)
+	    st2_fixup( x_framebuffer[current_framebuffer], 
+		       0, 0, vid.width, vid.height);
+	  else if (x_visinfo->depth == 24)
+	    st3_fixup( x_framebuffer[current_framebuffer], 
+		       0, 0, vid.width, vid.height);
+#endif
+	  XPutImage(dpy, win, x_gc, x_framebuffer[0], 0, 
+		    0, 0, 0, vid.width, vid.height);
+	  XSync(dpy, False);
 	}
 }
 #endif
@@ -1512,8 +1681,17 @@ void SWimp_SetPalette( const unsigned char *palette )
 		palette = ( const unsigned char * ) sw_state.currentpalette;
  
 	for(i=0;i<256;i++) {
-		st2d_8to16table[i]= xlib_rgb16(palette[i*4], palette[i*4+1],palette[i*4+2]);
-		st2d_8to24table[i]= xlib_rgb24(palette[i*4], palette[i*4+1],palette[i*4+2]);
+#ifdef REDBLUE
+	  int tmp = (30*palette[i*4] + 59*palette[i*4+1] + 11*palette[i*4+2]) / 100;
+	  st2d_8to16table_s[0][i]= xlib_rgb16(tmp,0,0);
+	  st2d_8to24table_s[0][i]= xlib_rgb24(tmp,0,0);
+	  st2d_8to16table_s[1][i]= xlib_rgb16(0,0,tmp);
+	  st2d_8to24table_s[1][i]= xlib_rgb24(0,0,tmp);
+#endif
+	  st2d_8to16table[i]= xlib_rgb16(palette[i*4], 
+					 palette[i*4+1],palette[i*4+2]);
+	  st2d_8to24table[i]= xlib_rgb24(palette[i*4], 
+					 palette[i*4+1],palette[i*4+2]);
 	}
 
 	if (x_visinfo->class == PseudoColor && x_visinfo->depth == 8)
@@ -1553,10 +1731,17 @@ void SWimp_Shutdown( void )
 				shmdt(x_shminfo[i].shmaddr);
 				x_framebuffer[i] = NULL;
 			}
-	} else if (x_framebuffer[0]) {
-		free(x_framebuffer[0]->data);
-		free(x_framebuffer[0]);
-		x_framebuffer[0] = NULL;
+	} else {
+	  if (x_framebuffer[0]) {
+	    free(x_framebuffer[0]->data);
+	    free(x_framebuffer[0]);
+	    x_framebuffer[0] = NULL;
+	  }
+	  if (x_framebuffer[1]) {
+	    free(x_framebuffer[1]->data);
+	    free(x_framebuffer[1]);
+	    x_framebuffer[1] = NULL;
+	  }
 	}
 
 	XDestroyWindow(	dpy, win );
@@ -1577,6 +1762,16 @@ void SWimp_Shutdown( void )
 void SWimp_AppActivate( qboolean active )
 {
 }
+
+#ifdef REDBLUE
+void SetStereoBuffer(int buf)
+{
+  if (x_framebuffer[buf])
+    vid.buffer = (byte*) (x_framebuffer[buf]->data);
+  else
+    printf("SetStereoBuffer: x_framebuffer[%d] is NULL\n", buf);
+}
+#endif
 #endif
 //===============================================================================
 

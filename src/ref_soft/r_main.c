@@ -1090,13 +1090,18 @@ void R_InitGraphics( int width, int height )
 	R_GammaCorrectAndSetPalette( ( const unsigned char *) d_8to24table );
 }
 
+#ifdef REDBLUE
+void SetStereoBuffer(int buf);
+#endif
 /*
 ** R_BeginFrame
 */
 void R_BeginFrame( float camera_separation )
 {
 	extern void Draw_BuildGammaTable( void );
-
+#ifdef REDBLUE
+	SetStereoBuffer((camera_separation <= 0.0) ? 0 : 1);
+#endif
 	/*
 	** rebuild the gamma correction palette if necessary
 	*/

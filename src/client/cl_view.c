@@ -560,10 +560,10 @@ void V_RenderView( float stereo_separation )
 		// offset vieworg appropriately if we're doing stereo separation
 		if ( stereo_separation != 0 )
 		{
-			vec3_t tmp;
-
-			VectorScale( cl.v_right, stereo_separation, tmp );
-			VectorAdd( cl.refdef.vieworg, tmp, cl.refdef.vieworg );
+		  vec3_t tmp;
+		  
+		  VectorScale( cl.v_right, stereo_separation, tmp );
+		  VectorAdd( cl.refdef.vieworg, tmp, cl.refdef.vieworg );
 		}
 
 		// never let it sit exactly on a node line, because a water plane can

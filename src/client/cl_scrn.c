@@ -1309,11 +1309,24 @@ void SCR_UpdateScreen (void)
 	** range check cl_camera_separation so we don't inadvertently fry someone's
 	** brain
 	*/
+#ifdef REDBLUE
+	if ( cl_stereo_separation->value > 10.0 )
+		Cvar_SetValue( "cl_stereo_separation", 10.0 );
+#else
 	if ( cl_stereo_separation->value > 1.0 )
 		Cvar_SetValue( "cl_stereo_separation", 1.0 );
+#endif
 	else if ( cl_stereo_separation->value < 0 )
 		Cvar_SetValue( "cl_stereo_separation", 0.0 );
 
+#ifdef REDBLUE
+	if ( !cl_stereo->value )
+	  Cvar_SetValue( "cl_stereo", 1 );
+
+	numframes = 2;
+	separation[0] = -cl_stereo_separation->value / 2.0;
+	separation[1] =  cl_stereo_separation->value / 2.0;
+#else
 	if ( cl_stereo->value )
 	{
 		numframes = 2;
@@ -1326,104 +1339,104 @@ void SCR_UpdateScreen (void)
 		separation[1] = 0;
 		numframes = 1;
 	}
-
+#endif
 	for ( i = 0; i < numframes; i++ )
 	{
-		re.BeginFrame( separation[i] );
-
-		if (scr_draw_loading == 2)
-		{	//  loading plaque over black screen
-			int		w, h;
-
-			re.CinematicSetPalette(NULL);
-			scr_draw_loading = false;
-			re.DrawGetPicSize (&w, &h, "loading");
-			re.DrawPic ((viddef.width-w)/2, (viddef.height-h)/2, "loading");
-//			re.EndFrame();
-//			return;
-		} 
-		// if a cinematic is supposed to be running, handle menus
-		// and console specially
-		else if (cl.cinematictime > 0)
+	  re.BeginFrame( separation[i] );
+	  
+	  if (scr_draw_loading == 2)
+	    {	//  loading plaque over black screen
+	      int		w, h;
+	      
+	      re.CinematicSetPalette(NULL);
+	      scr_draw_loading = false;
+	      re.DrawGetPicSize (&w, &h, "loading");
+	      re.DrawPic ((viddef.width-w)/2, (viddef.height-h)/2, "loading");
+	      //			re.EndFrame();
+	      //			return;
+	    } 
+	  // if a cinematic is supposed to be running, handle menus
+	  // and console specially
+	  else if (cl.cinematictime > 0)
+	    {
+	      if (cls.key_dest == key_menu)
 		{
-			if (cls.key_dest == key_menu)
-			{
-				if (cl.cinematicpalette_active)
-				{
-					re.CinematicSetPalette(NULL);
-					cl.cinematicpalette_active = false;
-				}
-				M_Draw ();
-//				re.EndFrame();
-//				return;
-			}
-			else if (cls.key_dest == key_console)
-			{
-				if (cl.cinematicpalette_active)
-				{
-					re.CinematicSetPalette(NULL);
-					cl.cinematicpalette_active = false;
-				}
-				SCR_DrawConsole ();
-//				re.EndFrame();
-//				return;
-			}
-			else
-			{
-				SCR_DrawCinematic();
-//				re.EndFrame();
-//				return;
-			}
+		  if (cl.cinematicpalette_active)
+		    {
+		      re.CinematicSetPalette(NULL);
+		      cl.cinematicpalette_active = false;
+		    }
+		  M_Draw ();
+		  //				re.EndFrame();
+		  //				return;
 		}
-		else 
+	      else if (cls.key_dest == key_console)
 		{
-
-			// make sure the game palette is active
-			if (cl.cinematicpalette_active)
-			{
-				re.CinematicSetPalette(NULL);
-				cl.cinematicpalette_active = false;
-			}
-
-			// do 3D refresh drawing, and then update the screen
-			SCR_CalcVrect ();
-
-			// clear any dirty part of the background
-			SCR_TileClear ();
-
-			V_RenderView ( separation[i] );
-
-			SCR_DrawStats ();
-			if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 1)
-				SCR_DrawLayout ();
-			if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 2)
-				CL_DrawInventory ();
-
-			SCR_DrawNet ();
-			SCR_CheckDrawCenterString ();
-
-			// FPS counter hack 
-			// http://www.quakesrc.org/?Page=tutorials&What=./tutorials/Quake2/misc/fps.txt
-			if (cl_drawfps->value) {
-				char s[8];
-				sprintf(s,"%3.0ffps", 1/cls.frametime);
-				DrawString(viddef.width-64,0,s);
-			}
-			
-			if (scr_timegraph->value)
-				SCR_DebugGraph (cls.frametime*300, 0);
-
-			if (scr_debuggraph->value || scr_timegraph->value || scr_netgraph->value)
-				SCR_DrawDebugGraph ();
-
-			SCR_DrawPause ();
-
-			SCR_DrawConsole ();
-
-			M_Draw ();
-
-			SCR_DrawLoading ();
+		  if (cl.cinematicpalette_active)
+		    {
+		      re.CinematicSetPalette(NULL);
+		      cl.cinematicpalette_active = false;
+		    }
+		  SCR_DrawConsole ();
+		  //				re.EndFrame();
+		  //				return;
 		}
+	      else
+		{
+		  SCR_DrawCinematic();
+		  //				re.EndFrame();
+		  //				return;
+		}
+	    }
+	  else 
+	    {
+	      
+	      // make sure the game palette is active
+	      if (cl.cinematicpalette_active)
+		{
+		  re.CinematicSetPalette(NULL);
+		  cl.cinematicpalette_active = false;
+		}
+	      
+	      // do 3D refresh drawing, and then update the screen
+	      SCR_CalcVrect ();
+	      
+	      // clear any dirty part of the background
+	      SCR_TileClear ();
+	      
+	      V_RenderView ( separation[i] );
+	      
+	      SCR_DrawStats ();
+	      if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 1)
+		SCR_DrawLayout ();
+	      if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 2)
+		CL_DrawInventory ();
+	      
+	      SCR_DrawNet ();
+	      SCR_CheckDrawCenterString ();
+	      
+	      // FPS counter hack 
+	      // http://www.quakesrc.org/?Page=tutorials&What=./tutorials/Quake2/misc/fps.txt
+	      if (cl_drawfps->value) {
+		char s[8];
+		sprintf(s,"%3.0ffps", 1/cls.frametime);
+		DrawString(viddef.width-64,0,s);
+	      }
+	      
+	      if (scr_timegraph->value)
+		SCR_DebugGraph (cls.frametime*300, 0);
+	      
+	      if (scr_debuggraph->value || scr_timegraph->value || scr_netgraph->value)
+		SCR_DrawDebugGraph ();
+	      
+	      SCR_DrawPause ();
+	      
+	      SCR_DrawConsole ();
+	      
+	      M_Draw ();
+	      
+	      SCR_DrawLoading ();
+	    }
 	}
 	re.EndFrame();
 }

@@ -29,6 +29,7 @@ BUILD_DEDICATED=NO	# build a dedicated quake2 server
 BUILD_AA=YES		# build the ascii soft renderer.
 BUILD_QMAX=YES		# build the fancier GL graphics
 BUILD_RETEXTURE=YES     # build a version supporting retextured graphics
+BUILD_REDBLUE=NO	# build a red-blue 3d glasses renderer...
 STATICSDL=NO
 SDLDIR=/usr/local/lib
 
@@ -350,6 +351,10 @@ endif # ARCH i386
 
 ifeq ($(strip $(BUILD_AA)),YES)
 	TARGETS += $(BUILDDIR)/ref_softaa.$(SHLIBEXT)
+endif
+
+ifeq ($(strip $(BUILD_REDBLUE)),YES)
+	BASE_CFLAGS += -DREDBLUE
 endif
 
 all: build_debug build_release

@@ -388,9 +388,12 @@ Rusty Mellinger
 Karen Pouelle
 
 v 0.16 [??/??/??]
+Red/Blue 3D support <http://www.jfedor.org>
 Retexturing support (thanks to Karen Pouelle)
 Better FreeBSD support (thanks to /danfe)
+Added ALSA sound support
 Some miscelaneous fixes which I've forgotten about
+
 
 v 0.15 [10/08/02]
 Solaris updates from Vincent
