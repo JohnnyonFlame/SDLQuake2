@@ -59,15 +59,15 @@ $(error arch $(ARCH) is currently not supported)
 endif
 endif
 
-CC=gcc
+CC=gcc3
 
 ifeq ($(ARCH),sparc)
-RELEASE_CFLAGS=$(BASE_CFLAGS) -ffast-math -funroll-loops \
+RELEASE_CFLAGS=$(BASE_CFLAGS) -O4 -mcpu=ultrasparc -mtune=ultrasparc -ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
 endif
 
 ifeq ($(ARCH),i386)
-RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops -malign-loops=2 \
+RELEASE_CFLAGS=$(BASE_CFLAGS) -O3 -ffast-math -funroll-loops -malign-loops=2 \
 	-malign-jumps=2 -malign-functions=2 -g
 endif
 
