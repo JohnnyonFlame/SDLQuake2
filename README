@@ -46,8 +46,17 @@ BUILD_ROGUE             Build the Rogue gamei386.so for the "Ground Zero"
                         Mission Pack (default = NO). [see notes below]
 HAVE_IPV6		Build quake2 with IPv6 support (currently only
                         tested on FreeBSD, see below for info) (default = NO).
+BUILD_JOYSTICK		Build quake2 with support for SDL and Linux joysticks,
+			[default = YES].
+To install the Quake2 demo data:
+(installdir is whereever you want to install quake2)
+1. download ftp://ftp.idsoftware.com/idstuff/quake2/q2-314-demo-x86.exe
+2. unzip -L q2-314-demo-x86.exe into a temp directory
+3. cp baseq2/pak0.pak to <installdir>/baseq2/pak0.pak
 
-To install the Quake2 gamedata:
+Continue with the "To Install This Program" directions bellow
+
+To install the Quake2 gamedata from game CD:
 -------------------------------
 (installdir is wherever you want to install quake2, and cdromdir is wherever
 you mount the Quake 2 CD-ROM)
@@ -294,6 +303,10 @@ Peter van Paassen
 Florent Parent
 Zachary 'zakk' Slater
 Matti Valtonen
+
+v 0.11: [??/??/??]
+-----
+Fixed a bug in key repeat handling under X11.
 
 v 0.10: [4/01/02] (no fooling...)
 -----
