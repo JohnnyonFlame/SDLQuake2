@@ -921,7 +921,9 @@ int XLateKey(XKeyEvent *ev)
 /* Check to see if this is a repeated key.
    (idea shamelessly lifted from SDL who...)
    (idea shamelessly lifted from GII -- thanks guys! :)
- */
+   This has bugs if two keys are being pressed simultaneously and the
+   events start getting interleaved.
+*/
 int X11_KeyRepeat(Display *display, XEvent *event)
 {
 	XEvent peekevent;
@@ -956,12 +958,12 @@ void HandleEvents(void)
 	  case KeyPress:
 	    myxtime = event.xkey.time;
 	    if (in_state && in_state->Key_Event_fp)
-	      in_state->Key_Event_fp (XLateKey(&event.xkey), event.type == KeyPress);
+	      in_state->Key_Event_fp (XLateKey(&event.xkey), true);
 	    break;
 	  case KeyRelease:
 	    if (! X11_KeyRepeat(dpy, &event)) {
 	      if (in_state && in_state->Key_Event_fp)
-		in_state->Key_Event_fp (XLateKey(&event.xkey), event.type == KeyPress);
+		in_state->Key_Event_fp (XLateKey(&event.xkey), false);
 	    }
 	    break;
 	    
