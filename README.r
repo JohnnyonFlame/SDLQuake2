@@ -63,6 +63,9 @@ you mount the Quake 2 CD-ROM)
    <installdir>/baseq2/
 6. copy <q2-3.20-x86-full.exe temp directory>/baseq2/players/ to 
    <installdir>/baseq2/
+7. if you really want to use the crakhor model, you can find the
+   skins/sounds on websites like http://www.mike-d.com/games/modskins.html
+   (optional)
 
 To install this program:
 ------------------------
