@@ -30,8 +30,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "../ref_gl/gl_local.h"
-#include "glw_solaris.h"
-#include "qgl_solaris.h"
+#include "../solaris/glw_solaris.h"
+#include "../solaris/qgl_solaris.h"
 
 #include <dlfcn.h>
 

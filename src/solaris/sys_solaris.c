@@ -39,7 +39,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <dlfcn.h>
 
 #include "../qcommon/qcommon.h"
-#include "rw_solaris.h"
+#include "../solaris/rw_solaris.h"
 
 #if defined(SOL8_XIL_WORKAROUND)
 #include <xil/xil.h>

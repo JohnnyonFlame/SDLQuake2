@@ -23,7 +23,7 @@
 
 #include "../ref_soft/r_local.h"
 #include "../client/keys.h"
-#include "rw_solaris.h"
+#include "../solaris/rw_solaris.h"
 
 #include "q2.xbm"
 
