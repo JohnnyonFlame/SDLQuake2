@@ -982,13 +982,13 @@ void HandleEvents(void)
       
       if (mouse_active) {
 	if (dgamouse) {
-	  mx += (event.xmotion.x + win_x) * 2;
-	  my += (event.xmotion.y + win_y) * 2;
+	  mx += (event.xmotion.x + win_x);
+	  my += (event.xmotion.y + win_y);
 	} 
 	else 
 	  {
-	    mx += ((int)event.xmotion.x - mwx) * 2;
-	    my += ((int)event.xmotion.y - mwy) * 2;
+	    mx += ((int)event.xmotion.x - mwx);
+	    my += ((int)event.xmotion.y - mwy);
 	    mwx = event.xmotion.x;
 	    mwy = event.xmotion.y;
 	    
