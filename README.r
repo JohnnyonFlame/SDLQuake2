@@ -1,6 +1,9 @@
 id Software's Quake2 3.21+Changes by Steven Fuller <relnev@icculus.org>, 
                                      et al.
 
+(NOTE: throughout this document, references to i386 [debugi386, releasei386,
+ gamei386.so] are used.  If your architecture is not i386, just substitute
+ that for i386.  The Makefile gives some hints as to what is supported.)
 
 For this to be of any use, you _must_ own a copy of Quake 2.  The demo would
 also work, but you might as well buy the full thing now.
@@ -12,7 +15,7 @@ Be sure to install SDL 1.2 (http://www.libsdl.org) if you want to use the
 softsdl or sdlgl drivers, or the sdlquake2 binary.
 
 'make' will, by default, build both the debug and release files.
-To build fully optimized binaries: make build_release
+To build just the optimized binaries: make build_release
 The resulting binaries are then put in releasei386.
 
 
