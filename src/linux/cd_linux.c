@@ -143,8 +143,7 @@ void CDAudio_Play(int track, qboolean looping)
 	struct cd_toc_entry toc_buffer;
 	struct ioc_play_track ti;
 #endif
-
-#ifdef __linux__
+#if defined(__linux__)
 	struct cdrom_tocentry entry;
 	struct cdrom_ti ti;
 #endif
@@ -233,7 +232,7 @@ void CDAudio_Play(int track, qboolean looping)
 #if defined(__FreeBSD__)
 	if ( ioctl(cdfile, CDIOCRESUME) == -1 )
 #endif
-#if defined(__FreeBSD__)
+#if defined(__linux__)
 	if ( ioctl(cdfile, CDROMRESUME) == -1 )
 #endif	
 		Com_DPrintf("ioctl cdromresume failed\n");
@@ -251,8 +250,15 @@ void CDAudio_RandomPlay(void)
   int track, i = 0, free_tracks = 0, remap_track;
   float f;
   unsigned char track_bools[100];
+#if defined(__FreeBSD__)
+  struct ioc_read_toc_entry entry;
+  struct cd_toc_entry toc_buffer;
+  struct ioc_play_track ti;
+#endif
+#if defined(__linux__)
   struct cdrom_tocentry entry;
   struct cdrom_ti ti;
+#endif
 
   if (cdfile == -1 || !enabled)
     return;
@@ -261,6 +267,22 @@ void CDAudio_RandomPlay(void)
 
   for (; i < maxTrack; i++)
     {
+#if defined(__FreeBSD__)
+  #define CDROM_DATA_TRACK 4
+  bzero((char *)&toc_buffer, sizeof(toc_buffer));
+  entry.data_len = sizeof(toc_buffer);
+  entry.data = &toc_buffer;
+
+	entry.starting_track = remap[i];
+	entry.address_format = CD_LBA_FORMAT;
+	if ( ioctl(cdfile, CDIOREADTOCENTRYS, &entry) == -1 )
+	{
+	  track_bools[i] = 0;
+	}
+	else 
+	  track_bools[i] = (entry.data->control != CDROM_DATA_TRACK);
+#endif
+#if defined(__linux__)
 	entry.cdte_track = remap[i];
 	entry.cdte_format = CDROM_LBA;
 	if ( ioctl(cdfile, CDROMREADTOCENTRY, &entry) == -1 )
@@ -269,6 +291,7 @@ void CDAudio_RandomPlay(void)
 	}
 	else 
 	  track_bools[i] = (entry.cdte_ctrl != CDROM_DATA_TRACK);
+#endif
 	
 	free_tracks += track_bools[i];
     }
@@ -298,10 +321,20 @@ void CDAudio_RandomPlay(void)
 	  CDAudio_Stop();
 	}
 
+#if defined(__FreeBSD__)
+      #define CDROMPLAYTRKIND 0x5304
+
+      ti.start_track = remap_track;
+      ti.end_track = remap_track;
+      ti.start_index = 0;
+      ti.end_index = 0;
+#endif
+#if defined(__linux__)
       ti.cdti_trk0 = remap_track;
       ti.cdti_trk1 = remap_track;
       ti.cdti_ind0 = 0;
       ti.cdti_ind1 = 0;
+#endif
 
       if ( ioctl(cdfile, CDROMPLAYTRKIND, &ti) == -1 ) 
 	{
