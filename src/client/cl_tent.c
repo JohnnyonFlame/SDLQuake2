@@ -75,11 +75,24 @@ cl_sustain_t	cl_sustains[MAX_SUSTAINS];
 extern void CL_TeleportParticles (vec3_t org);
 //PGM
 
+#ifdef QMAX
+void CL_BloodHit (vec3_t org, vec3_t dir);
+void CL_BlasterParticles (vec3_t org, vec3_t dir, int count);
+#else
 void CL_BlasterParticles (vec3_t org, vec3_t dir);
-void CL_ExplosionParticles (vec3_t org);
+#endif
 void CL_BFGExplosionParticles (vec3_t org);
 // RAFAEL
 void CL_BlueBlasterParticles (vec3_t org, vec3_t dir);
+
+#ifdef QMAX
+void CL_Explosion_Particle (vec3_t org, float scale, qboolean large, qboolean rocket);
+void CL_ExplosionParticles (vec3_t org, float alpha);
+#define EXPLOSION_PARTICLES(x) CL_ExplosionParticles((x), 1);
+#else
+void CL_ExplosionParticles (vec3_t org);
+#define EXPLOSION_PARTICLES(x) CL_ExplosionParticles((x));
+#endif
 
 struct sfx_s	*cl_sfx_ric1;
 struct sfx_s	*cl_sfx_ric2;
@@ -221,6 +234,19 @@ void CL_ClearTEnts (void)
 	memset (cl_sustains, 0, sizeof(cl_sustains));
 //ROGUE
 }
+
+#ifdef QMAX
+#define EXP_DIST 10
+void CL_R_Explode_SP (vec3_t origin)
+{
+	CL_Explosion_Particle (origin, 0, true, true);
+}
+
+void CL_G_Explode_SP (vec3_t origin)
+{
+	CL_Explosion_Particle (origin, 0, true, false);
+}
+#endif
 
 /*
 =================
@@ -552,6 +578,23 @@ void CL_ParseLaser (int colors)
 	}
 }
 
+#ifdef QMAX
+void CL_GunSmokeEffect (vec3_t org, vec3_t dir)
+{
+	vec3_t		velocity, origin;
+	int			j;
+
+	for (j=0 ; j<3 ; j++)
+	{
+		origin[j] = org[j] + dir[j]*10;
+		velocity[j] = 10*dir[j];
+	}
+	velocity[2] = 10;
+
+	CL_ParticleSmokeEffect (origin, velocity, 0, 10, 10);
+
+}
+#endif
 //=============
 //ROGUE
 void CL_ParseSteam (void)
@@ -709,7 +752,11 @@ void CL_ParseTEnt (void)
 	case TE_BLOOD:			// bullet hitting flesh
 		MSG_ReadPos (&net_message, pos);
 		MSG_ReadDir (&net_message, dir);
+#ifdef QMAX
+		CL_BloodHit (pos, dir);
+#else
 		CL_ParticleEffect (pos, dir, 0xe8, 60);
+#endif
 		break;
 
 	case TE_GUNSHOT:			// bullet hitting wall
@@ -792,12 +839,19 @@ void CL_ParseTEnt (void)
 	case TE_BLUEHYPERBLASTER:
 		MSG_ReadPos (&net_message, pos);
 		MSG_ReadPos (&net_message, dir);
+#ifdef QMAX
+		CL_BlasterParticles (pos, dir, 50);
+#else
 		CL_BlasterParticles (pos, dir);
+#endif
 		break;
 
 	case TE_BLASTER:			// blaster hitting wall
 		MSG_ReadPos (&net_message, pos);
 		MSG_ReadDir (&net_message, dir);
+#ifdef QMAX
+		CL_BlasterParticles (pos, dir, 40);
+#else		
 		CL_BlasterParticles (pos, dir);
 
 		ex = CL_AllocExplosion ();
@@ -821,6 +875,7 @@ void CL_ParseTEnt (void)
 		ex->lightcolor[1] = 1;
 		ex->ent.model = cl_mod_explode;
 		ex->frames = 4;
+#endif
 		S_StartSound (pos,  0, 0, cl_sfx_lashit, 1, ATTN_NORM, 0);
 		break;
 		
@@ -835,7 +890,13 @@ void CL_ParseTEnt (void)
 	case TE_GRENADE_EXPLOSION:
 	case TE_GRENADE_EXPLOSION_WATER:
 		MSG_ReadPos (&net_message, pos);
+#ifdef QMAX
+		CL_G_Explode_SP(pos);
 
+//		if (type!=TE_GRENADE_EXPLOSION_WATER)
+//			CL_Radius_Explode_SP(pos, 1.25);
+		CL_ExplosionParticles (pos,1.25);
+#else
 		ex = CL_AllocExplosion ();
 		VectorCopy (pos, ex->ent.origin);
 		ex->type = ex_poly;
@@ -849,7 +910,8 @@ void CL_ParseTEnt (void)
 		ex->frames = 19;
 		ex->baseframe = 30;
 		ex->ent.angles[1] = rand() % 360;
-		CL_ExplosionParticles (pos);
+		EXPLOSION_PARTICLES (pos);
+#endif
 		if (type == TE_GRENADE_EXPLOSION_WATER)
 			S_StartSound (pos, 0, 0, cl_sfx_watrexp, 1, ATTN_NORM, 0);
 		else
@@ -873,7 +935,7 @@ void CL_ParseTEnt (void)
 		if (frand() < 0.5)
 			ex->baseframe = 15;
 		ex->frames = 15;
-		CL_ExplosionParticles (pos);
+		EXPLOSION_PARTICLES (pos);
 		S_StartSound (pos, 0, 0, cl_sfx_rockexp, 1, ATTN_NORM, 0);
 		break;
 	
@@ -884,6 +946,10 @@ void CL_ParseTEnt (void)
 	case TE_EXPLOSION1_NP:						// PMM
 		MSG_ReadPos (&net_message, pos);
 
+#ifdef QMAX
+		//CL_R_Explode_SP(pos);
+		CL_ExplosionParticles (pos, 1);	
+#else
 		ex = CL_AllocExplosion ();
 		VectorCopy (pos, ex->ent.origin);
 		ex->type = ex_poly;
@@ -902,7 +968,8 @@ void CL_ParseTEnt (void)
 			ex->baseframe = 15;
 		ex->frames = 15;
 		if ((type != TE_EXPLOSION1_BIG) && (type != TE_EXPLOSION1_NP))		// PMM
-			CL_ExplosionParticles (pos);									// PMM
+			EXPLOSION_PARTICLES (pos);									// PMM
+#endif
 		if (type == TE_ROCKET_EXPLOSION_WATER)
 			S_StartSound (pos, 0, 0, cl_sfx_watrexp, 1, ATTN_NORM, 0);
 		else

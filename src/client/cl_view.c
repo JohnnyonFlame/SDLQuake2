@@ -53,6 +53,25 @@ lightstyle_t	r_lightstyles[MAX_LIGHTSTYLES];
 char cl_weaponmodels[MAX_CLIENTWEAPONMODELS][MAX_QPATH];
 int num_cl_weaponmodels;
 
+#ifdef QMAX
+/*
+====================
+CL_Trace
+
+====================
+*/
+
+trace_t CL_Trace (vec3_t start, vec3_t end, float size,  int contentmask)
+{
+	vec3_t maxs, mins;
+
+	VectorSet(maxs, size, size, size);
+	VectorSet(mins, -size, -size, -size);
+
+	return CM_BoxTrace (start, end, mins, maxs, 0, contentmask);
+}
+#endif
+
 /*
 ====================
 V_ClearScene
@@ -88,6 +107,34 @@ V_AddParticle
 
 =====================
 */
+#ifdef QMAX
+void V_AddParticle (vec3_t org, vec3_t angle, vec3_t color, float alpha, float size, int image, int flags)
+{
+	int i;
+	particle_t	*p;
+
+	if (r_numparticles >= MAX_PARTICLES)
+		return;
+	p = &r_particles[r_numparticles++];
+
+	for (i=0;i<3;i++)
+	{
+		p->origin[i] = org[i];
+		p->angle[i] = angle[i];
+	}
+	p->red = color[0];
+	p->green = color[1];
+	p->blue = color[2];
+	p->alpha = alpha;
+	p->image = image;
+	p->flags = flags;
+	p->size  = size;
+
+	
+
+	
+}
+#else
 void V_AddParticle (vec3_t org, int color, float alpha)
 {
 	particle_t	*p;
@@ -99,7 +146,7 @@ void V_AddParticle (vec3_t org, int color, float alpha)
 	p->color = color;
 	p->alpha = alpha;
 }
-
+#endif
 /*
 =====================
 V_AddLight

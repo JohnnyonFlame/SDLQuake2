@@ -178,6 +178,9 @@ ifeq ($(strip $(BUILD_QMAX)),YES)
 GLXLDFLAGS+=-ljpeg
 SDLGLLDFLAGS+=-ljpeg
 REF_GL_DIR = $(MOUNT_DIR)/ref_candygl
+CL_FX = cl_fxmax.c
+else
+CL_FX = cl_fx.c
 endif
 
 SHLIBEXT=so
@@ -452,7 +455,7 @@ $(BUILDDIR)/client/cl_cin.o :     $(CLIENT_DIR)/cl_cin.c
 $(BUILDDIR)/client/cl_ents.o :    $(CLIENT_DIR)/cl_ents.c
 	$(DO_CC)
 
-$(BUILDDIR)/client/cl_fx.o :      $(CLIENT_DIR)/cl_fx.c
+$(BUILDDIR)/client/cl_fx.o :      $(CLIENT_DIR)/$(CL_FX)
 	$(DO_CC)
 
 $(BUILDDIR)/client/cl_input.o :   $(CLIENT_DIR)/cl_input.c

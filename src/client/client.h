@@ -41,7 +41,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //=============================================================================
 
 #ifdef QMAX
+#define crandom()	(2.0 * (random() - 0.5))
 vec3_t clientOrg; //lerped org of client for server->client side effects
+
+void vectoangles2 (vec3_t value1, vec3_t angles);
 
 #include "particles.h"
 
@@ -269,6 +272,25 @@ extern	cvar_t	*cl_footsteps;
 extern	cvar_t	*cl_noskins;
 extern	cvar_t	*cl_autoskins;
 
+#ifdef QMAX
+//psychospaz stuff
+//railgun
+extern	cvar_t	*cl_railred;
+extern	cvar_t	*cl_railgreen;
+extern	cvar_t	*cl_railblue;
+extern	cvar_t	*cl_railtype;
+//3dcam
+extern	cvar_t	*cl_3dcam;
+extern	cvar_t	*cl_3dcam_angle;
+extern	cvar_t	*cl_3dcam_chase;
+extern	cvar_t	*cl_3dcam_dist;
+extern	cvar_t	*cl_3dcam_alpha;
+extern	cvar_t	*cl_3dcam_adjust;
+
+extern	cvar_t	*cl_blood;
+
+#endif
+
 extern	cvar_t	*cl_upspeed;
 extern	cvar_t	*cl_forwardspeed;
 extern	cvar_t	*cl_sidespeed;
@@ -362,6 +384,19 @@ void CL_ParticleEffect3 (vec3_t org, vec3_t dir, int color, int count);
 
 //=================================================
 
+#ifdef QMAX
+
+typedef struct
+{
+	qboolean	isactive;
+
+	vec3_t		lightcol;
+	float		light;
+	float		lightvel;
+} cplight_t;
+#define P_LIGHTS_MAX 8
+#endif
+
 // ========
 // PGM
 typedef struct particle_s
@@ -373,10 +408,38 @@ typedef struct particle_s
 	vec3_t		org;
 	vec3_t		vel;
 	vec3_t		accel;
-	float		color;
-	float		colorvel;
+#ifdef QMAX
+  vec3_t color;
+  vec3_t colorvel;
+#else
+  float		color;
+  float		colorvel;
+#endif
 	float		alpha;
 	float		alphavel;
+
+#ifdef QMAX
+	cplight_t	lights[P_LIGHTS_MAX];
+
+	float		start;
+	float		size;
+	float		sizevel;
+
+	vec3_t		angle;
+	
+	int			image;
+	int			flags;
+
+	vec3_t		oldorg;
+	float		temp;
+	int			src_ent;
+	int			dst_ent;
+
+	struct particle_s	*link;
+
+  void		(*think)(struct particle_s *p, vec3_t org, vec3_t angle, float *alpha, float *size, int *image, float *time);
+  qboolean	thinknext;
+#endif
 } cparticle_t;
 
 
@@ -393,7 +456,11 @@ void CL_BlasterTrail (vec3_t start, vec3_t end);
 void CL_QuadTrail (vec3_t start, vec3_t end);
 void CL_RailTrail (vec3_t start, vec3_t end);
 void CL_BubbleTrail (vec3_t start, vec3_t end);
+#ifdef QMAX
+void CL_FlagTrail (vec3_t start, vec3_t end, qboolean isred);
+#else
 void CL_FlagTrail (vec3_t start, vec3_t end, float color);
+#endif
 
 // RAFAEL
 void CL_IonripperTrail (vec3_t start, vec3_t end);
@@ -532,7 +599,11 @@ extern	struct model_s	*gun_model;
 void V_Init (void);
 void V_RenderView( float stereo_separation );
 void V_AddEntity (entity_t *ent);
+#ifdef QMAX
+void V_AddParticle (vec3_t org, vec3_t angle, vec3_t color, float alpha, float size, int image, int flags);
+#else
 void V_AddParticle (vec3_t org, int color, float alpha);
+#endif
 void V_AddLight (vec3_t org, float intensity, float r, float g, float b);
 void V_AddLightStyle (int style, float r, float g, float b);
 

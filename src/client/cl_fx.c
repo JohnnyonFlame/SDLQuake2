@@ -25,6 +25,9 @@ void CL_LogoutEffect (vec3_t org, int type);
 void CL_ItemRespawnParticles (vec3_t org);
 
 #ifdef QMAX
+void addParticleLight (cparticle_t *p,
+		       float light, float lightvel,
+		       float lcol0, float lcol1, float lcol2);
 void CL_ParticleBulletDecal (vec3_t org, vec3_t dir, float size);
 void CL_ItemRespawnParticles (vec3_t org);
 
@@ -55,6 +58,94 @@ typedef struct
 
 clightstyle_t	cl_lightstyle[MAX_LIGHTSTYLES];
 int			lastofs;
+
+cparticle_t	*active_particles, *free_particles;
+cparticle_t	particles[MAX_PARTICLES];
+
+int			cl_numparticles = MAX_PARTICLES;
+
+#ifdef QMAX
+cparticle_t *setupParticle (
+			float angle0,		float angle1,		float angle2,
+			float org0,			float org1,			float org2,
+			float vel0,			float vel1,			float vel2,
+			float accel0,		float accel1,		float accel2,
+			float color0,		float color1,		float color2,
+			float colorvel0,	float colorvel1,	float colorvel2,
+			float alpha,		float alphavel,
+			float size,			float sizevel,			
+			int	image,
+			int flags,
+			void (*think)(cparticle_t *p, vec3_t org, vec3_t angle, float *alpha, float *size, int *image, float *time),
+			qboolean thinknext)
+{
+	int j;
+	cparticle_t	*p = NULL;
+
+	if (!free_particles)
+		return NULL;
+	p = free_particles;
+	free_particles = p->next;
+	p->next = active_particles;
+	active_particles = p;
+
+	p->start = p->time = cl.time;
+
+	p->angle[0]=angle0;
+	p->angle[1]=angle1;
+	p->angle[2]=angle2;
+
+	p->org[0]=org0;
+	p->org[1]=org1;
+	p->org[2]=org2;
+
+	p->vel[0]=vel0;
+	p->vel[1]=vel1;
+	p->vel[2]=vel2;
+
+	p->accel[0]=accel0;
+	p->accel[1]=accel1;
+	p->accel[2]=accel2;
+
+	p->color[0]=color0;
+	p->color[1]=color1;
+	p->color[2]=color2;
+
+	p->colorvel[0]=colorvel0;
+	p->colorvel[1]=colorvel1;
+	p->colorvel[2]=colorvel2;
+
+	p->alpha=alpha;
+	p->alphavel=alphavel;
+	p->size=size;
+	p->sizevel=sizevel;
+
+	p->image=image;
+	p->flags=flags;
+
+	p->src_ent=0;
+	p->dst_ent=0;
+
+	if (think)
+		p->think=think;
+	else
+		p->think=NULL;
+	p->thinknext=thinknext;
+
+	for (j=0;j<P_LIGHTS_MAX;j++)
+	{
+		cplight_t *plight = &p->lights[j];
+		plight->isactive = false;
+		plight->light = 0;
+		plight->lightvel = 0;
+		plight->lightcol[0] = 0;
+		plight->lightcol[1] = 0;
+		plight->lightcol[2] = 0;
+	}
+
+	return p;
+}
+#endif
 
 /*
 ================
@@ -891,11 +982,6 @@ typedef struct particle_s
 #define	PARTICLE_GRAVITY	40
 */
 
-cparticle_t	*active_particles, *free_particles;
-
-cparticle_t	particles[MAX_PARTICLES];
-int			cl_numparticles = MAX_PARTICLES;
-
 
 /*
 ===============
@@ -938,8 +1024,13 @@ void CL_ParticleEffect (vec3_t org, vec3_t dir, int color, int count)
 		active_particles = p;
 
 		p->time = cl.time;
+#ifdef QMAX
+		p->color[0] = color + (rand()&7);
+		p->color[1] = color + (rand()&7);
+		p->color[2] = color + (rand()&7);
+#else
 		p->color = color + (rand()&7);
-
+#endif
 		d = rand()&31;
 		for (j=0 ; j<3 ; j++)
 		{
@@ -977,7 +1068,13 @@ void CL_ParticleEffect2 (vec3_t org, vec3_t dir, int color, int count)
 		active_particles = p;
 
 		p->time = cl.time;
+#ifdef QMAX
+		p->color[0] = color;
+		p->color[1] = color;
+		p->color[2] = color;
+#else
 		p->color = color;
+#endif
 
 		d = rand()&7;
 		for (j=0 ; j<3 ; j++)
@@ -1017,7 +1114,13 @@ void CL_ParticleEffect3 (vec3_t org, vec3_t dir, int color, int count)
 		active_particles = p;
 
 		p->time = cl.time;
+#ifdef QMAX
+		p->color[0] = color;
+		p->color[1] = color;
+		p->color[2] = color;
+#else
 		p->color = color;
+#endif
 
 		d = rand()&7;
 		for (j=0 ; j<3 ; j++)
@@ -1054,7 +1157,13 @@ void CL_TeleporterParticles (entity_state_t *ent)
 		active_particles = p;
 
 		p->time = cl.time;
+#ifdef QMAX
+		p->color[0] = 0xdb;
+		p->color[1] = 0xdb;
+		p->color[2] = 0xdb;
+#else
 		p->color = 0xdb;
+#endif
 
 		for (j=0 ; j<2 ; j++)
 		{
@@ -1096,12 +1205,14 @@ void CL_LogoutEffect (vec3_t org, int type)
 
 		p->time = cl.time;
 
+#ifndef QMAX
 		if (type == MZ_LOGIN)
 			p->color = 0xd0 + (rand()&7);	// green
 		else if (type == MZ_LOGOUT)
 			p->color = 0x40 + (rand()&7);	// red
 		else
 			p->color = 0xe0 + (rand()&7);	// yellow
+#endif
 
 		p->org[0] = org[0] - 16 + frand()*32;
 		p->org[1] = org[1] - 16 + frand()*32;
@@ -1140,9 +1251,9 @@ void CL_ItemRespawnParticles (vec3_t org)
 		active_particles = p;
 
 		p->time = cl.time;
-
+#ifndef QMAX
 		p->color = 0xd4 + (rand()&3);	// green
-
+#endif
 		p->org[0] = org[0] + crand()*8;
 		p->org[1] = org[1] + crand()*8;
 		p->org[2] = org[2] + crand()*8;
@@ -1164,6 +1275,61 @@ void CL_ItemRespawnParticles (vec3_t org)
 CL_ExplosionParticles
 ===============
 */
+#ifdef QMAX
+/*
+===============
+CL_ExplosionParticles
+===============
+*/
+
+
+
+void pExplosionSparksThink (cparticle_t *p, vec3_t org, vec3_t angle, float *alpha, float *size, int *image, float *time)
+{
+	int i;
+
+	//setting up angle for sparks
+	{
+		float time1, time2;
+
+		time1 = *time;
+		time2 = time1*time1;
+
+		for (i=0;i<2;i++)
+			angle[i] = 0.25*(p->vel[i]*time1 + (p->accel[i])*time2);
+		angle[2] = 0.25*(p->vel[2]*time1 + (p->accel[2]-PARTICLE_GRAVITY)*time2);
+
+	}
+
+	p->thinknext = true;
+}
+
+void CL_ExplosionParticles (vec3_t org, float scale)
+{
+	vec3_t vel;
+	int			i;
+
+	for (i=0 ; i<256 ; i++)
+	{
+		VectorSet(vel, crandom(), crandom(), crandom());
+		VectorNormalize(vel);
+		VectorScale(vel, scale*75.0f, vel);
+
+		setupParticle (
+			0,	0,	0,
+			org[0] + ((rand()%32)-16),	org[1] + ((rand()%32)-16),	org[2] + ((rand()%32)-16),
+			vel[0], vel[1], vel[2],
+			0,		0,		0,
+			255,	255,	255,
+			0,		-200,	-400,
+			1,		-0.8 / (0.5 + frand()*0.3),
+			scale,		-scale,			
+			particle_blaster,
+			PART_GRAVITY|PART_DIRECTION,//PART_SPARK,
+			pExplosionSparksThink, true);
+	}
+}
+#else
 void CL_ExplosionParticles (vec3_t org)
 {
 	int			i, j;
@@ -1179,8 +1345,9 @@ void CL_ExplosionParticles (vec3_t org)
 		active_particles = p;
 
 		p->time = cl.time;
+#ifndef QMAX
 		p->color = 0xe0 + (rand()&7);
-
+#endif
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = org[j] + ((rand()%32)-16);
@@ -1194,7 +1361,7 @@ void CL_ExplosionParticles (vec3_t org)
 		p->alphavel = -0.8 / (0.5 + frand()*0.3);
 	}
 }
-
+#endif
 
 /*
 ===============
@@ -1218,9 +1385,9 @@ void CL_BigTeleportParticles (vec3_t org)
 		active_particles = p;
 
 		p->time = cl.time;
-
+#ifndef QMAX
 		p->color = colortable[rand()&3];
-
+#endif
 		angle = M_PI*2*(rand()&1023)/1023.0;
 		dist = rand()&31;
 		p->org[0] = org[0] + cos(angle)*dist;
@@ -1266,8 +1433,9 @@ void CL_BlasterParticles (vec3_t org, vec3_t dir)
 		active_particles = p;
 
 		p->time = cl.time;
+#ifndef QMAX
 		p->color = 0xe0 + (rand()&7);
-
+#endif
 		d = rand()&15;
 		for (j=0 ; j<3 ; j++)
 		{
@@ -1323,7 +1491,9 @@ void CL_BlasterTrail (vec3_t start, vec3_t end)
 
 		p->alpha = 1.0;
 		p->alphavel = -1.0 / (0.3+frand()*0.2);
+#ifndef QMAX
 		p->color = 0xe0;
+#endif
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = move[j] + crand();
@@ -1373,7 +1543,9 @@ void CL_QuadTrail (vec3_t start, vec3_t end)
 
 		p->alpha = 1.0;
 		p->alphavel = -1.0 / (0.8+frand()*0.2);
+#ifndef QMAX		
 		p->color = 115;
+#endif
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = move[j] + crand()*16;
@@ -1423,7 +1595,9 @@ void CL_FlagTrail (vec3_t start, vec3_t end, float color)
 
 		p->alpha = 1.0;
 		p->alphavel = -1.0 / (0.8+frand()*0.2);
+#ifndef QMAX
 		p->color = color;
+#endif		
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = move[j] + crand()*16;
@@ -1497,7 +1671,9 @@ void CL_DiminishingTrail (vec3_t start, vec3_t end, centity_t *old, int flags)
 			{
 				p->alpha = 1.0;
 				p->alphavel = -1.0 / (1+frand()*0.4);
+#ifndef QMAX
 				p->color = 0xe8 + (rand()&7);
+#endif
 				for (j=0 ; j<3 ; j++)
 				{
 					p->org[j] = move[j] + crand()*orgscale;
@@ -1510,7 +1686,9 @@ void CL_DiminishingTrail (vec3_t start, vec3_t end, centity_t *old, int flags)
 			{
 				p->alpha = 1.0;
 				p->alphavel = -1.0 / (1+frand()*0.4);
+#ifndef QMAX
 				p->color = 0xdb + (rand()&7);
+#endif
 				for (j=0; j< 3; j++)
 				{
 					p->org[j] = move[j] + crand()*orgscale;
@@ -1523,7 +1701,9 @@ void CL_DiminishingTrail (vec3_t start, vec3_t end, centity_t *old, int flags)
 			{
 				p->alpha = 1.0;
 				p->alphavel = -1.0 / (1+frand()*0.2);
+#ifndef QMAX
 				p->color = 4 + (rand()&7);
+#endif
 				for (j=0 ; j<3 ; j++)
 				{
 					p->org[j] = move[j] + crand()*orgscale;
@@ -1601,7 +1781,9 @@ void CL_RocketTrail (vec3_t start, vec3_t end, centity_t *old)
 
 			p->alpha = 1.0;
 			p->alphavel = -1.0 / (1+frand()*0.2);
+#ifndef QMAX
 			p->color = 0xdc + (rand()&3);
+#endif
 			for (j=0 ; j<3 ; j++)
 			{
 				p->org[j] = move[j] + crand()*5;
@@ -1661,7 +1843,9 @@ void CL_RailTrail (vec3_t start, vec3_t end)
 
 		p->alpha = 1.0;
 		p->alphavel = -1.0 / (1+frand()*0.2);
+#ifndef QMAX		
 		p->color = clr + (rand()&7);
+#endif
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = move[j] + dir[j]*3;
@@ -1691,8 +1875,9 @@ void CL_RailTrail (vec3_t start, vec3_t end)
 
 		p->alpha = 1.0;
 		p->alphavel = -1.0 / (0.6+frand()*0.2);
+#ifndef QMAX
 		p->color = 0x0 + (rand()&15);
-
+#endif
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = move[j] + crand()*3;
@@ -1742,8 +1927,9 @@ void CL_IonripperTrail (vec3_t start, vec3_t ent)
 		p->time = cl.time;
 		p->alpha = 0.5;
 		p->alphavel = -1.0 / (0.3 + frand() * 0.2);
+#ifndef QMAX
 		p->color = 0xe4 + (rand()&3);
-
+#endif
 		for (j=0; j<3; j++)
 		{
 			p->org[j] = move[j];
@@ -1805,7 +1991,9 @@ void CL_BubbleTrail (vec3_t start, vec3_t end)
 
 		p->alpha = 1.0;
 		p->alphavel = -1.0 / (1+frand()*0.2);
+#ifndef QMAX
 		p->color = 4 + (rand()&7);
+#endif
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = move[j] + crand()*2;
@@ -1880,9 +2068,10 @@ void CL_FlyParticles (vec3_t origin, int count)
 		VectorClear (p->vel);
 		VectorClear (p->accel);
 
+#ifndef QMAX
 		p->color = 0;
 		p->colorvel = 0;
-
+#endif
 		p->alpha = 1;
 		p->alphavel = -100;
 	}
@@ -1981,9 +2170,10 @@ void CL_BfgParticles (entity_t *ent)
 
 		VectorSubtract (p->org, ent->origin, v);
 		dist = VectorLength(v) / 90.0;
+#ifndef QMAX
 		p->color = floor (0xd0 + dist * 7);
 		p->colorvel = 0;
-
+#endif
 		p->alpha = 1.0 - dist;
 		p->alphavel = -100;
 	}
@@ -2035,7 +2225,9 @@ void CL_TrapParticles (entity_t *ent)
 
 		p->alpha = 1.0;
 		p->alphavel = -1.0 / (0.3+frand()*0.2);
+#ifndef QMAX
 		p->color = 0xe0;
+#endif
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = move[j] + crand();
@@ -2073,8 +2265,9 @@ void CL_TrapParticles (entity_t *ent)
 				active_particles = p;
 
 				p->time = cl.time;
+#ifndef QMAX
 				p->color = 0xe0 + (rand()&3);
-
+#endif
 				p->alpha = 1.0;
 				p->alphavel = -1.0 / (0.3 + (rand()&7) * 0.02);
 				
@@ -2118,8 +2311,9 @@ void CL_BFGExplosionParticles (vec3_t org)
 		active_particles = p;
 
 		p->time = cl.time;
+#ifndef QMAX
 		p->color = 0xd0 + (rand()&7);
-
+#endif
 		for (j=0 ; j<3 ; j++)
 		{
 			p->org[j] = org[j] + ((rand()%32)-16);
@@ -2160,8 +2354,9 @@ void CL_TeleportParticles (vec3_t org)
 				active_particles = p;
 
 				p->time = cl.time;
+#ifndef QMAX
 				p->color = 7 + (rand()&7);
-
+#endif
 				p->alpha = 1.0;
 				p->alphavel = -1.0 / (0.3 + (rand()&7) * 0.02);
 				
@@ -2233,8 +2428,9 @@ void CL_AddParticles (void)
 
 		if (alpha > 1.0)
 			alpha = 1;
+#ifndef QMAX
 		color = p->color;
-
+#endif
 		time2 = time*time;
 
 		org[0] = p->org[0] + p->vel[0]*time + p->accel[0]*time2;
@@ -2365,5 +2561,173 @@ void SetParticleImages (void)
 		re.SetParticlePicture(particle_dexplosion2,	"particles/d_explod_2.tga");
 		re.SetParticlePicture(particle_dexplosion3,	"particles/d_explod_3.tga");
 
+}
+
+/*
+===============
+CL_Explosion_Particle
+
+BOOM!
+===============
+*/
+
+void pExplosionThink (cparticle_t *p, vec3_t org, vec3_t angle, float *alpha, float *size, int *image, float *time)
+{
+
+	if (*alpha>.85)
+		*image = particle_rexplosion1;
+	else if (*alpha>.7)
+		*image = particle_rexplosion2;
+	else if (*alpha>.5)
+		*image = particle_rexplosion3;
+	else if (*alpha>.4)
+		*image = particle_rexplosion4;
+	else if (*alpha>.25)
+		*image = particle_rexplosion5;
+	else if (*alpha>.1)
+		*image = particle_rexplosion6;
+	else 
+		*image = particle_rexplosion7;
+
+	*alpha *= 3.0;
+
+	if (*alpha > 1.0)
+		*alpha = 1;
+
+	p->thinknext = true;
+}
+
+#define EXPLODESTAININTESITY 75
+void CL_Explosion_Particle (vec3_t org, float size, qboolean large, qboolean rocket)
+{
+	cparticle_t *p;
+
+	if (large)
+	{	
+		if (size)
+		{
+			re.AddStain(org, size, -EXPLODESTAININTESITY,-EXPLODESTAININTESITY,-EXPLODESTAININTESITY);
+		}
+		else
+		{
+			if (rocket)
+				re.AddStain(org, 45, -EXPLODESTAININTESITY,-EXPLODESTAININTESITY,-EXPLODESTAININTESITY);
+			else
+				re.AddStain(org, 65, -EXPLODESTAININTESITY,-EXPLODESTAININTESITY,-EXPLODESTAININTESITY);
+		}
+
+		p = setupParticle (
+					0,		0,		0,
+					org[0],	org[1],	org[2],
+					0,		0,		0,
+					0,		0,		0,
+					255,	255,	255,
+					0,		0,		0,
+					1,		(0.5+random()*0.5) * (rocket)? -2 : -1.5,
+					(size!=0)?size:(150-(!rocket)?75:0),	0,			
+					particle_rexplosion1, //whatever :p
+					PART_DEPTHHACK_SHORT,
+					pExplosionThink, true);
+
+		if (p)
+		{	//smooth color blend :D
+			float lightsize = (large)? 1.0 : 0.75;
+
+			addParticleLight (p,
+						lightsize*250, 0,
+						1, 1, 1);
+			addParticleLight (p,
+						lightsize*265, 0,
+						1, 0.75, 0);
+			addParticleLight (p,
+						lightsize*285, 0,
+						1, 0.25, 0);
+			addParticleLight (p,
+						lightsize*300, 0,
+						1, 0, 0);
+		}
+	}
+/*	else //volumizers
+	{
+		setupParticle (
+					0,		0,		0,
+					org[0],	org[1],	org[2],
+					0,		0,		0,
+					0,		0,		0,
+					255,	175,	100,
+					0,		0,		0,
+					1,		1 * (rocket)? -1.5 : -1.25,
+					(size!=0)?size:(150-(!rocket)?75:0), 0,			
+					particle_inferno,
+					0,
+					NULL,0);
+	}*/
+}
+
+void addParticleLight (cparticle_t *p,
+				  float light, float lightvel,
+				  float lcol0, float lcol1, float lcol2)
+{
+	int i;
+
+	for (i=0; i<P_LIGHTS_MAX; i++)
+	{
+		cplight_t *plight = &p->lights[i];
+		if (!plight->isactive)
+		{
+			plight->isactive = true;
+			plight->light = light;
+			plight->lightvel = lightvel;
+			plight->lightcol[0] = lcol0;
+			plight->lightcol[1] = lcol1;
+			plight->lightcol[2] = lcol2;
+			return;
+		}
+	}
+}
+
+/*
+===============
+CL_BlasterParticles
+
+Wall impact puffs
+===============
+*/
+#define pBlasterMaxSize 5
+void pBlasterThink (cparticle_t *p, vec3_t org, vec3_t angle, float *alpha, float *size, int *image, float *time)
+{
+	int i;
+	vec3_t len;
+	VectorSubtract(p->angle, org, len);
+	
+	*size *= (float)(pBlasterMaxSize/VectorLength(len)) * 1.0/((4-*size));
+	if (*size > pBlasterMaxSize)
+		*size = pBlasterMaxSize;
+	
+	p->thinknext = true;
+}
+
+void CL_BlasterParticlesMax (vec3_t org, vec3_t dir, int count)
+{
+	int			i;
+	float		d;
+	float speed = .75;
+
+	for (i=0 ; i<count ; i++)
+	{
+		d = rand()&5;
+		setupParticle (
+			org[0],	org[1],	org[2],
+			org[0]+((rand()&5)-2)+d*dir[0],	org[1]+((rand()&5)-2)+d*dir[1],	org[2]+((rand()&5)-2)+d*dir[2],
+			(dir[0]*75 + crand()*20)*speed,	(dir[1]*75 + crand()*20)*speed,	(dir[2]*75 + crand()*20)*speed,
+			0,		0,		0,
+			255,		150,		50,
+			0,	-90,	-30,
+			1,		-1.0 / (0.5 + frand()*0.3),
+			4,			-1,			
+			particle_generic,
+			PART_GRAVITY,
+			pBlasterThink,true);
+	}
 }
 #endif

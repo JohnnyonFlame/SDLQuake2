@@ -1754,13 +1754,14 @@ qboolean R_SetMode (void)
 	rserr_t err;
 	qboolean fullscreen;
 
+#ifdef _WIN32
 	if ( vid_fullscreen->modified && !gl_config.allow_cds )
 	{
 		ri.Con_Printf( PRINT_ALL, "R_SetMode() - CDS not allowed with this driver\n" );
 		ri.Cvar_SetValue( "vid_fullscreen", !vid_fullscreen->value );
 		vid_fullscreen->modified = false;
 	}
-
+#endif
 	fullscreen = vid_fullscreen->value;
 
 	skydistance->modified = true; // DMP skybox size change
