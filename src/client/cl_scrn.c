@@ -280,7 +280,7 @@ void SCR_DrawCenterString (void)
 		for (j=0 ; j<l ; j++, x+=8)
 		{
 #ifdef QMAX
-			re.DrawChar (x, y, start[j], 1);
+			re.DrawChar (x, y, start[j], 256);
 #else	
 			re.DrawChar (x, y, start[j]);	
 #endif
@@ -856,7 +856,7 @@ void DrawHUDString (char *string, int x, int y, int centerwidth, int xor)
 		for (i=0 ; i<width ; i++)
 		{
 #ifdef QMAX
-			re.DrawChar (x, y, line[i]^xor, 1);
+			re.DrawChar (x, y, line[i]^xor, 256);
 #else
 			re.DrawChar (x, y, line[i]^xor);
 #endif

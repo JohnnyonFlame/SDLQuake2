@@ -45,7 +45,7 @@ void Inv_DrawString (int x, int y, char *string)
 	while (*string)
 	{
 #ifdef QMAX
-	  re.DrawChar (x, y, *string, 1);
+	  re.DrawChar (x, y, *string, 256);
 #else
 	  re.DrawChar (x, y, *string);
 #endif
@@ -135,7 +135,7 @@ void CL_DrawInventory (void)
 		{
 			if ( (int)(cls.realtime*10) & 1)
 #ifdef QMAX
-				re.DrawChar (x-8, y, 15, 1);
+				re.DrawChar (x-8, y, 15, 256);
 #else
 				re.DrawChar (x-8, y, 15);
 #endif
