@@ -381,7 +381,10 @@ COLLISION DETECTION
 #define	SURF_FLOWING	0x40	// scroll towards angle
 #define	SURF_NODRAW		0x80	// don't bother referencing the texture
 
-
+#ifdef QMAX
+#define	SURF_WAVES_1	0x100
+#define	SURF_WAVES_2	0x200
+#endif
 
 // content masks
 #define	MASK_ALL				(-1)
@@ -588,6 +591,24 @@ typedef struct
 #define EF_TRACKERTRAIL		0x80000000
 //ROGUE
 
+#ifdef QMAX
+#define PART_GRAVITY	1
+#define PART_SPARK		2
+#define PART_ANGLED		4
+#define PART_DIRECTION	8
+#define PART_TRANS		16
+#define PART_SHADED		32
+#define PART_LIGHTNING	64
+#define PART_BEAM		128
+#define PART_LENSFLARE	256
+#define PART_DEPTHHACK_SHORT	512
+#define PART_DEPTHHACK_MID		1024
+#define PART_DEPTHHACK_LONG		2048
+
+//combo flags
+#define PART_DEPTHHACK	(PART_DEPTHHACK_SHORT|PART_DEPTHHACK_MID|PART_DEPTHHACK_LONG)
+#endif
+
 // entity_state_t->renderfx flags
 #define	RF_MINLIGHT			1		// allways have some light (viewmodel)
 #define	RF_VIEWERMODEL		2		// don't draw through eyes, only mirrors
@@ -609,6 +630,15 @@ typedef struct
 #define	RF_SHELL_HALF_DAM	0x00020000
 #define RF_USE_DISGUISE		0x00040000
 //ROGUE
+
+#ifdef QMAX
+  #define RF_TRANS_ADDITIVE	8192
+  #define RF_MIRRORMODEL		0x00004000
+
+  #define	RF2_NOSHADOW		0x00000001		//no shadow..
+  #define RF2_FORCE_SHADOW	0x00000002		//forced shadow...
+  #define RF2_CAMERAMODEL		0x00000004
+#endif
 
 // player_state_t->refdef flags
 #define	RDF_UNDERWATER		1		// warp the screen as apropriate

@@ -532,7 +532,7 @@ void FS_AddGameDirectory (char *dir)
 	//
 	for (i=0; i<10; i++)
 	{
-		Com_sprintf (pakfile, sizeof(pakfile), "%s/pak%i.pak", dir, i);
+	  Com_sprintf (pakfile, sizeof(pakfile), "%s/pak%i.pak", dir, i);
 		pak = FS_LoadPackFile (pakfile);
 		if (!pak)
 			continue;
@@ -541,6 +541,14 @@ void FS_AddGameDirectory (char *dir)
 		search->next = fs_searchpaths;
 		fs_searchpaths = search;		
 	}
+	#ifdef QMAX
+	Com_sprintf (pakfile, sizeof(pakfile), "%s/maxpak.pak", dir);
+	pak = FS_LoadPackFile (pakfile);
+	search = Z_Malloc (sizeof(searchpath_t));
+	search->pack = pak;
+	search->next = fs_searchpaths;
+	fs_searchpaths = search;
+	#endif
 }
 
 /*

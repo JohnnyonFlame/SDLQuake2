@@ -40,6 +40,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 //=============================================================================
 
+#ifdef QMAX
+vec3_t clientOrg; //lerped org of client for server->client side effects
+
+#include "particles.h"
+
+int	color8red (int color8);
+int	color8green (int color8);
+int	color8blue (int color8);
+#endif
+
 typedef struct
 {
 	qboolean		valid;			// cleared if delta parsing was invalid
@@ -582,4 +592,9 @@ void x86_TimerStart( void );
 void x86_TimerStop( void );
 void x86_TimerInit( unsigned long smallest, unsigned longest );
 unsigned long *x86_TimerGetHistogram( void );
+#endif
+
+
+#ifdef QMAX
+void SetParticleImages (void);
 #endif

@@ -32,6 +32,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <dlfcn.h>
 
+#ifdef QMAX
+qboolean have_stencil = false;
+#endif
+
+
 void ( APIENTRY * qglAccum )(GLenum op, GLfloat value);
 void ( APIENTRY * qglAlphaFunc )(GLenum func, GLclampf ref);
 GLboolean ( APIENTRY * qglAreTexturesResident )(GLsizei n, const GLuint *textures, GLboolean *residences);
@@ -375,6 +380,7 @@ void ( APIENTRY * qglUnlockArraysEXT) ( void );
 void ( APIENTRY * qglPointParameterfEXT)( GLenum param, GLfloat value );
 void ( APIENTRY * qglPointParameterfvEXT)( GLenum param, const GLfloat *value );
 void ( APIENTRY * qglColorTableEXT)( GLenum, GLenum, GLsizei, GLenum, GLenum, const GLvoid * );
+
 void ( APIENTRY * qgl3DfxSetPaletteEXT)( GLuint * );
 void ( APIENTRY * qglSelectTextureSGIS)( GLenum );
 void ( APIENTRY * qglMTexCoord2fSGIS)( GLenum, GLfloat, GLfloat );
@@ -3017,6 +3023,15 @@ qboolean QGL_Init( const char *dllname )
 		Com_Printf ("Using %s for OpenGL...", dllname);
 	}
 
+#ifdef USE_GLU
+	if ( (dlopen( "libGLU.so", RTLD_LAZY ) ) == 0 )
+	{
+	  ri.Con_Printf( PRINT_ALL, "%s\n", dlerror() );
+	  return false;
+	} else {
+	  Com_Printf ("Opened GLU sucessfully OpenGLU...", dllname);
+	}
+#endif
 	qglAccum                     = dllAccum = GPA( "glAccum" );
 	qglAlphaFunc                 = dllAlphaFunc = GPA( "glAlphaFunc" );
 	qglAreTexturesResident       = dllAreTexturesResident = GPA( "glAreTexturesResident" );

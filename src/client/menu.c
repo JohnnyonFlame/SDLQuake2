@@ -270,7 +270,11 @@ higher res screens.
 */
 void M_DrawCharacter (int cx, int cy, int num)
 {
+#ifdef QMAX
+	re.DrawChar ( cx + ((viddef.width - 320)>>1), cy + ((viddef.height - 240)>>1), num, 1);
+#else
 	re.DrawChar ( cx + ((viddef.width - 320)>>1), cy + ((viddef.height - 240)>>1), num);
+#endif
 }
 
 void M_Print (int cx, int cy, char *str)
@@ -686,10 +690,17 @@ static void M_FindKeysForCommand (char *command, int *twokeys)
 
 static void KeyCursorDrawFunc( menuframework_s *menu )
 {
+#ifdef QMAX
+	if ( bind_grab )
+		re.DrawChar( menu->x, menu->y + menu->cursor * 9, '=' , 1);
+	else
+		re.DrawChar( menu->x, menu->y + menu->cursor * 9, 12 + ( ( int ) ( Sys_Milliseconds() / 250 ) & 1 ) , 1);
+#else
 	if ( bind_grab )
 		re.DrawChar( menu->x, menu->y + menu->cursor * 9, '=' );
 	else
 		re.DrawChar( menu->x, menu->y + menu->cursor * 9, 12 + ( ( int ) ( Sys_Milliseconds() / 250 ) & 1 ) );
+#endif
 }
 
 static void DrawKeyBindingFunc( void *self )
@@ -1830,10 +1841,18 @@ void M_Credits_MenuDraw( void )
 
 			x = ( viddef.width - strlen( credits[i] ) * 8 - stringoffset * 8 ) / 2 + ( j + stringoffset ) * 8;
 
-			if ( bold )
+			if ( bold ) 
+#ifdef QMAX
+				re.DrawChar( x, y, credits[i][j+stringoffset] + 128,1);
+#else
 				re.DrawChar( x, y, credits[i][j+stringoffset] + 128 );
+#endif
 			else
-				re.DrawChar( x, y, credits[i][j+stringoffset] );
+#ifdef QMAX
+				re.DrawChar( x, y, credits[i][j+stringoffset],1);
+#else
+				re.DrawChar( x, y, credits[i][j+stringoffset]);
+#endif
 		}
 	}
 

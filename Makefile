@@ -26,6 +26,7 @@ BUILD_JOYSTICK=YES	# build in joystick support
 BUILD_ARTS=NO		# build in support for libaRts sound.
 BUILD_DEDICATED=NO	# build a dedicated quake2 server
 BUILD_AA=YES		# build the ascii soft renderer.
+BUILD_QMAX=YES
 
 STATICSDL=NO
 SDLDIR=/usr/local/lib
@@ -115,6 +116,10 @@ else
 NET_UDP=net_udp
 endif
 
+ifeq ($(strip $(BUILD_QMAX)),YES)
+	BASE_CFLAGS+=-DQMAX
+endif
+
 ifeq ($(strip $(BUILD_JOYSTICK)),YES)
 BASE_CFLAGS+=-DJoystick
 endif
@@ -164,10 +169,16 @@ FXGLLDFLAGS=-L/usr/local/glide/lib -L/usr/X11/lib -L/usr/local/lib \
 	-L/usr/X11R6/lib -lX11 -lXext -lGL -lvga
 
 GLXCFLAGS=-I/usr/X11R6/include -DOPENGL
-GLXLDFLAGS=-L/usr/X11R6/lib -lX11 -lXext -lXxf86dga -lXxf86vm
+GLXLDFLAGS=-L/usr/X11R6/lib -lX11 -lXext -lXxf86dga -lXxf86vm -lGLU
 
 SDLGLCFLAGS=$(SDLCFLAGS) -DOPENGL
-SDLGLLDFLAGS=$(SDLLDFLAGS)
+SDLGLLDFLAGS=$(SDLLDFLAGS) -lGLU
+
+ifeq ($(strip $(BUILD_QMAX)),YES)
+GLXLDFLAGS+=-ljpeg
+SDLGLLDFLAGS+=-ljpeg
+REF_GL_DIR = $(MOUNT_DIR)/ref_candygl
+endif
 
 SHLIBEXT=so
 
@@ -1694,6 +1705,10 @@ REF_GLX_OBJS = \
 	$(BUILDDIR)/ref_gl/gl_glx.o
 #	$(BUILDDIR)/ref_gl/rw_x11.o
 
+REF_CANDY_GL_OBJS = $(REF_GL_OBJS)
+
+REF_CANDY_GLX_OBJS = $(REF_GLX_OBJS)
+
 REF_FXGL_OBJS = \
 	$(BUILDDIR)/ref_gl/rw_in_svgalib.o \
 	$(BUILDDIR)/ref_gl/gl_fxmesa.o
@@ -1709,6 +1724,12 @@ $(BUILDDIR)/ref_gl.$(SHLIBEXT) : $(REF_GL_OBJS) $(REF_FXGL_OBJS)
 
 $(BUILDDIR)/ref_sdlgl.$(SHLIBEXT) : $(REF_GL_OBJS) $(REF_SDLGL_OBJS)
 	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(REF_GL_OBJS) $(REF_SDLGL_OBJS) $(SDLGLLDFLAGS)
+
+$(BUILDDIR)/ref_candyglx.$(SHLIBEXT):$(REF_CANDY_GL_OBJS) $(REF_CANDY_GLX_OBJS)
+	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(REF_CANDY_GL_OBJS) $(REF_CANDY_GLX_OBJS) $(GLXLDFLAGS)
+
+$(BUILDDIR)/ref_candysdlgl.$(SHLIBEXT) : $(REF_CANDY_GL_OBJS) $(REF_SDLGL_OBJS)
+	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(REF_CANDY_GL_OBJS) $(REF_SDLGL_OBJS) $(SDLGLLDFLAGS)
 
 $(BUILDDIR)/ref_gl/gl_draw.o :        $(REF_GL_DIR)/gl_draw.c
 	$(DO_GL_SHLIB_CC)

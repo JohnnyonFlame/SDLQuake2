@@ -74,16 +74,23 @@ typedef struct entity_s
 
 	struct image_s	*skin;			// NULL for inline skin
 	int		flags;
-
+#ifdef QMAX
+        int		renderfx;
+#endif
 } entity_t;
 
 #define ENTITY_FLAGS  68
 
 typedef struct
 {
-	vec3_t	origin;
-	vec3_t	color;
-	float	intensity;
+#ifdef QMAX
+  qboolean spotlight;
+  vec3_t   direction;
+#endif
+  
+  vec3_t	origin;
+  vec3_t	color;
+  float	intensity;
 } dlight_t;
 
 typedef struct
@@ -91,6 +98,17 @@ typedef struct
 	vec3_t	origin;
 	int		color;
 	float	alpha;
+#ifdef QMAX
+  vec3_t	angle;
+  float	size;
+  int		flags;
+  
+  float	red;
+  float	green;
+  float	blue;
+  
+  int		image;
+#endif
 } particle_t;
 
 typedef struct
@@ -163,10 +181,19 @@ typedef struct
 
 	void	(*RenderFrame) (refdef_t *fd);
 
+#ifdef QMAX
+  void	(*AddStain) (vec3_t org, float intensity, float r, float g, float b);
+  void	(*SetParticlePicture) (int num, char *name);
+  void	(*DrawScaledPic) (int x, int y, float scale, float alpha, char *name);
+  float	(*CharMap_Scale) (void);
+  void	(*DrawStretchPic) (int x, int y, int w, int h, char *name, float alpha);
+  void	(*DrawChar) (int x, int y, int c, int alpha);
+#else
+  void	(*DrawStretchPic) (int x, int y, int w, int h, char *name);
+  void	(*DrawChar) (int x, int y, int c);
+#endif
 	void	(*DrawGetPicSize) (int *w, int *h, char *name);	// will return 0 0 if not found
 	void	(*DrawPic) (int x, int y, char *name);
-	void	(*DrawStretchPic) (int x, int y, int w, int h, char *name);
-	void	(*DrawChar) (int x, int y, int c);
 	void	(*DrawTileClear) (int x, int y, int w, int h, char *name);
 	void	(*DrawFill) (int x, int y, int w, int h, int c);
 	void	(*DrawFadeScreen) (void);
@@ -219,7 +246,20 @@ typedef struct
 	qboolean	(*Vid_GetModeInfo)( int *width, int *height, int mode );
 	void		(*Vid_MenuInit)( void );
 	void		(*Vid_NewWindow)( int width, int height );
+
+#ifdef QMAX
+  void	(*SetParticlePics) (void);
+#endif
 } refimport_t;
+
+#ifdef QMAX
+typedef struct
+{
+	vec3_t	origin;
+	vec3_t	color;
+	float	intensity;
+} dstain_t;
+#endif
 
 
 // this is the only function actually exported at the linker level

@@ -321,7 +321,6 @@ int main (int argc, char **argv)
 	if (!nostdout->value) {
 		fcntl(0, F_SETFL, fcntl (0, F_GETFL, 0) | FNDELAY);	
 	}
-
 	oldtime = Sys_Milliseconds ();
 	while (1)
 	{

@@ -44,7 +44,12 @@ extern viddef_t viddef;
 #define VID_WIDTH viddef.width
 #define VID_HEIGHT viddef.height
 
+#ifdef QMAX
+#define Draw_Char(x,y,z) re.DrawChar((x),(y),(z),1)
+#else
 #define Draw_Char re.DrawChar
+#endif
+
 #define Draw_Fill re.DrawFill
 
 void Action_DoEnter( menuaction_s *a )

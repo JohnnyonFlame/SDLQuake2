@@ -283,6 +283,10 @@ qboolean VID_LoadRefresh( char *name )
 	ri.Vid_MenuInit = VID_MenuInit;
 	ri.Vid_NewWindow = VID_NewWindow;
 
+	#ifdef QMAX
+	ri.SetParticlePics = SetParticleImages;
+	#endif
+
 	if ( ( GetRefAPI = (void *) dlsym( reflib_library, "GetRefAPI" ) ) == 0 )
 		Com_Error( ERR_FATAL, "dlsym failed on %s", name );
 
