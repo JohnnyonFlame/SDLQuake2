@@ -1322,7 +1322,7 @@ void CL_ParseTEnt (void)
 		MSG_ReadPos (&net_message, pos);
 		CL_WidowSplash (pos);
 		break;
-#ifdef 0 && QMAX
+#if 0
 	//NEW CUSTOM TEMP EVENTS
 
 	case TE_LIGHTNINGFLARE: //-psychospaz
@@ -1877,6 +1877,7 @@ CL_AddExplosions
 */
 void CL_AddExplosions (void)
 {
+  /*
   entity_t	*ent;
   int			i;
   explosion_t	*ex;
@@ -1973,6 +1974,7 @@ void CL_AddExplosions (void)
 
 		V_AddEntity (ent);
 	}
+  */
 }
 
 

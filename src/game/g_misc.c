@@ -132,9 +132,12 @@ void gib_die (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, 
 	G_FreeEdict (self);
 }
 
+
+#define NO_GIB 1
+
 void ThrowGib (edict_t *self, char *gibname, int damage, int type)
 {
-#ifdef NO_GIB
+  //#ifndef NO_GIB
 	edict_t *gib;
 	vec3_t	vd;
 	vec3_t	origin;
@@ -158,14 +161,14 @@ void ThrowGib (edict_t *self, char *gibname, int damage, int type)
 
 	if (type == GIB_ORGANIC)
 	{
-		gib->movetype = MOVETYPE_TOSS;
-		gib->touch = gib_touch;
-		vscale = 0.5;
+	  gib->movetype = MOVETYPE_TOSS;
+	  gib->touch = gib_touch;
+	  vscale = 0.5;
 	}
 	else
 	{
-		gib->movetype = MOVETYPE_BOUNCE;
-		vscale = 1.0;
+	  gib->movetype = MOVETYPE_BOUNCE;
+	  vscale = 1.0;
 	}
 
 	VelocityForDamage (damage, vd);
@@ -179,7 +182,7 @@ void ThrowGib (edict_t *self, char *gibname, int damage, int type)
 	gib->nextthink = level.time + 10 + random()*10;
 
 	gi.linkentity (gib);
-#endif
+	//#endif
 }
 
 void ThrowHead (edict_t *self, char *gibname, int damage, int type)

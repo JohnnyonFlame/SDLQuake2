@@ -29,7 +29,7 @@ viddef_t	vid;
 
 refimport_t	ri;
 
-int GL_TEXTURE0, GL_TEXTURE1;
+int QGL_TEXTURE0, QGL_TEXTURE1;
 
 model_t		*r_worldmodel;
 
@@ -2002,8 +2002,8 @@ int R_Init( void *hinstance, void *hWnd )
 			qglMTexCoord2fSGIS = ( void * ) qwglGetProcAddress( "glMultiTexCoord2fARB" );
 			qglActiveTextureARB = ( void * ) qwglGetProcAddress( "glActiveTextureARB" );
 			qglClientActiveTextureARB = ( void * ) qwglGetProcAddress( "glClientActiveTextureARB" );
-			GL_TEXTURE0 = GL_TEXTURE0_ARB;
-			GL_TEXTURE1 = GL_TEXTURE1_ARB;
+			QGL_TEXTURE0 = GL_TEXTURE0_ARB;
+			QGL_TEXTURE1 = GL_TEXTURE1_ARB;
 		}
 		else
 		{
@@ -2026,8 +2026,8 @@ int R_Init( void *hinstance, void *hWnd )
 			ri.Con_Printf( PRINT_ALL, "...using GL_SGIS_multitexture\n" );
 			qglMTexCoord2fSGIS = ( void * ) qwglGetProcAddress( "glMTexCoord2fSGIS" );
 			qglSelectTextureSGIS = ( void * ) qwglGetProcAddress( "glSelectTextureSGIS" );
-			GL_TEXTURE0 = GL_TEXTURE0_SGIS;
-			GL_TEXTURE1 = GL_TEXTURE1_SGIS;
+			QGL_TEXTURE0 = GL_TEXTURE0_SGIS;
+			QGL_TEXTURE1 = GL_TEXTURE1_SGIS;
 		}
 		else
 		{
