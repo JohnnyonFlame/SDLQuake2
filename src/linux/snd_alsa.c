@@ -146,6 +146,9 @@ qboolean SNDDMA_Init (void)
     return 0;
   }
   
+  buffer=malloc(snd_buf);
+  memset(buffer, 0, snd_buf);
+
   dma.samplepos = 0;
   dma.submission_chunk = 1;
   dma.buffer = buffer;
