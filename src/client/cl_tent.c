@@ -1877,7 +1877,6 @@ CL_AddExplosions
 */
 void CL_AddExplosions (void)
 {
-  /*
   entity_t	*ent;
   int			i;
   explosion_t	*ex;
@@ -1974,7 +1973,6 @@ void CL_AddExplosions (void)
 
 		V_AddEntity (ent);
 	}
-  */
 }
 
 
