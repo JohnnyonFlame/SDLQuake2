@@ -45,7 +45,7 @@ static XVisualInfo *x_visinfo;
 
 
 static qboolean X11_active = false;
-qboolean have_stencil = false;
+
 struct
 {
   int key;
@@ -103,6 +103,9 @@ static cvar_t	*m_filter;
 static cvar_t	*in_mouse;
 
 static qboolean	mlooking;
+
+// stencilbuffer shadows
+qboolean have_stencil = false;
 
 // state struct passed in Init
 static in_state_t	*in_state;

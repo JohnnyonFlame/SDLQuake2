@@ -52,8 +52,6 @@ static XVisualInfo		*x_visinfo;
 static int win_x, win_y;
 static Atom wmDeleteWindow;
 
-qboolean have_stencil = false;
-
 #define KEY_MASK (KeyPressMask | KeyReleaseMask)
 #define MOUSE_MASK (ButtonPressMask | ButtonReleaseMask | \
 		    PointerMotionMask | ButtonMotionMask )
@@ -251,6 +249,9 @@ static cvar_t	*vid_xpos;			// X coordinate of window position
 static cvar_t	*vid_ypos;			// Y coordinate of window position
 
 static qboolean	mlooking;
+
+// stencilbuffer shadows   
+qboolean have_stencil = false;
 
 // state struct passed in Init
 static in_state_t	*in_state;

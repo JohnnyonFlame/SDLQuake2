@@ -38,7 +38,6 @@
 /*****************************************************************************/
 
 static qboolean                 X11_active = false;
-qboolean have_stencil = false;
 
 static SDL_Surface *surface;
 
@@ -83,6 +82,9 @@ static cvar_t	*m_filter;
 static cvar_t	*in_mouse;
 
 static qboolean	mlooking;
+
+// stencilbuffer shadows   
+qboolean have_stencil = false;
 
 // state struct passed in Init
 static in_state_t	*in_state;
@@ -638,9 +640,9 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1);
 
 	flags = SDL_OPENGL;
 	if (fullscreen)

@@ -92,7 +92,6 @@ static int old_mouse_x, old_mouse_y;
 static int mx, my;
 static int old_windowed_mouse;
 static int p_mouse_x, p_mouse_y;
-qboolean have_stencil = false;
 
 static cvar_t	*_windowed_mouse;
 static cvar_t	*m_filter;
@@ -100,6 +99,9 @@ static cvar_t	*in_mouse;
 
 static qboolean	mlooking;
 static qboolean mouse_active = false;
+
+// stencilbuffer shadows   
+qboolean have_stencil = false;
 
 // state struct passed in Init
 static in_state_t	*in_state;
@@ -112,8 +114,6 @@ static cvar_t *m_pitch;
 static cvar_t *m_forward;
 static cvar_t *freelook;
 static cvar_t   *r_fakeFullscreen;
-
-qboolean have_stencil = false;
 
 static Cursor CreateNullCursor(Display *display, Window root)
 {
