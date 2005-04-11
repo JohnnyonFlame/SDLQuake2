@@ -1,5 +1,5 @@
-Updated. Mon Sep 20 13:44:23 MEST 2004
-(Vincent S. Cojot <coyote@step.polymtl.ca>)
+Updated Mon Apr 11 10:48:56 MEST 2005.
+(Vincent S. Cojot <q2solaris@NOSPAM4cojot.name>)
 
 Quick start:
 -----------------------------------------------------
@@ -10,20 +10,20 @@ Quick start:
 Tested with:
 -----------------------------------------------------
 Machine 1:
-- Solaris 8 10/00 for Sparc on an Ultra2 (1300) with a Creator3D card.
-- SDL-1.2.3 (http://www.libsdl.org)
-- X11R6.4 (comes with Solaris 8).
-- XIL-1.4 (comes with Solaris 8).
-- OpenGL-1.2.2 (see http://www.sun.com/software/solaris/opengl if using Solaris 8
-  older than 10/01).
+- Solaris 9 09/04 for Sparc on a SunBlade 150 (650MHz US-IIi) and XVR-600 card.
+- SDL-1.2.5 (http://www.libsdl.org)
+- X11R6.5 (comes with Solaris 9).
+- XIL-1.4 (comes with Solaris 9).
+- OpenGL-1.3
+- gcc-3.3.5
 
 Machine 2:
-- Solaris 8 02/02 for Sparc on a SunBlade 2000 (900Mhz CU) and XVR-1000 card.
-- SDL-1.2.4 (http://www.libsdl.org)
+- Solaris 8 02/04 for Sparc on a SunBlade 2000 (2*900Mhz US-IIICu) and XVR-1000 card.
+- SDL-1.2.5 (http://www.libsdl.org)
 - X11R6.4 (comes with Solaris 8).
 - XIL-1.4 (comes with Solaris 8).
 - OpenGL-1.3 (see http://www.sun.com/software/solaris/opengl)
-(BIG PROBLEM with Multi-Texturing: SEE BELOW)
+- gcc-3.3.5
 
 Installation instructions:
 -----------------------------------------------------
@@ -72,8 +72,8 @@ What's working:
 - X11 rendering (ref_softx.so)
 - XIL rendering (ref_xil.so) (Faster for some routines)
 - SDL rendering (ref_softsdl.so) (Nice full screen effect on Solaris displays)
-- GLX rendering (ref_glx.so) (Works semi-OK on my Ultra2/Creator3d but
-  it's s-l-o-w).
+- GLX rendering (ref_glx.so) (Works very well on XVR-1000, XVR-500, XVR-600, XVR-1200).
+- QMAX works -but- performance was not acceptable on either XVR-1000 or XVR-600. Avoid for now..
 
 What's still broken:
 -----------------------------------------------------
@@ -81,28 +81,12 @@ What's still broken:
   problem? Update: it may be an endianness problem in
   SDL since it displays fine to a remote x86 Linux machine
   with NVidia drivers. Being worked on, priority #2).
-- quake2 and sdlquake2 Seg fault when quitting the game
-  (not a show stoppper but being worked on, priority #1).
-  Update: FIXED (replace exit(0) with commented out
-  _exit(0) in Sys_Quit() in src/solaris/sys_solaris.c.
-- WARNING: On my new XVR-1000 card and with OpenGL-1.2.3
-  the textures are messed up and jumping in GLX mode!
-  All of the quake2-r versions hexibit this problem.
-  I'm investigating the issue....
-  Note: the Utah-GLX project has a quake2 solaris source
-  port that does -not- exhibit this problem (seems to be in
-  ref_gl).
-  Update: Sept 4th 2002: Sun has acknowledged the problem.
-  Patches 112565-05 (5.9) and 112564-05 (5.8) don't help.
-  It looks like a problem with multi-texturing but there
-  is a WORKAROUND: add the following to your quake2 cmd
-  line (without quotes): "+set gl_ext_multitexture 0"
 - If you're using OpenGL (GLX) on an hardware accelerated
   SUN video card, you -MUST- use OpenGL-1.2.3 and patches
   112628-11 and 112629-11 or later. Otherwise you'll get
   a flipping ceiling and the background will appear in front
   of some walls in the "space" level. For OpenGL-1.3, you must
-  use recent OpenGL-1.3 patches (113886-20, 113887-20 or later).
+  use recent OpenGL-1.3 patches (113886-27, 113887-27 or later).
 
 Thank you!
 -----------------------------------------------------
@@ -119,5 +103,5 @@ once Quake2 was open-source'd by Id Software in dec' 2001.
 - The guys at icculus for hosting this quake2 project
  (Steven Fuller, Brendan Burns and others..).
 
-This file written by Vincent S. Cojot <coyote@step.polymtl.ca>
+This file written by Vincent S. Cojot <q2solaris@NOSPAM4cojot.name>
 (Maintainer wannabe).
