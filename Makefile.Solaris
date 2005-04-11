@@ -28,7 +28,7 @@ BUILD_DEDICATED=YES	# build a dedicated quake2 server
 BUILD_SOLARIS_PKG=YES	# Build a Solaris package of all of the binaries for use with pkgadd.
 BUILD_DATA_PKG=YES	# Build a Solaris package of the game (shareware or final)
 			# data files for use with pkgadd.
-BUILD_QMAX=YES		# build the fancier GL graphics
+BUILD_QMAX=NO		# build the fancier GL graphics
 BUILD_RETEXTURE=YES	# build a version supporting retextured graphics
 STATICSDL=NO
 
