@@ -41,7 +41,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "../qcommon/qcommon.h"
 
-#include "../linux/rw_linux.h"
+#include "../irix/rw_irix.h"
 
 cvar_t *nostdout;
 
@@ -49,6 +49,7 @@ unsigned	sys_frame_time;
 
 uid_t saved_euid;
 qboolean stdin_active = true;
+char display_name[ 1024 ];
 
 // =======================================================================
 // General routines
@@ -69,7 +70,7 @@ void Sys_Printf (char *fmt, ...)
 	unsigned char		*p;
 
 	va_start (argptr,fmt);
-	vsprintf (text,fmt,argptr);
+	vsnprintf (text,1024,fmt,argptr);
 	va_end (argptr);
 
 	if (strlen(text) > sizeof(text))
@@ -92,6 +93,7 @@ void Sys_Quit (void)
 	CL_Shutdown ();
 	Qcommon_Shutdown ();
     fcntl (0, F_SETFL, fcntl (0, F_GETFL, 0) & ~FNDELAY);
+
 	_exit(0);
 }
 
@@ -104,19 +106,24 @@ void Sys_Init(void)
 
 void Sys_Error (char *error, ...)
 { 
+	/* DEBUG: matt */
+	/* exit(0); */
+	/* DEBUG */
+
     va_list     argptr;
     char        string[1024];
 
 // change stdin to non blocking
     fcntl (0, F_SETFL, fcntl (0, F_GETFL, 0) & ~FNDELAY);
     
+	CL_Shutdown ();
+	Qcommon_Shutdown ();
+
     va_start (argptr,error);
-    vsprintf (string,error,argptr);
+	vsnprintf (string,1024,error,argptr);
     va_end (argptr);
 	fprintf(stderr, "Error: %s\n", string);
 
-	CL_Shutdown ();
-	Qcommon_Shutdown ();
 	_exit (1);
 
 } 
@@ -127,7 +134,7 @@ void Sys_Warn (char *warning, ...)
     char        string[1024];
     
     va_start (argptr,warning);
-    vsprintf (string,warning,argptr);
+	vsnprintf (string,1024,warning,argptr);
     va_end (argptr);
 	fprintf(stderr, "Warning: %s", string);
 } 
@@ -216,6 +223,7 @@ void *Sys_GetGameAPI (void *parms)
 #ifndef REF_HARD_LINKED
 	void	*(*GetGameAPI) (void *);
 
+	FILE	*fp;
 	char	name[MAX_OSPATH];
 	char	curpath[MAX_OSPATH];
 	char	*path;
@@ -234,7 +242,7 @@ void *Sys_GetGameAPI (void *parms)
 
 	getcwd(curpath, sizeof(curpath));
 
-	Com_Printf("------- Loading %s -------", gamename);
+	Com_Printf("------- Loading %s -------\n", gamename);
 
 	// now run through the search paths
 	path = NULL;
@@ -243,9 +251,15 @@ void *Sys_GetGameAPI (void *parms)
 		path = FS_NextPath (path);
 		if (!path)
 			return NULL;		// couldn't find one anywhere
-		sprintf (name, "%s/%s/%s", curpath, path, gamename);
-		Com_Printf ("Trying to load library (%s)\n",name);
-		game_library = dlopen (name, RTLD_NOW );
+		snprintf (name, MAX_OSPATH, "%s/%s", path, gamename);
+		
+		/* skip it if it just doesn't exist */
+		fp = fopen(name, "rb");
+		if (fp == NULL)
+			continue;
+		fclose(fp);
+		
+		game_library = dlopen (name, RTLD_NOW);
 		if (game_library)
 		{
 			Com_MDPrintf ("LoadLibrary (%s)\n",name);
@@ -285,8 +299,10 @@ void Sys_AppActivate (void)
 
 void Sys_SendKeyEvents (void)
 {
-	if (KBD_Update_fp)
-		KBD_Update_fp();
+#ifndef DEDICATED_ONLY
+        if (KBD_Update_fp)
+                KBD_Update_fp();
+#endif
 
 	// grab frame time 
 	sys_frame_time = Sys_Milliseconds();
@@ -301,20 +317,41 @@ char *Sys_GetClipboardData(void)
 
 int main (int argc, char **argv)
 {
+#ifdef DEDICATED_ONLY
+	int newargc;
+	char **newargv;
+	int i;
+#endif
 	int 	time, oldtime, newtime;
 
 	// go back to real user for config loads
 	saved_euid = geteuid();
 	seteuid(getuid());
 
+#ifdef DEDICATED_ONLY
+
+	// force dedicated
+	newargc = argc;
+	newargv = malloc((argc + 3) * sizeof(char *));
+	newargv[0] = argv[0];
+	newargv[1] = "+set";
+	newargv[2] = "dedicated";
+	newargv[3] = "1";
+	for (i = 1; i < argc; i++)
+		newargv[i + 3] = argv[i];
+	newargc += 3;
+
+	Qcommon_Init(newargc, newargv);
+#else
 	Qcommon_Init(argc, argv);
+#endif
 
 /* 	fcntl(0, F_SETFL, fcntl (0, F_GETFL, 0) | FNDELAY); */
 
 	nostdout = Cvar_Get("nostdout", "0", 0);
 	if (!nostdout->value) {
 /* 		fcntl(0, F_SETFL, fcntl (0, F_GETFL, 0) | FNDELAY); */
-//		printf ("Linux Quake -- Version %0.3f\n", LINUX_VERSION);
+		printf ("Sgi Quake 2 -- Version %0.3f\n", IRIX_VERSION);
 	}
 
     oldtime = Sys_Milliseconds ();
@@ -412,3 +449,45 @@ void Sys_MakeCodeWriteable (unsigned long startaddr, unsigned long length)
 }
 
 #endif
+
+size_t verify_fread( void *ptr, size_t size, size_t nitems, FILE *fp )
+{
+  size_t ret;
+  int err;
+
+  clearerr( fp );
+  ret = fread( ptr, size, nitems, fp );
+  err = errno;
+  if( ret != nitems ) {
+    printf( "verify_fread(...,%d,%d,...): return value: %d\n",
+	    size, nitems, ret );
+    if( ret == 0 && ferror( fp ) ) {
+      printf( "    error: %s\n", strerror( err ) );
+      printf( "    fileno=%d\n", fileno( fp ) );
+    }
+    /*    sleep( 5 );*/
+  }
+
+  return ret;
+}
+
+size_t verify_fwrite( void *ptr, size_t size, size_t nitems, FILE *fp )
+{
+  size_t ret;
+  int err;
+
+  clearerr( fp );
+  ret = fwrite( ptr, size, nitems, fp );
+  err = errno;
+  if( ret != nitems ) {
+    printf( "verify_fwrite(...,%d,%d,...): return value: %d\n",
+	    size, nitems, ret );
+    if( ret == 0 && ferror( fp ) ) {
+      printf( "    error: %s\n", strerror( err ) );
+      printf( "    fileno=%d\n", fileno( fp ) );
+    }
+    /*    sleep( 5 );*/
+  }
+
+  return ret;
+}

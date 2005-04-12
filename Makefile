@@ -47,7 +47,11 @@ ifneq ($(OSTYPE),FreeBSD)
 ifeq ($(OSTYPE),SunOS)
 $(error OS $(OSTYPE) detected, use "Makefile.Solaris" instead.)
 else
+ifeq ($(OSTYPE),IRIX64)
+$(error OS $(OSTYPE) detected, use "Makefile.IRIX" instead.)
+else
 $(error OS $(OSTYPE) is currently not supported)
+endif
 endif
 endif
 endif

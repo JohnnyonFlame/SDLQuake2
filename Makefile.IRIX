@@ -1,5 +1,5 @@
 #
-# Quake2 Makefile for Linux 2.0
+# Quake2 Makefile for Irix
 #
 # Nov '97 by Zoid <zoid@idsoftware.com>
 #
@@ -19,15 +19,10 @@ BUILD_GLX=YES		# X11 GLX driver. Works somewhat ok.
 BUILD_FXGL=NO		# FXMesa driver. Not tested. (used only for V1 and V2).
 BUILD_SDL=YES		# SDL software driver. Works fine for some people.
 BUILD_SDLGL=YES		# SDL OpenGL driver. Works fine for some people.
-BUILD_CORONA=NO		# SunRay Terminal driver. Tested by SUN, untested by others..
-BUILD_XIL=YES		# Sun Solaris XIL (X11 Imaging Library, provides DGA accelration).
 BUILD_CTFDLL=YES	# game$(ARCH).so for ctf
 BUILD_XATRIX=NO		# game$(ARCH).so for xatrix (see README.r for details)
 BUILD_ROGUE=NO		# game$(ARCH).so for rogue (see README.r for details)
 BUILD_DEDICATED=YES	# build a dedicated quake2 server
-BUILD_SOLARIS_PKG=YES	# Build a Solaris package of all of the binaries for use with pkgadd.
-BUILD_DATA_PKG=YES	# Build a Solaris package of the game (shareware or final)
-			# data files for use with pkgadd.
 BUILD_QMAX=NO		# build the fancier GL graphics
 BUILD_RETEXTURE=YES	# build a version supporting retextured graphics
 STATICSDL=NO
@@ -41,38 +36,21 @@ HAVE_IPV6=NO
 # Check OS type.
 OSTYPE := $(shell uname -s)
 
-ifneq ($(OSTYPE),SunOS)
+ifneq ($(OSTYPE),IRIX64)
 $(error OS $(OSTYPE) is currently not supported, use the Generic Makefile instead)
 else
 $(warning Using OS configuration for $(OSTYPE) ...)
 endif
 
-ifneq (,$(findstring i86pc,$(shell uname -m)))
-ARCH=i386
-else
-ARCH=sparc
-endif
+ARCH := $(shell uname -m | sed -e s/IP2[0-9]/mips/ -e s/IP3[0-9]/mips/ -e s/IP4[0-9]/mips/)
 
-ifneq ($(ARCH),i386)
-ifneq ($(ARCH),sparc)
+ifneq ($(ARCH),mips)
 $(error arch $(ARCH) is currently not supported)
-endif
 endif
 
 CC=gcc3
 
-ifeq ($(ARCH),sparc)
-RELEASE_CFLAGS=$(BASE_CFLAGS) -O4 -mcpu=ultrasparc -mtune=ultrasparc -ffast-math -funroll-loops \
-	-fomit-frame-pointer -fexpensive-optimizations
-endif
-
-ifeq ($(ARCH),i386)
-RELEASE_CFLAGS=$(BASE_CFLAGS) -O3 -ffast-math -funroll-loops -malign-loops=2 \
-	-malign-jumps=2 -malign-functions=2 -g
-endif
-
 VERSION=3.21+r0.16.1
-PKG_VERSION=r0.16.1
 
 MOUNT_DIR=src
 
@@ -83,7 +61,7 @@ SERVER_DIR=$(MOUNT_DIR)/server
 REF_SOFT_DIR=$(MOUNT_DIR)/ref_soft
 REF_GL_DIR=$(MOUNT_DIR)/ref_gl
 COMMON_DIR=$(MOUNT_DIR)/qcommon
-SOLARIS_DIR=$(MOUNT_DIR)/solaris
+IRIX_DIR=$(MOUNT_DIR)/irix
 LINUX_DIR=$(MOUNT_DIR)/linux
 GAME_DIR=$(MOUNT_DIR)/game
 CTF_DIR=$(MOUNT_DIR)/ctf
@@ -91,7 +69,18 @@ XATRIX_DIR=$(MOUNT_DIR)/xatrix
 ROGUE_DIR=$(MOUNT_DIR)/rogue
 NULL_DIR=$(MOUNT_DIR)/null
 
-BASE_CFLAGS=-Wall -pipe -Dstricmp=strcasecmp
+# warning(1185): enumerated type mixed with another type
+BASE_CFLAGS=-Wall -Dstricmp=strcasecmp -mips4
+
+RELEASE_CFLAGS=$(BASE_CFLAGS) \
+	-O6 -mabi=n32 -funroll-loops \
+	-fomit-frame-pointer -fexpensive-optimizations
+DEBUG_CFLAGS=$(BASE_CFLAGS) -g
+BASE_STATIC_CFLAGS=-DGAME_HARD_LINKED -DREF_HARD_LINKED
+RELEASE_STATIC_CFLAGS=$(BASE_STATIC_CFLAGS) $(RELEASE_CFLAGS)
+DEBUG_STATIC_CFLAGS=$(BASE_STATIC_CFLAGS) $(DEBUG_CFLAGS)
+LDFLAGS=-L. -L$(ROOT)/usr/lib32 -ldl -lm -laudio -ldmedia
+
 ifeq ($(HAVE_IPV6),YES)
 BASE_CFLAGS+= -DHAVE_IPV6 -DHAVE_SIN6_LEN
 NET_UDP=net_udp6
@@ -113,44 +102,23 @@ endif
 
 DEBUG_CFLAGS=$(BASE_CFLAGS) -g
 
-ifeq ($(OSTYPE),SunOS)
-SOL8_XIL_WORKAROUND=0
-
-ifeq ($(SOL8_XIL_WORKAROUND),1)
-BASE_CFLAGS+= -DSOLARIS -DSUNXIL_WARNING_DISABLE -DSOL8_XIL_WORKAROUND
-RELEASE_CFLAGS=$(BASE_CFLAGS) -ffast-math -funroll-loops \
-	-fomit-frame-pointer -fexpensive-optimizations -O4 -mcpu=v8 -mtune=ultrasparc
-#LDFLAGS=-lnsl -lsocket -ldl -lpthread -lX11 -lxil -lm -lrt
-else
-BASE_CFLAGS+= -DSOLARIS -DSUNXIL_WARNING_DISABLE
-RELEASE_CFLAGS=$(BASE_CFLAGS) -ffast-math -funroll-loops \
-	-fomit-frame-pointer -fexpensive-optimizations -O4 -mcpu=v8 -mtune=ultrasparc
-endif
-LDFLAGS=-lnsl -lsocket -ldl -lpthread -lm -lrt
+ifeq ($(OSTYPE),IRIX64)
+BASE_CFLAGS+= -DIRIX
 endif
 
-# For the SunRay Terminal..
-OPENWINHOME=/usr/openwin
-CORONA_BASE_DIR = whatever/src/newt/videolib
 JPEG_BASE_DIR = /usr/sfw
 
-XCFLAGS=-I$(OPENWINHOME)/include
-XLDFLAGS=$(LDFLAGS) -L$(OPENWINHOME)/lib -lX11 -lxil
+XCFLAGS=
+XLDFLAGS=$(LDFLAGS) -lX11 -lXext
 
-GLXCFLAGS=-I$(OPENWINHOME)/include -DOPENGL
-GLXLDFLAGS=-L$(OPENWINHOME)/lib -lGL
+GLXCFLAGS=-DOPENGL
+GLXLDFLAGS=$(LDFLAGS) -lGL -lX11 -lXext
 
 SDLCFLAGS=$(shell sdl-config --cflags)
-SDLLDFLAGS=$(shell sdl-config --libs)
+SDLLDFLAGS=$(LDFLAGS) $(shell sdl-config --libs)
 
 SDLGLCFLAGS=$(SDLCFLAGS) -DOPENGL
-SDLGLLDFLAGS=$(shell sdl-config --libs)
-
-CORONACFLAGS=-I$(CORONA_BASE_DIR)
-CORONALDFLAGS=-L$(CORONA_BASE_DIR) -lnewtvideo
-
-XILCFLAGS=-I$(OPENWINHOME)/include
-XILLDFLAGS=-L$(OPENWINHOME)/lib -lxil
+SDLGLLDFLAGS=$(LDFLAGS) $(shell sdl-config --libs)
 
 ifeq ($(strip $(BUILD_QMAX)),YES)
 GLXCFLAGS+=-I$(JPEG_BASE_DIR)/include
@@ -174,23 +142,9 @@ DO_SHLIB_CC=$(CC) $(CFLAGS) $(SHLIBCFLAGS) -o $@ -c $<
 DO_GL_SHLIB_CC=$(CC) $(CFLAGS) $(SHLIBCFLAGS) $(GLXCFLAGS) -o $@ -c $<
 DO_AS=$(CC) $(CFLAGS) -DELF -x assembler-with-cpp -o $@ -c $<
 DO_SHLIB_AS=$(CC) $(CFLAGS) $(SHLIBCFLAGS) -DELF -x assembler-with-cpp -o $@ -c $<
-DO_INSTALL_BIN=$(INSTALL_BIN) $< $@
-DO_INSTALL_DATA=$(INSTALL_DATA) $< $@
 
-# Package
-PKG_SOLARIS_NAME=iDquake2
-PKG_DATA_NAME=iDquake2d
 BUILD_DATE :=$(shell /usr/bin/date '+%Y%m%d%H%M%S')
 PKG_MAINT_ID=coyote@cojot.name
-SOLARIS_PKGFILE=$(PKG_SOLARIS_NAME)-$(BUILD_VERSION)-$(PKG_VERSION)-$(ARCH).pkg
-DATA_PKGFILE=$(PKG_DATA_NAME)-$(BUILD_VERSION)-$(PKG_VERSION)-$(ARCH).pkg
-
-# Locations
-OSTYPE := $(shell uname -s)
-PKG_SRC_DIR=$(MOUNT_DIR)/solaris/pkg/$(PKG_SOLARIS_NAME)
-PKG_BUILD_DIR=/tmp/quake2-build/quake2-$(PKG_SOLARIS_NAME)-$(BUILD_VERSION)
-PKG_DATA_SRC_DIR=$(MOUNT_DIR)/solaris/pkg/$(PKG_DATA_NAME)
-PKG_DATA_BUILD_DIR=/usr/local/src/quake2-data/quake2
 
 # Tools
 RM=/usr/bin/rm
@@ -200,9 +154,6 @@ CAT=/usr/bin/cat
 NAWK=/usr/bin/nawk
 INSTALL_BIN=ginstall -v -D -m 755
 INSTALL_DATA=ginstall -v -D -m 644
-PKGPROTO=/usr/bin/pkgproto
-PKGMK=/usr/bin/pkgmk
-PKGTRANS=/usr/bin/pkgtrans
 
 #############################################################################
 # SETUP AND BUILD
@@ -211,32 +162,26 @@ PKGTRANS=/usr/bin/pkgtrans
 .PHONY : targets build_debug build_release clean clean-debug clean-release clean2
 
 TARGETS=$(BUILDDIR)/quake2 $(BUILDDIR)/game$(ARCH).$(SHLIBEXT)
-PKG_TARGETS=$(PKG_BUILD_DIR)/quake2 $(PKG_BUILD_DIR)/baseq2/game$(ARCH).$(SHLIBEXT) $(PKG_BUILD_DIR)/README $(PKG_BUILD_DIR)/README.Solaris $(PKG_BUILD_DIR)/q2_x11.sh $(PKG_BUILD_DIR)/q2_xil.sh $(PKG_BUILD_DIR)/q2_glx.sh
 
 ifeq ($(strip $(BUILD_DEDICATED)),YES)
  TARGETS += $(BUILDDIR)/q2ded
- PKG_TARGETS += $(PKG_BUILD_DIR)/q2ded
 endif
 
 ifeq ($(strip $(BUILD_CTFDLL)),YES)
  TARGETS += $(BUILDDIR)/ctf/game$(ARCH).$(SHLIBEXT)
- PKG_TARGETS += $(PKG_BUILD_DIR)/ctf/game$(ARCH).$(SHLIBEXT)
 endif
 
 ifeq ($(strip $(BUILD_XATRIX)),YES)
  TARGETS += $(BUILDDIR)/xatrix/game$(ARCH).$(SHLIBEXT)
- PKG_TARGETS += $(PKG_BUILD_DIR)/xatrix/game$(ARCH).$(SHLIBEXT)
 endif
 
 ifeq ($(strip $(BUILD_ROGUE)),YES)
  TARGETS += $(BUILDDIR)/rogue/game$(ARCH).$(SHLIBEXT)
- PKG_TARGETS += $(PKG_BUILD_DIR)/rogue/game$(ARCH).$(SHLIBEXT)
 endif
 
-ifeq ($(ARCH),sparc)
+ifeq ($(ARCH),mips)
  ifeq ($(strip $(BUILD_SDLQUAKE2)),YES)
   TARGETS += $(BUILDDIR)/sdlquake2
-  PKG_TARGETS += $(PKG_BUILD_DIR)/sdlquake2
  endif
  
  ifeq ($(strip $(BUILD_SVGA)),YES)
@@ -245,12 +190,10 @@ ifeq ($(ARCH),sparc)
 
  ifeq ($(strip $(BUILD_X11)),YES)
   TARGETS += $(BUILDDIR)/ref_softx.$(SHLIBEXT)
-  PKG_TARGETS += $(PKG_BUILD_DIR)/ref_softx.$(SHLIBEXT)
  endif
 
  ifeq ($(strip $(BUILD_GLX)),YES)
   TARGETS += $(BUILDDIR)/ref_glx.$(SHLIBEXT)
-  PKG_TARGETS += $(PKG_BUILD_DIR)/ref_glx.$(SHLIBEXT)
  endif
 
  ifeq ($(strip $(BUILD_FXGL)),YES)
@@ -259,81 +202,15 @@ ifeq ($(ARCH),sparc)
 
  ifeq ($(strip $(BUILD_SDL)),YES)
   TARGETS += $(BUILDDIR)/ref_softsdl.$(SHLIBEXT)
-  PKG_TARGETS += $(PKG_BUILD_DIR)/ref_softsdl.$(SHLIBEXT)
  endif
 
  ifeq ($(strip $(BUILD_SDLGL)),YES)
   TARGETS += $(BUILDDIR)/ref_sdlgl.$(SHLIBEXT)
-  PKG_TARGETS += $(PKG_BUILD_DIR)/ref_sdlgl.$(SHLIBEXT)
  endif
 
- ifeq ($(strip $(BUILD_XIL)),YES)
-  TARGETS += $(BUILDDIR)/ref_xil.$(SHLIBEXT)
-  PKG_TARGETS += $(PKG_BUILD_DIR)/ref_xil.$(SHLIBEXT)
- endif
-
- ifeq ($(strip $(BUILD_CORONA)),YES)
-  TARGETS += $(BUILDDIR)/ref_corona.$(SHLIBEXT)
-  PKG_TARGETS += $(PKG_BUILD_DIR)/ref_corona.$(SHLIBEXT)
- endif
-endif # ARCH sparc
+endif # ARCH mips
 	
-ifeq ($(ARCH),i386)
- ifeq ($(strip $(BUILD_SDLQUAKE2)),YES)
-  TARGETS += $(BUILDDIR)/sdlquake2
-  PKG_TARGETS += $(PKG_BUILD_DIR)/sdlquake2
- endif
-
- ifeq ($(strip $(BUILD_SVGA)),YES)
-  $(warning Warning: SVGAlib support not supported for $(ARCH))
- endif
-
- ifeq ($(strip $(BUILD_X11)),YES)
-  TARGETS += $(BUILDDIR)/ref_softx.$(SHLIBEXT)
-  PKG_TARGETS += $(PKG_BUILD_DIR)/ref_softx.$(SHLIBEXT)
- endif
-
- ifeq ($(strip $(BUILD_GLX)),YES)
-  TARGETS += $(BUILDDIR)/ref_glx.$(SHLIBEXT)
-  PKG_TARGETS += $(PKG_BUILD_DIR)/ref_glx.$(SHLIBEXT)
- endif
-
- ifeq ($(strip $(BUILD_FXGL)),YES)
-  $(warning Warning: FXGL support not supported for $(ARCH))
- endif
-
- ifeq ($(strip $(BUILD_SDL)),YES)
-  TARGETS += $(BUILDDIR)/ref_softsdl.$(SHLIBEXT)
-  PKG_TARGETS += $(PKG_BUILD_DIR)/ref_softsdl.$(SHLIBEXT)
- endif
-
- ifeq ($(strip $(BUILD_SDLGL)),YES)
-  TARGETS += $(BUILDDIR)/ref_sdlgl.$(SHLIBEXT)
-  PKG_TARGETS += $(PKG_BUILD_DIR)/ref_sdlgl.$(SHLIBEXT)
- endif
-
- ifeq ($(strip $(BUILD_XIL)),YES)
-  TARGETS += $(BUILDDIR)/ref_xil.$(SHLIBEXT)
-  PKG_TARGETS += $(PKG_BUILD_DIR)/ref_xil.$(SHLIBEXT)
- endif
-
- ifeq ($(strip $(BUILD_CORONA)),YES)
-  $(warning Warning: Corona support not supported for $(ARCH))
- endif
-endif # ARCH i386
-
-ifeq ($(strip $(BUILD_SOLARIS_PKG)),YES)
- TARGETS += $(BUILDDIR)/pkg/$(SOLARIS_PKGFILE)
-endif
-
-ifeq ($(strip $(BUILD_DATA_PKG)),YES)
-# Only build -data- pkg once (for release builds).
-ifeq ($(strip $(BUILDDIR)),$(strip $(BUILD_RELEASE_DIR)))
- DATA_TARGETS += $(BUILDDIR)/pkg/$(DATA_PKGFILE)
-endif
-endif
-
-all: build_debug build_release build_extra
+all: build_debug build_release
 
 build_debug:
 	@-mkdir -p $(BUILD_DEBUG_DIR) \
@@ -344,9 +221,8 @@ build_debug:
 		$(BUILD_DEBUG_DIR)/game \
 		$(BUILD_DEBUG_DIR)/ctf \
 		$(BUILD_DEBUG_DIR)/xatrix \
-		$(BUILD_DEBUG_DIR)/rogue \
-		$(BUILD_DEBUG_DIR)/pkg
-	$(MAKE) -f Makefile.Solaris targets BUILDDIR=$(BUILD_DEBUG_DIR) CFLAGS="$(DEBUG_CFLAGS) -DSOLARIS_VERSION='\"$(VERSION) Debug\"'" BUILD_VERSION="debug"
+		$(BUILD_DEBUG_DIR)/rogue
+	$(MAKE) -f Makefile.IRIX targets BUILDDIR=$(BUILD_DEBUG_DIR) CFLAGS="$(DEBUG_CFLAGS) -DIRIX_VERSION='\"$(VERSION) Debug\"'" BUILD_VERSION="debug"
 
 build_release:
 	@-mkdir -p $(BUILD_RELEASE_DIR) \
@@ -357,20 +233,10 @@ build_release:
 		$(BUILD_RELEASE_DIR)/game \
 		$(BUILD_RELEASE_DIR)/ctf \
 		$(BUILD_RELEASE_DIR)/xatrix \
-		$(BUILD_RELEASE_DIR)/rogue \
-		$(BUILD_RELEASE_DIR)/pkg
-	$(MAKE) -f Makefile.Solaris targets BUILDDIR=$(BUILD_RELEASE_DIR) CFLAGS="$(RELEASE_CFLAGS) -DSOLARIS_VERSION='\"$(VERSION)\"'" BUILD_VERSION="release"
-
-#ifeq ($(strip $(BUILD_DATA_PKG)),YES)
-build_extra: build_release
-	@-mkdir -p $(BUILD_RELEASE_DIR) \
-		$(BUILD_RELEASE_DIR)/pkg
-	$(MAKE) -f Makefile.Solaris pkg_targets BUILDDIR=$(BUILD_RELEASE_DIR) BUILD_VERSION="release"
-#endif
+		$(BUILD_RELEASE_DIR)/rogue
+	$(MAKE) -f Makefile.IRIX targets BUILDDIR=$(BUILD_RELEASE_DIR) CFLAGS="$(RELEASE_CFLAGS) -DIRIX_VERSION='\"$(VERSION)\"'" BUILD_VERSION="release"
 
 targets: $(TARGETS)
-
-pkg_targets: $(DATA_TARGETS)
 
 #############################################################################
 # CLIENT/SERVER
@@ -416,26 +282,26 @@ QUAKE2_OBJS = \
 	$(BUILDDIR)/client/sv_user.o \
 	$(BUILDDIR)/client/sv_world.o \
 	\
-	$(BUILDDIR)/client/q_shsolaris.o \
+	$(BUILDDIR)/client/q_shirix.o \
 	$(BUILDDIR)/client/vid_menu.o \
 	$(BUILDDIR)/client/vid_so.o \
-	$(BUILDDIR)/client/sys_solaris.o \
+	$(BUILDDIR)/client/sys_irix.o \
 	$(BUILDDIR)/client/glob.o \
 	$(BUILDDIR)/client/$(NET_UDP).o \
 	\
 	$(BUILDDIR)/client/q_shared.o \
 	$(BUILDDIR)/client/pmove.o
 
-QUAKE2_SOL_OBJS = \
-	$(BUILDDIR)/client/cd_solaris.o \
-	$(BUILDDIR)/client/snd_solaris.o	
+QUAKE2_SGI_OBJS = \
+	$(BUILDDIR)/client/cd_irix.o \
+	$(BUILDDIR)/client/snd_irix.o	
 
 QUAKE2_SDL_OBJS = \
 	$(BUILDDIR)/client/cd_sdl.o \
 	$(BUILDDIR)/client/snd_sdl.o
 
-$(BUILDDIR)/quake2 : $(QUAKE2_OBJS) $(QUAKE2_SOL_OBJS)
-	$(CC) $(CFLAGS) -o $@ $(QUAKE2_OBJS) $(QUAKE2_SOL_OBJS) $(XLDFLAGS)
+$(BUILDDIR)/quake2 : $(QUAKE2_OBJS) $(QUAKE2_SGI_OBJS)
+	$(CC) $(CFLAGS) -o $@ $(QUAKE2_OBJS) $(QUAKE2_SGI_OBJS) $(XLDFLAGS)
 
 $(BUILDDIR)/sdlquake2 : $(QUAKE2_OBJS) $(QUAKE2_SDL_OBJS)
 	$(CC) $(CFLAGS) -o $@ $(QUAKE2_OBJS) $(QUAKE2_SDL_OBJS) $(XLDFLAGS) $(SDLLDFLAGS)
@@ -554,16 +420,16 @@ $(BUILDDIR)/client/sv_user.o :    $(SERVER_DIR)/sv_user.c
 $(BUILDDIR)/client/sv_world.o :   $(SERVER_DIR)/sv_world.c
 	$(DO_CC)
 
-$(BUILDDIR)/client/q_shsolaris.o :	$(SOLARIS_DIR)/q_shsolaris.c
+$(BUILDDIR)/client/q_shirix.o :   $(IRIX_DIR)/q_shirix.c
 	$(DO_GL_SHLIB_CC)
 
-$(BUILDDIR)/client/sys_solaris.o :	$(SOLARIS_DIR)/sys_solaris.c
+$(BUILDDIR)/client/sys_irix.o :	$(IRIX_DIR)/sys_irix.c
 	$(DO_CC)
 
-$(BUILDDIR)/client/glob.o :		$(SOLARIS_DIR)/glob.c
+$(BUILDDIR)/client/glob.o :		$(IRIX_DIR)/glob.c
 	$(DO_CC)
 
-$(BUILDDIR)/client/net_udp.o :		$(SOLARIS_DIR)/net_udp.c
+$(BUILDDIR)/client/net_udp.o :		$(IRIX_DIR)/net_udp.c
 	$(DO_CC)
 
 $(BUILDDIR)/client/cd_null.o :		$(NULL_DIR)/cd_null.c
@@ -593,8 +459,8 @@ Q2DED_OBJS = \
        $(BUILDDIR)/ded/sv_send.o \
        $(BUILDDIR)/ded/sv_user.o \
        $(BUILDDIR)/ded/sv_world.o \
-       $(BUILDDIR)/ded/q_shsolaris.o \
-       $(BUILDDIR)/ded/sys_solaris.o \
+       $(BUILDDIR)/ded/q_shirix.o \
+       $(BUILDDIR)/ded/sys_irix.o \
        $(BUILDDIR)/ded/glob.o \
        $(BUILDDIR)/ded/$(NET_UDP).o \
        $(BUILDDIR)/ded/q_shared.o \
@@ -659,16 +525,16 @@ $(BUILDDIR)/ded/sv_user.o :    $(SERVER_DIR)/sv_user.c
 $(BUILDDIR)/ded/sv_world.o :   $(SERVER_DIR)/sv_world.c
 	$(DO_DED_CC)
 
-$(BUILDDIR)/ded/q_shsolaris.o :	$(SOLARIS_DIR)/q_shsolaris.c
+$(BUILDDIR)/ded/q_shirix.o :	$(IRIX_DIR)/q_shirix.c
 	$(DO_DED_CC)
 
-$(BUILDDIR)/ded/sys_solaris.o :	$(SOLARIS_DIR)/sys_solaris.c
+$(BUILDDIR)/ded/sys_irix.o :	$(IRIX_DIR)/sys_irix.c
 	$(DO_DED_CC)
 
-$(BUILDDIR)/ded/glob.o :	$(SOLARIS_DIR)/glob.c
+$(BUILDDIR)/ded/glob.o :	$(IRIX_DIR)/glob.c
 	$(DO_DED_CC)
 
-$(BUILDDIR)/ded/net_udp.o :	$(SOLARIS_DIR)/net_udp.c
+$(BUILDDIR)/ded/net_udp.o :	$(IRIX_DIR)/net_udp.c
 	$(DO_DED_CC)
 
 $(BUILDDIR)/ded/cd_null.o :    $(NULL_DIR)/cd_null.c
@@ -1489,7 +1355,7 @@ REF_SOFT_OBJS = \
 	$(BUILDDIR)/ref_soft/r_surf.o \
 	\
 	$(BUILDDIR)/ref_soft/q_shared.o \
-	$(BUILDDIR)/ref_soft/q_shsolaris.o \
+	$(BUILDDIR)/ref_soft/q_shirix.o \
 	$(BUILDDIR)/ref_soft/glob.o
 
 REF_SOFT_SDL_OBJS = \
@@ -1498,14 +1364,6 @@ REF_SOFT_SDL_OBJS = \
 REF_SOFT_X11_OBJS = \
 	$(BUILDDIR)/ref_soft/rw_x11.o
 
-REF_SOFT_XIL_OBJS = \
-	$(BUILDDIR)/ref_soft/rw_xil.o
-
-REF_SOFT_CORONA_OBJS = \
-	$(BUILDDIR)/ref_soft/rw_corona.o \
-	$(BUILDDIR)/ref_soft/newt.o \
-	$(BUILDDIR)/ref_soft/ndga.o
-
 $(BUILDDIR)/ref_softx.$(SHLIBEXT) : $(REF_SOFT_OBJS) $(REF_SOFT_X11_OBJS)
 	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(REF_SOFT_OBJS) \
 		$(REF_SOFT_X11_OBJS) $(XLDFLAGS)
@@ -1513,14 +1371,6 @@ $(BUILDDIR)/ref_softx.$(SHLIBEXT) : $(REF_SOFT_OBJS) $(REF_SOFT_X11_OBJS)
 $(BUILDDIR)/ref_softsdl.$(SHLIBEXT) : $(REF_SOFT_OBJS) $(REF_SOFT_SDL_OBJS)
 	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(REF_SOFT_OBJS) \
 		$(REF_SOFT_SDL_OBJS) $(SDLLDFLAGS)
-
-$(BUILDDIR)/ref_xil.$(SHLIBEXT) : $(REF_SOFT_OBJS) $(REF_SOFT_XIL_OBJS)
-	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(REF_SOFT_OBJS) \
-		$(REF_SOFT_XIL_OBJS) $(XLDFLAGS) $(XILLDFLAGS)
-
-$(BUILDDIR)/ref_corona.$(SHLIBEXT) : $(REF_SOFT_OBJS) $(REF_SOFT_CORONA_OBJS)
-	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(REF_SOFT_OBJS) \
-		$(REF_SOFT_CORONA_OBJS) $(CORONALDFLAGS)
 
 $(BUILDDIR)/ref_soft/r_aclip.o :      $(REF_SOFT_DIR)/r_aclip.c
 	$(DO_SHLIB_CC)
@@ -1576,46 +1426,34 @@ $(BUILDDIR)/ref_soft/r_surf.o :       $(REF_SOFT_DIR)/r_surf.c
 $(BUILDDIR)/ref_soft/q_shared.o :     $(GAME_DIR)/q_shared.c
 	$(DO_SHLIB_CC)
 
-$(BUILDDIR)/ref_soft/glob.o :           $(SOLARIS_DIR)/glob.c
+$(BUILDDIR)/ref_soft/glob.o :           $(IRIX_DIR)/glob.c
 	$(DO_SHLIB_CC)
 
-$(BUILDDIR)/client/vid_menu.o :       $(SOLARIS_DIR)/vid_menu.c
+$(BUILDDIR)/client/vid_menu.o :       $(IRIX_DIR)/vid_menu.c
 	$(DO_SHLIB_CC)
 
-$(BUILDDIR)/client/vid_so.o :         $(SOLARIS_DIR)/vid_so.c
+$(BUILDDIR)/client/vid_so.o :         $(IRIX_DIR)/vid_so.c
 	$(DO_SHLIB_CC)
 
-$(BUILDDIR)/client/snd_solaris.o :    $(SOLARIS_DIR)/snd_solaris.c
+$(BUILDDIR)/client/snd_irix.o :    $(IRIX_DIR)/snd_irix.c
 	$(DO_SHLIB_CC)
 
-$(BUILDDIR)/ref_soft/rw_x11.o :       $(SOLARIS_DIR)/rw_x11.c
+$(BUILDDIR)/ref_soft/rw_x11.o :       $(IRIX_DIR)/rw_x11.c
 	$(DO_SHLIB_CC)
 
-$(BUILDDIR)/client/cd_solaris.o :     $(SOLARIS_DIR)/cd_solaris.c
+$(BUILDDIR)/client/cd_irix.o :     $(IRIX_DIR)/cd_irix.c
 	$(DO_SHLIB_CC)
 
-$(BUILDDIR)/ref_soft/q_shsolaris.o :    $(SOLARIS_DIR)/q_shsolaris.c
+$(BUILDDIR)/ref_soft/q_shirix.o :    $(IRIX_DIR)/q_shirix.c
 	$(DO_SHLIB_CC)
 
-$(BUILDDIR)/ref_soft/rw_xil.o :       $(SOLARIS_DIR)/rw_xil.c
-	$(DO_SHLIB_CC)
-
-$(BUILDDIR)/ref_soft/rw_corona.o :    $(SOLARIS_DIR)/rw_corona.c
-	$(DO_CC) $(CORONACFLAGS)
-
-$(BUILDDIR)/ref_soft/newt.o :         $(SOLARIS_DIR)/newt.c
-	$(DO_CC) $(CORONACFLAGS)
-
-$(BUILDDIR)/ref_soft/ndga.o :         $(SOLARIS_DIR)/ndga.c
-	$(DO_CC) $(CORONACFLAGS)
-
-$(BUILDDIR)/client/cd_sdl.o :     $(SOLARIS_DIR)/cd_sdl.c
+$(BUILDDIR)/client/cd_sdl.o :     $(IRIX_DIR)/cd_sdl.c
 	$(DO_CC) $(SDLCFLAGS)
 
-$(BUILDDIR)/client/snd_sdl.o :     $(SOLARIS_DIR)/snd_sdl.c
+$(BUILDDIR)/client/snd_sdl.o :     $(IRIX_DIR)/snd_sdl.c
 	$(DO_CC) $(SDLCFLAGS)
 
-$(BUILDDIR)/ref_soft/rw_sdl.o :         $(SOLARIS_DIR)/rw_sdl.c
+$(BUILDDIR)/ref_soft/rw_sdl.o :         $(IRIX_DIR)/rw_sdl.c
 	$(DO_GL_SHLIB_CC) $(SDLCFLAGS)
 
 #############################################################################
@@ -1633,9 +1471,9 @@ REF_GL_OBJS = \
 	$(BUILDDIR)/ref_gl/gl_rsurf.o \
 	$(BUILDDIR)/ref_gl/gl_warp.o \
 	\
-	$(BUILDDIR)/ref_gl/qgl_solaris.o \
+	$(BUILDDIR)/ref_gl/qgl_irix.o \
 	$(BUILDDIR)/ref_gl/q_shared.o \
-	$(BUILDDIR)/ref_gl/q_shsolaris.o \
+	$(BUILDDIR)/ref_gl/q_shirix.o \
 	$(BUILDDIR)/ref_gl/glob.o
 
 REF_GLX_OBJS = \
@@ -1677,115 +1515,27 @@ $(BUILDDIR)/ref_gl/gl_rsurf.o :       $(REF_GL_DIR)/gl_rsurf.c
 $(BUILDDIR)/ref_gl/gl_warp.o :        $(REF_GL_DIR)/gl_warp.c
 	$(DO_GL_SHLIB_CC)
 
-$(BUILDDIR)/ref_gl/qgl_solaris.o :    $(SOLARIS_DIR)/qgl_solaris.c
+$(BUILDDIR)/ref_gl/qgl_irix.o :    $(IRIX_DIR)/qgl_irix.c
 	$(DO_GL_SHLIB_CC)
 
-$(BUILDDIR)/ref_gl/gl_glx.o :         $(SOLARIS_DIR)/gl_glx.c
+$(BUILDDIR)/ref_gl/gl_glx.o :         $(IRIX_DIR)/glw_imp.c
 	$(DO_GL_SHLIB_CC)
 
 $(BUILDDIR)/ref_gl/q_shared.o :       $(GAME_DIR)/q_shared.c
 	$(DO_GL_SHLIB_CC)
 
-$(BUILDDIR)/ref_gl/q_shsolaris.o :    $(SOLARIS_DIR)/q_shsolaris.c
+$(BUILDDIR)/ref_gl/q_shirix.o :    $(IRIX_DIR)/q_shirix.c
 	$(DO_GL_SHLIB_CC)
 
-$(BUILDDIR)/ref_gl/glob.o :           $(SOLARIS_DIR)/glob.c
+$(BUILDDIR)/ref_gl/glob.o :           $(IRIX_DIR)/glob.c
 	$(DO_GL_SHLIB_CC)
 
-$(BUILDDIR)/ref_gl/rw_sdl.o :         $(SOLARIS_DIR)/rw_sdl.c
+$(BUILDDIR)/ref_gl/rw_sdl.o :         $(IRIX_DIR)/rw_sdl.c
 	$(DO_GL_SHLIB_CC) $(SDLGLCFLAGS)
 
 #############################################################################
-# SOLARIS PACKAGE
+# IRIX PACKAGE
 #############################################################################
-
-$(BUILDDIR)/pkg/$(SOLARIS_PKGFILE) : $(PKG_TARGETS)
-	$(RM) -f $(BUILDDIR)/pkg/$(SOLARIS_PKGFILE)
-	$(TOUCH) $(BUILDDIR)/pkg/$(SOLARIS_PKGFILE)
-	$(SED) -e "/VERSION=/s/.*/VERSION=$(PKG_VERSION)/" \
-		< $(PKG_SRC_DIR)/pkginfo.template \
-		> $(PKG_SRC_DIR)/pkginfo
-	$(CAT) $(PKG_SRC_DIR)/prototype.template > $(PKG_SRC_DIR)/prototype
-	$(PKGPROTO) $(PKG_BUILD_DIR)=quake2 | \
-		$(NAWK) '{ print $$1,$$2,$$3,$$4 }' >> $(PKG_SRC_DIR)/prototype
-	$(PKGMK) -o -p "$(PKG_MAINT_ID)$(BUILD_DATE)" \
-		-b $(PKG_SRC_DIR) -f $(PKG_SRC_DIR)/prototype \
-		-d /tmp -a $(ARCH) owner=root group=bin mode=0755
-	$(PKGTRANS) -s /tmp $(BUILDDIR)/pkg/$(SOLARIS_PKGFILE) $(PKG_SOLARIS_NAME)
-
-$(BUILDDIR)/pkg/$(DATA_PKGFILE): $(BUILDDIR)/pkg/$(SOLARIS_PKGFILE)
-	$(RM) -f $(BUILDDIR)/pkg/$(DATA_PKGFILE)
-	$(TOUCH) $(BUILDDIR)/pkg/$(DATA_PKGFILE)
-	$(SED) -e "/VERSION=/s/.*/VERSION=$(PKG_VERSION)/" \
-		< $(PKG_DATA_SRC_DIR)/pkginfo.template \
-		> $(PKG_DATA_SRC_DIR)/pkginfo
-	$(CAT) $(PKG_DATA_SRC_DIR)/prototype.template > $(PKG_DATA_SRC_DIR)/prototype
-	$(PKGPROTO) $(PKG_DATA_BUILD_DIR)=quake2 | \
-		$(NAWK) '{ print $$1,$$2,$$3,$$4 }' >> $(PKG_DATA_SRC_DIR)/prototype
-	$(PKGMK) -o -p "$(PKG_MAINT_ID)$(BUILD_DATE)" \
-		-b $(PKG_DATA_SRC_DIR) -f $(PKG_DATA_SRC_DIR)/prototype \
-		-d /tmp -a $(ARCH) owner=root group=bin mode=0755
-	$(PKGTRANS) -s /tmp $(BUILDDIR)/pkg/$(DATA_PKGFILE) $(PKG_DATA_NAME)
-
-$(PKG_BUILD_DIR)/README: $(MOUNT_DIR)/../README
-	$(DO_INSTALL_DATA)
-
-$(PKG_BUILD_DIR)/README.Solaris: $(MOUNT_DIR)/../README.Solaris
-	$(DO_INSTALL_DATA)
-
-$(PKG_BUILD_DIR)/q2_x11.sh: $(MOUNT_DIR)/solaris/pkg/q2_x11.sh
-	$(DO_INSTALL_BIN)
-
-$(PKG_BUILD_DIR)/q2_xil.sh: $(MOUNT_DIR)/solaris/pkg/q2_xil.sh
-	$(DO_INSTALL_BIN)
-
-$(PKG_BUILD_DIR)/q2_glx.sh: $(MOUNT_DIR)/solaris/pkg/q2_glx.sh
-	$(DO_INSTALL_BIN)
-
-$(PKG_BUILD_DIR)/q2ded: $(BUILDDIR)/q2ded
-	$(DO_INSTALL_BIN)
-
-$(PKG_BUILD_DIR)/q2ded: $(BUILDDIR)/q2ded
-	$(DO_INSTALL_BIN)
-
-$(PKG_BUILD_DIR)/quake2: $(BUILDDIR)/quake2
-	$(DO_INSTALL_BIN)
-
-$(PKG_BUILD_DIR)/baseq2/game$(ARCH).$(SHLIBEXT): $(BUILDDIR)/game$(ARCH).$(SHLIBEXT)
-	$(DO_INSTALL_BIN)
-
-$(PKG_BUILD_DIR)/q2ded: $(BUILDDIR)/q2ded
-	$(DO_INSTALL_BIN)
-
-$(PKG_BUILD_DIR)/ctf/game$(ARCH).$(SHLIBEXT): $(BUILDDIR)/ctf/game$(ARCH).$(SHLIBEXT)
-	$(DO_INSTALL_BIN)
-
-$(PKG_BUILD_DIR)/xatrix/game$(ARCH).$(SHLIBEXT): $(BUILDDIR)/xatrix/game$(ARCH).$(SHLIBEXT)
-	$(DO_INSTALL_BIN)
-
-$(PKG_BUILD_DIR)/rogue/game$(ARCH).$(SHLIBEXT): $(BUILDDIR)/rogue/game$(ARCH).$(SHLIBEXT)
-	$(DO_INSTALL_BIN)
-
-$(PKG_BUILD_DIR)/sdlquake2: $(BUILDDIR)/sdlquake2
-	$(DO_INSTALL_BIN)
-
-$(PKG_BUILD_DIR)/ref_softx.$(SHLIBEXT): $(BUILDDIR)/ref_softx.$(SHLIBEXT)
-	$(DO_INSTALL_BIN)
-
-$(PKG_BUILD_DIR)/ref_glx.$(SHLIBEXT): $(BUILDDIR)/ref_glx.$(SHLIBEXT)
-	$(DO_INSTALL_BIN)
-
-$(PKG_BUILD_DIR)/ref_softsdl.$(SHLIBEXT): $(BUILDDIR)/ref_softsdl.$(SHLIBEXT)
-	$(DO_INSTALL_BIN)
-
-$(PKG_BUILD_DIR)/ref_sdlgl.$(SHLIBEXT): $(BUILDDIR)/ref_sdlgl.$(SHLIBEXT)
-	$(DO_INSTALL_BIN)
-
-$(PKG_BUILD_DIR)/ref_xil.$(SHLIBEXT): $(BUILDDIR)/ref_xil.$(SHLIBEXT)
-	$(DO_INSTALL_BIN)
-
-$(PKG_BUILD_DIR)/ref_corona.$(SHLIBEXT): $(BUILDDIR)/ref_corona.$(SHLIBEXT)
-	$(DO_INSTALL_BIN)
 
 #############################################################################
 # MISC
@@ -1794,10 +1544,10 @@ $(PKG_BUILD_DIR)/ref_corona.$(SHLIBEXT): $(BUILDDIR)/ref_corona.$(SHLIBEXT)
 clean: clean-debug clean-release
 
 clean-debug:
-	$(MAKE) -f Makefile.Solaris clean2 BUILDDIR=$(BUILD_DEBUG_DIR) CFLAGS="$(DEBUG_CFLAGS)"
+	$(MAKE) -f Makefile.IRIX clean2 BUILDDIR=$(BUILD_DEBUG_DIR) CFLAGS="$(DEBUG_CFLAGS)"
 
 clean-release:
-	$(MAKE) -f Makefile.Solaris clean2 BUILDDIR=$(BUILD_RELEASE_DIR) CFLAGS="$(DEBUG_CFLAGS)"
+	$(MAKE) -f Makefile.IRIX clean2 BUILDDIR=$(BUILD_RELEASE_DIR) CFLAGS="$(DEBUG_CFLAGS)"
 
 clean2:
 	rm -f \

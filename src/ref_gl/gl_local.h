@@ -28,15 +28,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <ctype.h>
 
 #include <GL/gl.h>
-#ifndef SOLARIS
-//#include <GL/glxext.h>
-#else
+#ifdef SOLARIS
 #include <GL/glu.h>
+#else
+//#include <GL/glxext.h>
+#endif
+#include <math.h>
+
 #ifndef GL_COLOR_INDEX8_EXT
 #define GL_COLOR_INDEX8_EXT GL_COLOR_INDEX
 #endif
-#endif
-#include <math.h>
 
 #ifndef _WIN32
 char *strlwr (char *s);
