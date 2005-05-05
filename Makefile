@@ -27,8 +27,8 @@ BUILD_ARTS=NO		# build in support for libaRts sound.
 BUILD_ALSA=NO		# build in support for ALSA (default sound on 2.6)
 BUILD_DEDICATED=NO	# build a dedicated quake2 server
 BUILD_AA=NO		# build the ascii soft renderer.
-BUILD_QMAX=NO		# build the fancier GL graphics
-BUILD_RETEXTURE=NO	# build a version supporting retextured graphics
+BUILD_QMAX=YES		# build the fancier GL graphics
+BUILD_RETEXTURE=YES	# build a version supporting retextured graphics
 BUILD_REDBLUE=NO	# build a red-blue 3d glasses renderer...
 STATICSDL=NO
 SDLDIR=/usr/local/lib
@@ -99,7 +99,7 @@ RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops -falign-loops=2 \
 endif
 
 ifeq ($(ARCH),x86_64)
-_LIB := 64
+#_LIB := 64
 RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations -fno-strict-aliasing
 endif
@@ -343,8 +343,12 @@ ifeq ($(ARCH),x86_64)
   $(warning Warning: SVGA not supported for $(ARCH))
  endif
 
- ifeq ($(strip $(BUILD_SOFTX)),YES)
+ ifeq ($(strip $(BUILD_X11)),YES)
   $(warning Warning: Software X Renderer not supported for $(ARCH))
+ endif
+
+ ifeq ($(strip $(BUILD_SDL)),YES)
+  $(warning Warning: Software SDL Renderer not supported for $(ARCH))
  endif
 
  ifeq ($(strip $(BUILD_GLX)),YES)
