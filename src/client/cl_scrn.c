@@ -69,6 +69,9 @@ dirty_t		scr_dirty, scr_old_dirty[2];
 char		crosshair_pic[MAX_QPATH];
 int			crosshair_width, crosshair_height;
 
+cvar_t	*cl_drawclock;
+cvar_t	*cl_timeformat;
+
 extern cvar_t *cl_drawfps; // FPS hack
 
 void SCR_TimeRefresh_f (void);
@@ -1287,7 +1290,7 @@ void SCR_UpdateScreen (void)
 	int numframes;
 	int i;
 	float separation[2] = { 0, 0 };
-
+	
 	// if the screen is disabled (loading plaque is up, or vid mode changing)
 	// do nothing at all
 	if (cls.disable_screen)
@@ -1413,6 +1416,16 @@ void SCR_UpdateScreen (void)
 	      SCR_DrawNet ();
 	      SCR_CheckDrawCenterString ();
 	      
+	      if(cl_drawclock->value)
+		{
+		  time_t t = time( NULL );
+		  char stime[32];
+		  strftime( stime, sizeof(stime), cl_timeformat->string ,
+			    localtime(&t));	      
+	      
+		  DrawString(5, viddef.height-64, stime);
+		}	
+
 	      // FPS counter hack 
 	      // http://www.quakesrc.org/?Page=tutorials&What=./tutorials/Quake2/misc/fps.txt
 	      if (cl_drawfps->value) {

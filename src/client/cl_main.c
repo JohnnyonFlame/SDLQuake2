@@ -1528,6 +1528,9 @@ void CL_InitLocal (void)
 
 	cl_vwep = Cvar_Get ("cl_vwep", "1", CVAR_ARCHIVE);
 
+	// HUDclock QuDos
+	cl_drawclock = Cvar_Get ("cl_drawclock", "0", CVAR_ARCHIVE);
+	cl_timeformat = Cvar_Get ("cl_timeformat", "%H:%M:%S", CVAR_ARCHIVE);
 
 	//
 	// register our commands

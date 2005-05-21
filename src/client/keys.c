@@ -351,13 +351,13 @@ void Key_Console (int key)
 		return;
 	}
 
-	if (key == K_PGUP || key == K_KP_PGUP )
+	if (key == K_PGUP || key == K_KP_PGUP || K_MWHEELUP )
 	{
 		con.display -= 2;
 		return;
 	}
 
-	if (key == K_PGDN || key == K_KP_PGDN ) 
+	if (key == K_PGDN || key == K_KP_PGDN || K_MWHEELDOWN ) 
 	{
 		con.display += 2;
 		if (con.display > con.current)
@@ -692,6 +692,9 @@ void Key_Init (void)
 	consolekeys[K_KP_MINUS] = true;
 	consolekeys[K_KP_5] = true;
 
+	consolekeys[K_MWHEELUP] = true;
+	consolekeys[K_MWHEELDOWN] = true;
+
 	consolekeys['`'] = false;
 	consolekeys['~'] = false;
 
@@ -768,7 +771,7 @@ void Key_Event (int key, qboolean down, unsigned time)
 		    && key_repeats[key] > 1)
 		  return;	// ignore most autorepeats
 			
-		if (key >= 200 && !keybindings[key])
+		if (key >= 200 && !keybindings[key] && cls.key_dest != key_console)
 			Com_Printf ("%s is unbound, hit F4 to set.\n", Key_KeynumToString (key) );
 	}
 	else
