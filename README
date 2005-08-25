@@ -303,6 +303,7 @@ game <subdir>           // load the quake2 mod in that directory
 sensitivity <int>       // Adjust the sensivity (accelleration) of the mouse.
 crosshair <int>		// Choose your crosshair [1-3] Normal [1-9] Q2Max
 crosshair_scale <int>   // Scale your crosshair (Q2Max only for now...)
+skydistance <int>	// Modify the skybox distance (useful for large maps)
 
 When using these commands on the quake2 command line, use +set to cause the
 variables be set before the config files are loaded (important for
@@ -390,6 +391,9 @@ Karen Pouelle
 Toni Spets
 Nicolas Regnault
 Nick Warne
+
+v 0.17 [??/??/??]
+Added skybox cvar (Nick Warne)
 
 v 0.16 [09/13/04]
 Load more pakfiles [Toni Spets]
