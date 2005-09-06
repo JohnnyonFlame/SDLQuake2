@@ -247,7 +247,6 @@ extern	cvar_t	*vid_fullscreen;
 extern	cvar_t	*vid_gamma;
 
 extern	cvar_t		*intensity;
-extern  cvar_t  *skydistance;
 
 
 extern	int		gl_lightmap_format;

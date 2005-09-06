@@ -135,7 +135,6 @@ cvar_t	*gl_3dlabs_broken;
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
 cvar_t	*vid_ref;
-cvar_t  *skydistance;
 
 /*
 =================
@@ -703,10 +702,6 @@ void R_SetupGL (void)
 	float	screenaspect;
 	int		x, x2, y2, y, w, h;
 
-
-	static GLdouble farz = 4096; // DMP skybox size change
-	GLdouble boxsize;  // DMP skybox size change
-	
 	//
 	// set up viewport
 	//
@@ -720,21 +715,6 @@ void R_SetupGL (void)
 
 	qglViewport (x, y2, w, h);
 
-// Nick - 25/08/2005 - skydistance
-// DMP: calc farz value from skybox size
-
-       if (skydistance->modified)
-	 {
-	   skydistance->modified = false;
-	   boxsize = skydistance->value;
-	   boxsize -= 252 * ceil(boxsize / 2300);
-	   farz = pow(2,floor(log(boxsize))+1);
-	   ri.Con_Printf(PRINT_DEVELOPER, "farz now set to %g\n", farz);
-	 }
-// End Nick
-
-
-
 	//
 	// set up projection matrix
 	//
@@ -742,8 +722,7 @@ void R_SetupGL (void)
 //	yfov = 2*atan((float)r_newrefdef.height/r_newrefdef.width)*180/M_PI;
 	qglMatrixMode(GL_PROJECTION);
     qglLoadIdentity ();
-    //MYgluPerspective (r_newrefdef.fov_y,  screenaspect,  4,  4096);
-    MYgluPerspective (r_newrefdef.fov_y,  screenaspect, 4, farz); // DMP skybox
+    MYgluPerspective (r_newrefdef.fov_y,  screenaspect,  4,  4096);
 
 	qglCullFace(GL_FRONT);
 
