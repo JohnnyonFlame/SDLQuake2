@@ -722,7 +722,7 @@ void R_SetupGL (void)
 //	yfov = 2*atan((float)r_newrefdef.height/r_newrefdef.width)*180/M_PI;
 	qglMatrixMode(GL_PROJECTION);
     qglLoadIdentity ();
-    MYgluPerspective (r_newrefdef.fov_y,  screenaspect,  4,  4096);
+    MYgluPerspective (r_newrefdef.fov_y,  screenaspect,  4,  8192);
 
 	qglCullFace(GL_FRONT);
 
@@ -1050,7 +1050,6 @@ void R_Register( void )
 	vid_fullscreen = ri.Cvar_Get( "vid_fullscreen", "0", CVAR_ARCHIVE );
 	vid_gamma = ri.Cvar_Get( "vid_gamma", "1.0", CVAR_ARCHIVE );
 	vid_ref = ri.Cvar_Get( "vid_ref", "soft", CVAR_ARCHIVE );
-	skydistance = ri.Cvar_Get("skydistance", "2300", 0); 
 
 	ri.Cmd_AddCommand( "imagelist", GL_ImageList_f );
 	ri.Cmd_AddCommand( "screenshot", GL_ScreenShot_f );
@@ -1077,7 +1076,6 @@ qboolean R_SetMode (void)
 	}
 #endif
 	fullscreen = vid_fullscreen->value;
-	skydistance->modified = true;
 
 	vid_fullscreen->modified = false;
 	gl_mode->modified = false;
