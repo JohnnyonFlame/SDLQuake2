@@ -3006,13 +3006,17 @@ qboolean QGL_Init( const char *dllname )
 //				dllname, dlerror());
 
 		// try basedir next
-		path = ri.Cvar_Get ("basedir", ".", CVAR_NOSET)->string;
+		path = ri.Cvar_Get ("basedir", DEFAULT_BASEDIR, CVAR_NOSET)->string;
 		
 		snprintf (fn, MAX_OSPATH, "%s/%s", path, dllname );
 
 		if ( ( glw_state.OpenGLLib = dlopen( fn, RTLD_LAZY ) ) == 0 ) {
-			ri.Con_Printf( PRINT_ALL, "%s\n", dlerror() );
-			return false;
+			path = ri.Cvar_Get ("libdir", DEFAULT_LIBDIR, CVAR_NOSET)->string;
+			snprintf (fn, MAX_OSPATH, "%s/%s", path, dllname );
+			if ( ( glw_state.OpenGLLib = dlopen( fn, RTLD_LAZY ) ) == 0 ) {
+				ri.Con_Printf( PRINT_ALL, "%s\n", dlerror() );
+				return false;
+			}
 		}
 		Com_Printf ("Using %s for OpenGL...", fn); 
 	} else {

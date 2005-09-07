@@ -237,13 +237,17 @@ qboolean VID_LoadRefresh( char *name )
 	//regain root
 	seteuid(saved_euid);
 
-	path = Cvar_Get ("basedir", ".", CVAR_NOSET)->string;
+	path = Cvar_Get ("basedir", DEFAULT_BASEDIR, CVAR_NOSET)->string;
 
 	snprintf (fn, MAX_OSPATH, "%s/%s", path, name );
 	
 	if (stat(fn, &st) == -1) {
-		Com_Printf( "LoadLibrary(\"%s\") failed: %s\n", name, strerror(errno));
-		return false;
+		path = Cvar_Get ("libdir", DEFAULT_LIBDIR, CVAR_NOSET)->string;
+		snprintf (fn, MAX_OSPATH, "%s/%s", path, name );
+		if (stat(fn, &st) == -1) {
+			Com_Printf( "LoadLibrary(\"%s\") failed: %s\n", name, strerror(errno));
+			return false;
+		}
 	}
 	
 	// permission checking
@@ -493,13 +497,19 @@ qboolean VID_CheckRefExists (const char *ref)
 	char	*path;
 	struct stat st;
 
-	path = Cvar_Get ("basedir", ".", CVAR_NOSET)->string;
+	path = Cvar_Get ("libdir", DEFAULT_LIBDIR, CVAR_NOSET)->string;
 	snprintf (fn, MAX_OSPATH, "%s/ref_%s.so", path, ref );
 	
 	if (stat(fn, &st) == 0)
 		return true;
-	else
-		return false;
+	else {
+		path = Cvar_Get ("basedir", DEFAULT_BASEDIR, CVAR_NOSET)->string;
+		snprintf (fn, MAX_OSPATH, "%s/ref_%s.so", path, ref );
+		if (stat(fn, &st) == 0)
+			return true;
+		else
+			return false;
+	}
 }
 
 /*****************************************************************************/

@@ -74,6 +74,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #endif
 
+#ifndef DEFAULT_BASEDIR
+# define DEFAULT_BASEDIR "."
+#endif
+#ifndef DEFAULT_LIBDIR
+# define DEFAULT_LIBDIR DEFAULT_BASEDIR
+#endif
+
 //============================================================================
 
 typedef struct sizebuf_s

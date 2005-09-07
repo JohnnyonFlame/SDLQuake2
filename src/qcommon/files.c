@@ -60,6 +60,7 @@ typedef struct pack_s
 
 char	fs_gamedir[MAX_OSPATH];
 cvar_t	*fs_basedir;
+cvar_t	*fs_libdir;
 cvar_t	*fs_cddir;
 cvar_t	*fs_gamedirvar;
 
@@ -681,6 +682,7 @@ void FS_SetGamedir (char *dir)
 		if (fs_cddir->string[0])
 			FS_AddGameDirectory (va("%s/%s", fs_cddir->string, dir) );
 		FS_AddGameDirectory (va("%s/%s", fs_basedir->string, dir) );
+		FS_AddGameDirectory (va("%s/%s", fs_libdir->string, dir) );
 		FS_AddHomeAsGameDirectory(dir);
 	}
 }
@@ -898,7 +900,13 @@ void FS_InitFilesystem (void)
 	// basedir <path>
 	// allows the game to run from outside the data tree
 	//
-	fs_basedir = Cvar_Get ("basedir", ".", CVAR_NOSET);
+	fs_basedir = Cvar_Get ("basedir", DEFAULT_BASEDIR, CVAR_NOSET);
+
+	//
+	// libdir <path>
+	// allows the game to store binary files (not data) in a sep tree
+	//
+	fs_libdir = Cvar_Get ("libdir", DEFAULT_LIBDIR, CVAR_NOSET);
 
 	//
 	// cddir <path>
@@ -913,6 +921,7 @@ void FS_InitFilesystem (void)
 	// add baseq2 to search path
 	//
 	FS_AddGameDirectory (va("%s/"BASEDIRNAME, fs_basedir->string) );
+	FS_AddGameDirectory (va("%s/"BASEDIRNAME, fs_libdir->string) );
 
 	//
 	// then add a '.quake2/baseq2' directory in home directory by default

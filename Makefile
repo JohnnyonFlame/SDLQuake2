@@ -12,7 +12,7 @@
 # (Note: not all options are available for all platforms).
 # quake2 (uses OSS for sound, cdrom ioctls for cd audio) is automatically built.
 # game$(ARCH).so is automatically built.
-BUILD_SDLQUAKE2=YES	# sdlquake2 executable (uses SDL for cdrom and sound)
+BUILD_SDLQUAKE2=NO	# sdlquake2 executable (uses SDL for cdrom and sound)
 BUILD_SVGA=NO		# SVGAlib driver. Seems to work fine.
 BUILD_X11=YES		# X11 software driver. Works somewhat ok.
 BUILD_GLX=YES		# X11 GLX driver. Works somewhat ok.
@@ -27,7 +27,7 @@ BUILD_ARTS=NO		# build in support for libaRts sound.
 BUILD_ALSA=NO		# build in support for ALSA (default sound on 2.6)
 BUILD_DEDICATED=NO	# build a dedicated quake2 server
 BUILD_AA=NO		# build the ascii soft renderer.
-BUILD_QMAX=YES		# build the fancier GL graphics
+BUILD_QMAX=NO		# build the fancier GL graphics
 BUILD_RETEXTURE=YES	# build a version supporting retextured graphics
 BUILD_REDBLUE=NO	# build a red-blue 3d glasses renderer...
 STATICSDL=NO
@@ -74,35 +74,38 @@ endif
 
 CC=gcc
 
+ifndef OPT_CFLAGS
 ifeq ($(ARCH),axp)
-RELEASE_CFLAGS=$(BASE_CFLAGS) -ffast-math -funroll-loops \
+OPT_CFLAGS=-ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
 endif
 
 ifeq ($(ARCH),ppc)
-RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops \
+OPT_CFLAGS=-O2 -ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
 endif
 
 ifeq ($(ARCH),sparc)
-RELEASE_CFLAGS=$(BASE_CFLAGS) -ffast-math -funroll-loops \
+OPT_CFLAGS=-ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
 endif
 
 ifeq ($(ARCH),i386)
-RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops -falign-loops=2 \
+OPT_CFLAGS=-O2 -ffast-math -funroll-loops -falign-loops=2 \
 	-falign-jumps=2 -falign-functions=2 -fno-strict-aliasing
 # compiler bugs with gcc 2.96 and 3.0.1 can cause bad builds with heavy opts.
-#RELEASE_CFLAGS=$(BASE_CFLAGS) -O6 -m486 -ffast-math -funroll-loops \
+#OPT_CFLAGS=-O6 -m486 -ffast-math -funroll-loops \
 #	-fomit-frame-pointer -fexpensive-optimizations -malign-loops=2 \
 #	-malign-jumps=2 -malign-functions=2
 endif
 
 ifeq ($(ARCH),x86_64)
 #_LIB := 64
-RELEASE_CFLAGS=$(BASE_CFLAGS) -O2 -ffast-math -funroll-loops \
+OPT_CFLAGS=-O2 -ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations -fno-strict-aliasing
 endif
+endif
+RELEASE_CFLAGS=$(BASE_CFLAGS) $(OPT_CFLAGS)
 
 VERSION=3.21+r0.16
 
@@ -131,6 +134,13 @@ endif
 NET_UDP=net_udp6
 else
 NET_UDP=net_udp
+endif
+
+ifdef DEFAULT_BASEDIR
+BASE_CFLAGS += -DDEFAULT_BASEDIR=\\\"$(DEFAULT_BASEDIR)\\\"
+endif
+ifdef DEFAULT_LIBDIR
+BASE_CFLAGS += -DDEFAULT_LIBDIR=\\\"$(DEFAULT_LIBDIR)\\\"
 endif
 
 ifeq ($(strip $(BUILD_QMAX)),YES)
