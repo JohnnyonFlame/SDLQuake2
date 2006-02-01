@@ -374,7 +374,7 @@ Wesley Bear
 Robert Bäuml
 Vincent Cojot
 Michel Dänzer
-Jon Dolan (ALSA Support)
+Jay Dolan (ALSA Support)
 Ryan C. Gordon
 Angelo Grossini
 Nicolai Haehnle
@@ -394,7 +394,7 @@ Nick Warne
 
 v 0.17 [??/??/??]
 Added skybox cvar (Nick Warne)
-Fixed ALSA Support (Jon Dolan)
+Fixed ALSA Support (Jay Dolan)
 
 v 0.16 [09/13/04]
 Load more pakfiles [Toni Spets]
