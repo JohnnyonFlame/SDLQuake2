@@ -346,11 +346,9 @@ Mailing List and Contact:
 to subscribe: send a blank email to quake2-subscribe@icculus.org
 to post: send email to quake2@icculus.org
 
-Anonymous CVS access:
+SVN access:
 ---------------------
-cvs -d:pserver:anonymous@icculus.org:/cvs/cvsroot login
-      (password is "anonymous" without the quotes.)
-cvs -z3 -d:pserver:anonymous@icculus.org:/cvs/cvsroot co quake2
+svn co svn://svn.icculus.org/quake2/trunk/ quake2
 
 Bugzilla:
 ---------
