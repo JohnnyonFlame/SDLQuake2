@@ -437,7 +437,8 @@ void VID_MenuInit( void )
 
 	s_stipple_box.generic.type = MTYPE_SPINCONTROL;
 	s_stipple_box.generic.x	= 0;
-	s_stipple_box.generic.y	= 60;
+	//s_stipple_box.generic.y	= 60;
+	s_stipple_box.generic.y	= 40;
 	s_stipple_box.generic.name	= "stipple alpha";
 	s_stipple_box.curvalue = sw_stipplealpha->value;
 	s_stipple_box.itemnames = yesno_names;
@@ -465,18 +466,24 @@ void VID_MenuInit( void )
 	s_paletted_texture_box.curvalue = gl_ext_palettedtexture->value;
 
 	Menu_AddItem( &s_software_menu, ( void * ) &s_ref_list[SOFTWARE_MENU] );
-	Menu_AddItem( &s_software_menu, ( void * ) &s_mode_list[SOFTWARE_MENU] );
+/*
+	Not needed for GCW0 until we get a TV-OUT support.
+	TODO: Instead of disabling this feature, it should instead check the allowed resolutions
+	      and only let you change to one which is supported.
+	v v v v
+*/
+	//Menu_AddItem( &s_software_menu, ( void * ) &s_mode_list[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_screensize_slider[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_brightness_slider[SOFTWARE_MENU] );
-	Menu_AddItem( &s_software_menu, ( void * ) &s_fs_box[SOFTWARE_MENU] );
+	//Menu_AddItem( &s_software_menu, ( void * ) &s_fs_box[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_stipple_box );
-	Menu_AddItem( &s_software_menu, ( void * ) &s_windowed_mouse );
+	//Menu_AddItem( &s_software_menu, ( void * ) &s_windowed_mouse );
 
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_ref_list[OPENGL_MENU] );
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_mode_list[OPENGL_MENU] );
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_screensize_slider[OPENGL_MENU] );
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_brightness_slider[OPENGL_MENU] );
-	Menu_AddItem( &s_opengl_menu, ( void * ) &s_fs_box[OPENGL_MENU] );
+	//Menu_AddItem( &s_opengl_menu, ( void * ) &s_fs_box[OPENGL_MENU] );
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_tq_slider );
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_paletted_texture_box );
 
