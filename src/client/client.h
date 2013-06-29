@@ -582,6 +582,8 @@ void IN_CenterView (void);
 float CL_KeyState (kbutton_t *key);
 char *Key_KeynumToString (int keynum);
 
+char *Key_KeynumToString_clean (int keynum);
+
 //
 // cl_demo.c
 //

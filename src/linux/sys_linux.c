@@ -225,8 +225,10 @@ void *Sys_GetGameAPI (void *parms)
 	const char *gamename = "gameppc.so";
 #elif defined __sparc__
 	const char *gamename = "gamesparc.so";
+#elif defined __gcw__
+	const char *gamename = "gamegcw.so";
 #else
-#error Unknown arch
+	const char *gamename = "gamegcw.so";
 #endif
 
 	setreuid(getuid(), getuid());
@@ -243,14 +245,25 @@ void *Sys_GetGameAPI (void *parms)
 	{
 		path = FS_NextPath (path);
 		if (!path)
-			return NULL;		// couldn't find one anywhere
-		snprintf (name, MAX_OSPATH, "%s/%s", path, gamename);
-		
-		/* skip it if it just doesn't exist */
-		fp = fopen(name, "rb");
-		if (fp == NULL)
-			continue;
-		fclose(fp);
+		{
+			snprintf(name, MAX_OSPATH, "%s/%s", getenv("PWD"), gamename);
+
+			printf("%s\n" ,name);
+			fp = fopen(name, "rb");
+			if (fp == NULL)
+				return NULL;		// couldn't find one anywhere
+			fclose(fp);	
+		}
+		else
+		{
+			snprintf (name, MAX_OSPATH, "%s/%s", path, gamename);
+
+			/* skip it if it just doesn't exist */
+			fp = fopen(name, "rb");
+			if (fp == NULL)
+				continue;
+			fclose(fp);
+		}
 		
 		game_library = dlopen (name, RTLD_NOW);
 		if (game_library)

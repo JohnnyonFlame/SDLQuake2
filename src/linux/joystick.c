@@ -5,6 +5,19 @@
 #include "../ref_soft/r_local.h"
 #endif
 
+#include <stdio.h>
+#include <fcntl.h>
+#include <assert.h>
+
+#include <linux/input.h>
+#include <linux/joystick.h>
+#include <linux/uinput.h>
+
+#include <string.h>
+#include <stdlib.h>
+
+#include <unistd.h>
+
 #include "rw_linux.h"
 
 // state struct passed in Init
@@ -43,8 +56,90 @@ static qboolean joy_avail = false;
 static int *axis_vals = NULL;
 static int *axis_map = NULL;
 
+extern cvar_t *sensitivity;
+
 qboolean OpenJoystick(cvar_t *);
 void PlatformJoyCommands(int *, int *);
+
+static int qax[6];
+
+/*
+ * This Joystick hack is meant to be used in the GCW Zero port of Quake 2.
+ * adapt at will. :)
+ */
+
+#ifdef FUCKSDL 
+//Pure freaking Linux events!
+FILE *joy = NULL;
+
+qboolean OpenJoystick(cvar_t *joy_dev)
+{
+	joy = fopen("/dev/js0", "r");
+	assert(joy!=NULL);
+	
+	fcntl(fileno(joy), F_SETFL, O_NONBLOCK); //We don't want our game waiting for input, amirite?
+	
+	return true;
+}
+
+qboolean CloseJoystick(void)
+{
+	close(fileno(joy));
+}
+
+void PlatformJoyCommands(int *axis_vals_, int *axis_map_)
+{
+	struct js_event ev;
+	
+	while(fread(&ev, sizeof(ev), 1, joy))
+	{		
+		switch(ev.type){
+			case JS_EVENT_AXIS:
+				axis_vals[ev.number] = (int)ev.value;
+				break;
+			default:
+				break;
+		} 	
+	}
+}
+#else
+//Use SDL, meh
+#include <SDL/SDL.h>
+SDL_Joystick *joy;
+
+qboolean OpenJoystick(cvar_t *joy_dev)
+{
+	if (!(SDL_INIT_JOYSTICK&SDL_WasInit(SDL_INIT_JOYSTICK))) {
+		assert(!SDL_Init(SDL_INIT_JOYSTICK));
+		ri.Con_Printf(PRINT_ALL, "SDL_INIT_JOYSTICK initialized\n");
+	}
+	
+	joy = SDL_JoystickOpen(0);
+	
+	assert(joy);
+
+	return true;
+}
+
+qboolean CloseJoystick(void)
+{
+	SDL_JoystickClose(joy);
+		joy = NULL;
+	
+	return true;
+}
+
+void PlatformJoyCommands(int *axis_vals_, int *axis_map_)
+{
+	SDL_JoystickUpdate();
+	
+	int i=0;
+	for (i=0;i<SDL_JoystickNumAxes(joy);i++)
+	{
+		axis_vals[i] = SDL_JoystickGetAxis(joy, i);
+	}
+}
+#endif
 
 void RW_IN_JoystickCommands() {
   PlatformJoyCommands(axis_vals, axis_map);
@@ -116,7 +211,7 @@ void RW_IN_InitJoystick() {
     
     ri.Cmd_AddCommand ("joy_advancedupdate", Joy_AdvancedUpdate_f);
     if ((joy_avail = OpenJoystick(joy_dev))) {
-      ri.Con_Printf(PRINT_ALL, "Joystick Activated");
+      ri.Con_Printf(PRINT_ALL, "Joystick Activated\n");
       Joy_AdvancedUpdate_f();
     }
   }
@@ -129,14 +224,11 @@ void RW_IN_JoystickMove(usercmd_t *cmd, qboolean mlooking,
   if (joy_avail) {
     // Start
     float speed, aspeed;
-    float jforward = ((float)axis_vals[1])/32768.0;
-    float jside = ((float)axis_vals[3])/32768.0;
-    float jup = ((float)axis_vals[5])/32768.0;
-    float jturn = ((float)axis_vals[4])/32768.0;
-    float jlook = ((float)axis_vals[2])/32768.0;
-
-    //ri.Con_Printf(PRINT_ALL, "%g %g %g %g %g\n", 
-    //jforward, jside, jup, jturn, jlook);
+    float jforward = 	((float)axis_vals[2])/32768.0;
+    float jside = 	((float)axis_vals[2])/32768.0;
+    float jup = 	((float)axis_vals[2])/32768.0;
+    float jturn = 	((float)axis_vals[0])/32768.0;
+    float jlook = 	((float)axis_vals[1])/32768.0;
 
     if (((*in_state->in_speed_state) & 1) || cl_run->value!=0.0)
       speed = 2;
@@ -187,7 +279,7 @@ void RW_IN_JoystickMove(usercmd_t *cmd, qboolean mlooking,
       // user wants turn control to be turn control
       if (fabs(jturn) > joy_yawthreshold->value) {
 	in_state->viewangles[YAW] += 
-	  (jturn*joy_yawsensitivity->value)*aspeed*cl_yawspeed->value;
+	(jturn*-(sensitivity->value/4.f))*aspeed*cl_yawspeed->value;
       }
     }
     
@@ -195,7 +287,7 @@ void RW_IN_JoystickMove(usercmd_t *cmd, qboolean mlooking,
       if (fabs(jlook) > joy_pitchthreshold->value) {
 	// pitch movement detected and pitch movement desired by user
 	in_state->viewangles[PITCH] += 
-	  (jlook*joy_pitchsensitivity->value) * aspeed*cl_pitchspeed->value;
+	  (jlook*-(sensitivity->value/4.f)) * ((m_pitch->value > 0) ? -1 : 1) * aspeed*cl_pitchspeed->value;
       }
       //}
 

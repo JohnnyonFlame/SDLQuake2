@@ -242,8 +242,8 @@ qboolean VID_LoadRefresh( char *name )
 	snprintf (fn, MAX_OSPATH, "%s/%s", path, name );
 	
 	if (stat(fn, &st) == -1) {
-		path = Cvar_Get ("libdir", DEFAULT_LIBDIR, CVAR_NOSET)->string;
-		snprintf (fn, MAX_OSPATH, "%s/%s", path, name );
+		path = getenv("PWD");
+		snprintf (fn, MAX_OSPATH, "%s/%s", getenv("PWD"), name );
 		if (stat(fn, &st) == -1) {
 			Com_Printf( "LoadLibrary(\"%s\") failed: %s\n", name, strerror(errno));
 			return false;

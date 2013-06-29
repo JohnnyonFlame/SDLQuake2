@@ -1,0 +1,11 @@
+
+[Desktop Entry]
+Name=Quake II
+Comment=SDLQuake II port for OpenDingux
+Exec=sdlquake2
+Terminal=false
+Type=Application
+StartupNotify=true
+Icon=q2
+Categories=games
+Name[en_US]=default.gcw0

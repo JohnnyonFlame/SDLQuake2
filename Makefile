@@ -12,26 +12,26 @@
 # (Note: not all options are available for all platforms).
 # quake2 (uses OSS for sound, cdrom ioctls for cd audio) is automatically built.
 # game$(ARCH).so is automatically built.
-BUILD_SDLQUAKE2=NO	# sdlquake2 executable (uses SDL for cdrom and sound)
+BUILD_SDLQUAKE2=YES	# sdlquake2 executable (uses SDL for cdrom and sound)
 BUILD_SVGA=NO		# SVGAlib driver. Seems to work fine.
-BUILD_X11=YES		# X11 software driver. Works somewhat ok.
-BUILD_GLX=YES		# X11 GLX driver. Works somewhat ok.
+BUILD_X11=NO		# X11 software driver. Works somewhat ok.
+BUILD_GLX=NO		# X11 GLX driver. Works somewhat ok.
 BUILD_FXGL=NO		# FXMesa driver. Not tested. (used only for V1 and V2).
 BUILD_SDL=YES		# SDL software driver. Works fine for some people.
-BUILD_SDLGL=YES		# SDL OpenGL driver. Works fine for some people.
+BUILD_SDLGL=NO		# SDL OpenGL driver. Works fine for some people.
 BUILD_CTFDLL=YES	# game$(ARCH).so for ctf
 BUILD_XATRIX=NO		# game$(ARCH).so for xatrix (see README.r for details)
 BUILD_ROGUE=NO		# game$(ARCH).so for rogue (see README.r for details)
 BUILD_JOYSTICK=YES	# build in joystick support
 BUILD_ARTS=NO		# build in support for libaRts sound.
 BUILD_ALSA=NO		# build in support for ALSA (default sound on 2.6)
-BUILD_DEDICATED=NO	# build a dedicated quake2 server
+BUILD_DEDICATED=YES	# build a dedicated quake2 server
 BUILD_AA=NO		# build the ascii soft renderer.
 BUILD_QMAX=NO		# build the fancier GL graphics
 BUILD_RETEXTURE=YES	# build a version supporting retextured graphics
 BUILD_REDBLUE=NO	# build a red-blue 3d glasses renderer...
 STATICSDL=NO
-SDLDIR=/usr/local/lib
+SDLDIR=/opt/gcw0-toolchain/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/lib
 
 # Other compile-time options:
 # Compile with IPv6 (protocol independent API). Tested on FreeBSD
@@ -58,21 +58,23 @@ endif
 
 
 # this nice line comes from the linux kernel makefile
-ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc/ -e s/sparc64/sparc/ -e s/arm.*/arm/ -e s/sa110/arm/ -e s/alpha/axp/)
+ARCH := gcw
 
 ifneq ($(ARCH),x86_64)
 ifneq ($(ARCH),i386)
 ifneq ($(ARCH),axp)
 ifneq ($(ARCH),ppc)
 ifneq ($(ARCH),sparc)
+ifneq ($(ARCH),gcw)
 $(error arch $(ARCH) is currently not supported)
 endif
 endif
 endif
 endif
 endif
+endif
 
-CC=gcc
+CC=mipsel-linux-gcc
 
 ifndef OPT_CFLAGS
 ifeq ($(ARCH),axp)
@@ -87,7 +89,11 @@ endif
 
 ifeq ($(ARCH),sparc)
 OPT_CFLAGS=-ffast-math -funroll-loops \
-	-fomit-frame-pointer -fexpensive-optimizations
+	-fomit-frame-pointer -fexpensive-optimizations -D__sparc__
+endif
+
+ifeq ($(ARCH),gcw)
+OPT_CFLAGS= -O2 -fomit-frame-pointer -ffunction-sections -ffast-math -fsingle-precision-constant -G0 -D__gcw__
 endif
 
 ifeq ($(ARCH),i386)
@@ -375,6 +381,36 @@ ifeq ($(ARCH),x86_64)
 endif # ARCH x86_64
 
 ifeq ($(ARCH),i386)
+ ifeq ($(strip $(BUILD_SDLQUAKE2)),YES)
+  TARGETS += $(BUILDDIR)/sdlquake2
+ endif
+
+ ifeq ($(strip $(BUILD_SVGA)),YES)
+  TARGETS += $(BUILDDIR)/ref_soft.$(SHLIBEXT)
+ endif
+
+ ifeq ($(strip $(BUILD_X11)),YES)
+  TARGETS += $(BUILDDIR)/ref_softx.$(SHLIBEXT)
+ endif
+
+ ifeq ($(strip $(BUILD_GLX)),YES)
+  TARGETS += $(BUILDDIR)/ref_glx.$(SHLIBEXT)
+ endif
+
+ ifeq ($(strip $(BUILD_FXGL)),YES)
+  TARGETS += $(BUILDDIR)/ref_gl.$(SHLIBEXT)
+ endif
+
+ ifeq ($(strip $(BUILD_SDL)),YES)
+  TARGETS += $(BUILDDIR)/ref_softsdl.$(SHLIBEXT)
+ endif
+
+ ifeq ($(strip $(BUILD_SDLGL)),YES)
+  TARGETS += $(BUILDDIR)/ref_sdlgl.$(SHLIBEXT)
+ endif
+endif # ARCH i386
+
+ifeq ($(ARCH),gcw)
  ifeq ($(strip $(BUILD_SDLQUAKE2)),YES)
   TARGETS += $(BUILDDIR)/sdlquake2
  endif

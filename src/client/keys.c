@@ -156,6 +156,26 @@ keyname_t keynames[] =
 	{NULL,0}
 };
 
+keyname_t keynames_clean[] =
+{
+	{"L SHOULDER", K_TAB},
+	{"START", K_ENTER},
+	{"SELECT", K_ESCAPE},
+	{"X", K_SPACE},
+	{"R SHOULDER", K_BACKSPACE},
+	{"UP", K_UPARROW},
+	{"DOWN", K_DOWNARROW},
+	{"LEFT", K_LEFTARROW},
+	{"RIGHT", K_RIGHTARROW},
+	
+	{"B", K_ALT},
+	{"A", K_CTRL},
+	{"Y", K_SHIFT},
+	
+	{NULL,0}
+};
+
+
 /*
 ==============================================================================
 
@@ -488,16 +508,37 @@ char *Key_KeynumToString (int keynum)
 		return "<KEY NOT FOUND>";
 	if (keynum > 32 && keynum < 127)
 	{	// printable ascii
-		tinystr[0] = keynum;
-		tinystr[1] = 0;
-		return tinystr;
+	tinystr[0] = keynum;
+	tinystr[1] = 0;
+	return tinystr;
 	}
 	
 	for (kn=keynames ; kn->name ; kn++)
 		if (keynum == kn->keynum)
 			return kn->name;
+		
+		return "<UNKNOWN KEYNUM>";
+}
 
-	return "<UNKNOWN KEYNUM>";
+char *Key_KeynumToString_clean (int keynum)
+{
+	keyname_t	*kn;	
+	static	char	tinystr[2];
+	
+	if (keynum == -1)
+		return "?";
+	if (keynum > 32 && keynum < 127)
+	{	// printable ascii
+	tinystr[0] = keynum;
+	tinystr[1] = 0;
+	return "?";
+	}
+	
+	for (kn=keynames_clean ; kn->name ; kn++)
+		if (keynum == kn->keynum)
+			return kn->name;
+		
+		return "?";
 }
 
 

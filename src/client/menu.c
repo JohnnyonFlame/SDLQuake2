@@ -158,7 +158,7 @@ const char *Default_MenuKey( menuframework_s *m, int key )
 
 	switch ( key )
 	{
-	case K_ESCAPE:
+	case K_ALT:
 		M_PopMenu();
 		return menu_out_sound;
 	case K_KP_UPARROW:
@@ -247,7 +247,7 @@ const char *Default_MenuKey( menuframework_s *m, int key )
 	case K_AUX32:
 		
 	case K_KP_ENTER:
-	case K_ENTER:
+	case K_CTRL:
 		if ( m )
 			Menu_SelectItem( m );
 		sound = menu_move_sound;
@@ -443,7 +443,7 @@ const char *M_Main_Key (int key)
 
 	switch (key)
 	{
-	case K_ESCAPE:
+	case K_ALT:
 		M_PopMenu ();
 		break;
 
@@ -460,7 +460,7 @@ const char *M_Main_Key (int key)
 		return sound;
 
 	case K_KP_ENTER:
-	case K_ENTER:
+	case K_CTRL:
 		m_entersound = true;
 
 		switch (m_main_cursor)
@@ -719,16 +719,28 @@ static void DrawKeyBindingFunc( void *self )
 		int x;
 		const char *name;
 
-		name = Key_KeynumToString (keys[0]);
-
-		Menu_DrawString( a->generic.x + a->generic.parent->x + 16, a->generic.y + a->generic.parent->y, name );
-
-		x = strlen(name) * 8;
-
-		if (keys[1] != -1)
+		name = Key_KeynumToString_clean (keys[0]);
+		if (!strcmp(name, "?")) {
+			if (keys[1] != -1 && !!strcmp(Key_KeynumToString_clean (keys[1]), "?"))
+			{
+				Menu_DrawString( a->generic.x + a->generic.parent->x + 16, a->generic.y + a->generic.parent->y,  Key_KeynumToString_clean (keys[1]));
+			}
+			else
+			{
+				Menu_DrawString( a->generic.x + a->generic.parent->x + 16, a->generic.y + a->generic.parent->y, "???" );
+			}
+		}
+		else
 		{
-			Menu_DrawString( a->generic.x + a->generic.parent->x + 24 + x, a->generic.y + a->generic.parent->y, "or" );
-			Menu_DrawString( a->generic.x + a->generic.parent->x + 48 + x, a->generic.y + a->generic.parent->y, Key_KeynumToString (keys[1]) );
+			Menu_DrawString( a->generic.x + a->generic.parent->x + 16, a->generic.y + a->generic.parent->y, name );
+			
+			x = strlen(name) * 8;
+			
+			if (keys[1] != -1 && !!strcmp(Key_KeynumToString_clean (keys[1]), "?"))
+			{
+				Menu_DrawString( a->generic.x + a->generic.parent->x + 24 + x, a->generic.y + a->generic.parent->y, "or" );
+				Menu_DrawString( a->generic.x + a->generic.parent->x + 48 + x, a->generic.y + a->generic.parent->y, Key_KeynumToString_clean (keys[1]) );
+			}
 		}
 	}
 }
@@ -967,7 +979,7 @@ static void Keys_MenuInit( void )
 
 	Menu_AddItem( &s_keys_menu, ( void * ) &s_keys_help_computer_action );
 	
-	Menu_SetStatusBar( &s_keys_menu, "enter to change, backspace to clear" );
+	Menu_SetStatusBar( &s_keys_menu, "A to change, Y to clear" );
 	Menu_Center( &s_keys_menu );
 }
 
@@ -991,7 +1003,7 @@ static const char *Keys_MenuKey( int key )
 			Cbuf_InsertText (cmd);
 		}
 		
-		Menu_SetStatusBar( &s_keys_menu, "enter to change, backspace to clear" );
+		Menu_SetStatusBar( &s_keys_menu, "A to change, Y to clear" );
 		bind_grab = false;
 		return menu_out_sound;
 	}
@@ -999,11 +1011,11 @@ static const char *Keys_MenuKey( int key )
 	switch ( key )
 	{
 	case K_KP_ENTER:
-	case K_ENTER:
+	case K_CTRL:
 		KeyBindingFunc( item );
 		return menu_in_sound;
 	case K_BACKSPACE:		// delete bindings
-	case K_DEL:				// delete bindings
+	case K_SHIFT:				// delete bindings
 	case K_KP_DEL:
 		M_UnbindCommand( bindnames[item->generic.localdata[0]][0] );
 		return menu_out_sound;
@@ -1127,7 +1139,7 @@ static void ControlsSetMenuItemValues( void )
 
 static void ControlsResetDefaultsFunc( void *unused )
 {
-	Cbuf_AddText ("exec default.cfg\n");
+	Cbuf_AddText ("exec default_gcw.cfg\n");
 	Cbuf_Execute();
 
 	ControlsSetMenuItemValues();
@@ -1320,7 +1332,7 @@ void Options_MenuInit( void )
 	s_options_sensitivity_slider.generic.type	= MTYPE_SLIDER;
 	s_options_sensitivity_slider.generic.x		= 0;
 	s_options_sensitivity_slider.generic.y		= 60;
-	s_options_sensitivity_slider.generic.name	= "mouse speed";
+	s_options_sensitivity_slider.generic.name	= "analog speed";
 	s_options_sensitivity_slider.generic.callback = MouseSpeedFunc;
 	s_options_sensitivity_slider.minvalue		= 2;
 	s_options_sensitivity_slider.maxvalue		= 22;
@@ -1335,7 +1347,7 @@ void Options_MenuInit( void )
 	s_options_invertmouse_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_invertmouse_box.generic.x	= 0;
 	s_options_invertmouse_box.generic.y	= 80;
-	s_options_invertmouse_box.generic.name	= "invert mouse";
+	s_options_invertmouse_box.generic.name	= "invert analog";
 	s_options_invertmouse_box.generic.callback = InvertMouseFunc;
 	s_options_invertmouse_box.itemnames = yesno_names;
 
@@ -1864,7 +1876,7 @@ const char *M_Credits_Key( int key )
 {
 	switch (key)
 	{
-	case K_ESCAPE:
+	case K_ALT:
 		if (creditsBuffer)
 			FS_FreeFile (creditsBuffer);
 		M_PopMenu ();
@@ -2164,7 +2176,7 @@ void LoadGame_MenuDraw( void )
 
 const char *LoadGame_MenuKey( int key )
 {
-	if ( key == K_ESCAPE || key == K_ENTER )
+	if ( key == K_ALT || key == K_CTRL )
 	{
 		s_savegame_menu.cursor = s_loadgame_menu.cursor - 1;
 		if ( s_savegame_menu.cursor < 0 )
@@ -2234,7 +2246,7 @@ void SaveGame_MenuInit( void )
 
 const char *SaveGame_MenuKey( int key )
 {
-	if ( key == K_ENTER || key == K_ESCAPE )
+	if ( key == K_CTRL || key == K_ALT )
 	{
 		s_loadgame_menu.cursor = s_savegame_menu.cursor - 1;
 		if ( s_loadgame_menu.cursor < 0 )
@@ -2774,7 +2786,7 @@ void StartServer_MenuDraw(void)
 
 const char *StartServer_MenuKey( int key )
 {
-	if ( key == K_ESCAPE )
+	if ( key == K_ALT )
 	{
 		if ( mapnames )
 		{
@@ -3378,7 +3390,7 @@ void AddressBook_MenuInit( void )
 
 const char *AddressBook_MenuKey( int key )
 {
-	if ( key == K_ESCAPE )
+	if ( key == K_ALT )
 	{
 		int index;
 		char buffer[20];
@@ -3898,7 +3910,7 @@ const char *PlayerConfig_MenuKey (int key)
 {
 	int i;
 
-	if ( key == K_ESCAPE )
+	if ( key == K_ALT )
 	{
 		char scratch[1024];
 
@@ -3973,11 +3985,14 @@ const char *M_Quit_Key (int key)
 	case K_ESCAPE:
 	case 'n':
 	case 'N':
+	case K_ALT:
 		M_PopMenu ();
 		break;
 
 	case 'Y':
 	case 'y':
+	case K_ENTER:
+	case K_CTRL:
 		cls.key_dest = key_console;
 		CL_Quit_f ();
 		break;

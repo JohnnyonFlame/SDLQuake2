@@ -63,7 +63,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <dlfcn.h>
 #if defined (__linux__)
 #include <sys/vt.h>
-#include <asm/io.h>
 #endif
 #include <aalib.h>
 

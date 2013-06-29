@@ -89,9 +89,11 @@ static cvar_t	*_windowed_mouse;
  * Joystick
  ************************/
 #ifdef Joystick
+#if 0
 static SDL_Joystick *joy;
 static int joy_oldbuttonstate;
 static int joy_numbuttons;
+#endif
 #endif
 
 void RW_IN_PlatformInit() {
@@ -99,6 +101,7 @@ void RW_IN_PlatformInit() {
 }
 
 #ifdef Joystick
+#if 0
 qboolean CloseJoystick(void) {
   if (joy) {
     SDL_JoystickClose(joy);
@@ -111,6 +114,9 @@ void PlatformJoyCommands(int *axis_vals, int *axis_map) {
   int i;
   int key_index;
   in_state_t *in_state = getState();
+  
+  SDL_PumpEvents();
+  
   if (joy) {
     for (i=0 ; i < joy_numbuttons ; i++) {
       if ( SDL_JoystickGetButton(joy, i) && joy_oldbuttonstate!=i ) {
@@ -125,11 +131,13 @@ void PlatformJoyCommands(int *axis_vals, int *axis_map) {
 	joy_oldbuttonstate = i;
       }
     }
-    for (i=0;i<6;i++) {
+    for (i=0;i<SDL_JoystickNumAxes(joy);i++) {
       axis_vals[axis_map[i]] = (int)SDL_JoystickGetAxis(joy, i);
+      printf("axis %i: %i\n", i, SDL_JoystickGetAxis(joy, i));
     }
   }
 }
+#endif
 #endif
 
 
@@ -385,6 +393,7 @@ void GetEvent(SDL_Event *event)
 }
 
 #ifdef Joystick
+#if 0
 qboolean OpenJoystick(cvar_t *joy_dev) {
   int num_joysticks, i;
   joy = NULL;
@@ -418,6 +427,7 @@ qboolean OpenJoystick(cvar_t *joy_dev) {
   }
   return true;
 }
+#endif
 #endif
 
 
