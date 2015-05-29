@@ -765,7 +765,7 @@ void Key_Init (void)
 	keyshift['`'] = '~';
 	keyshift['\\'] = '|';
 
-	menubound[K_ESCAPE] = true;
+	menubound[K_ENTER] = true;
 	for (i=0 ; i<12 ; i++)
 		menubound[K_F1+i] = true;
 
@@ -835,10 +835,10 @@ void Key_Event (int key, qboolean down, unsigned time)
 	// any key during the attract mode will bring up the menu
 	if (cl.attractloop && cls.key_dest != key_menu &&
 		!(key >= K_F1 && key <= K_F12))
-		key = K_ESCAPE;
+		key = K_ENTER;
 
 	// menu key is hardcoded, so the user can never unbind it
-	if (key == K_ESCAPE)
+	if (key == K_ENTER)
 	{
 		if (!down)
 			return;
