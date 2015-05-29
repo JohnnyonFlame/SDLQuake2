@@ -995,7 +995,7 @@ static const char *Keys_MenuKey( int key )
 
 	if ( bind_grab )
 	{	
-		if ( key != K_ESCAPE && key != '`' )
+		if ( key != K_ENTER && key != '`' )
 		{
 			char cmd[1024];
 
