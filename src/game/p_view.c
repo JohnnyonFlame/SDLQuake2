@@ -828,7 +828,12 @@ void G_SetClientSound (edict_t *ent)
 		ent->client->pers.helpchanged++;
 		gi.sound (ent, CHAN_VOICE, gi.soundindex ("misc/pc_up.wav"), 1, ATTN_STATIC, 0);
 	}
-
+	
+	// Send message to player ONCE
+	if (ent->client->pers.helpchanged == 1)
+	{
+		gi.centerprintf (ent, "Current objective:\n\n%s\n%s", game.helpmessage1, game.helpmessage2);
+	}
 
 	if (ent->client->pers.weapon)
 		weap = ent->client->pers.weapon->classname;
