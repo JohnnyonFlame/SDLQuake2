@@ -819,21 +819,18 @@ void G_SetClientSound (edict_t *ent)
 	if (ent->client->pers.game_helpchanged != game.helpchanged)
 	{
 		ent->client->pers.game_helpchanged = game.helpchanged;
-		ent->client->pers.helpchanged = 1;
+		ent->client->pers.helpchanged = level.framenum;
 	}
 
 	// help beep (no more than three times)
-	if (ent->client->pers.helpchanged && ent->client->pers.helpchanged <= 3 && !(level.framenum&63) )
-	{
-		ent->client->pers.helpchanged++;
+	if (!((level.framenum - ent->client->pers.helpchanged) / 64) && !((level.framenum - ent->client->pers.helpchanged) & 63))
+	{			
+		if (level.framenum == ent->client->pers.helpchanged)
+			gi.centerprintf (ent, "Current objective:\n\n%s\n%s", game.helpmessage1, game.helpmessage2);
+			
 		gi.sound (ent, CHAN_VOICE, gi.soundindex ("misc/pc_up.wav"), 1, ATTN_STATIC, 0);
 	}
 	
-	// Send message to player ONCE
-	if (ent->client->pers.helpchanged == 1)
-	{
-		gi.centerprintf (ent, "Current objective:\n\n%s\n%s", game.helpmessage1, game.helpmessage2);
-	}
 
 	if (ent->client->pers.weapon)
 		weap = ent->client->pers.weapon->classname;
